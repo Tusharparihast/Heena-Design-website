@@ -11,14 +11,14 @@ import { cn } from "@/lib/utils";
 const C = 200;
 
 /** Deterministic jitter so each stroke draws at a slightly different pace. */
-function draw(delay: number, seed: number): React.CSSProperties {
+function draw(delay: number, seed: number): CSSProperties {
   const n = Math.abs(Math.sin(seed * 12.9898) * 43758.5453) % 1;
   const dur = 2.4 + n * 1.6; // 2.4s – 4.0s
   const jitter = (n - 0.5) * 0.24; // ±0.12s uneven start
   return {
     animationDelay: `${(delay + jitter).toFixed(2)}s`,
     ["--draw-dur" as string]: `${dur.toFixed(2)}s`,
-  } as React.CSSProperties;
+  } as CSSProperties;
 }
 
 
