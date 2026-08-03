@@ -6,18 +6,15 @@ and edit these files directly.
 
 ## 1. All text, English + Chinese
 
-**`src/i18n/dictionaries.ts`** — this is the single source of every word on the site.
+Copy is split by language:
 
-It exports two big objects:
+- **`src/i18n/en.ts`** — every English string (`export const en = { ... }`).
+- **`src/i18n/zh.ts`** — every 简体中文 string (`export const zh: Dict = { ... }`).
+- **`src/i18n/dictionaries.ts`** — tiny registry that just re-exports both.
 
-```ts
-export const en = { nav: {...}, hero: {...}, courses: {...}, ... }
-export const zh: Dict = { nav: {...}, hero: {...}, ... }        // 简体中文
-export const dictionaries = { en, zh }
-```
+Both files have identical key structure, so if you add a key to `en.ts` you must
+add the same key to `zh.ts` (TypeScript will flag it if you forget).
 
-- `en` = English copy, `zh` = Chinese copy. They have identical shapes, so if you
-  add a key to `en` you must add the same key to `zh`.
 - Sections inside: `nav`, `common`, `hero`, `about`, `why`, `courses`,
   `traditional`, `modern`, `gallery`, `studentWorkPage`, `galleryPage`, `video`,
   `testimonials`, `faq`, `contact`, `coursesPage`, `booking`, `footer`.

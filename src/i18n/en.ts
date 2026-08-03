@@ -1,0 +1,372 @@
+/**
+ * English copy for the whole site.
+ * Edit any string here; keep the same keys in zh.ts.
+ */
+export const en = {
+  nav: {
+    home: "Home",
+    gallery: "Gallery",
+    courses: "Courses",
+    custom: "Custom Design",
+    about: "About",
+    contact: "Contact",
+  },
+  common: {
+    comingSoon: "Coming soon",
+    comingSoonBody:
+      "This page is being prepared. In the meantime, explore the homepage or message us directly.",
+    backHome: "Back to home",
+    talkToUs: "Talk to us",
+    viewGallery: "View gallery",
+    learnMore: "Learn more",
+    placeholder: "Placeholder — final content to be confirmed",
+  },
+  hero: {
+    eyebrow: "Maitidevi, Kathmandu",
+    title1: "Traditional Art",
+    title2: "Modern Creativity",
+    title3: "Learn Authentic Mehndi",
+    body: "A home studio for bridal, festival and everyday henna — and a place to learn the craft properly, hand to hand.",
+    cta: "Book a consultation",
+    secondary: "See our work",
+  },
+  about: {
+    label: "About Mehndi",
+    title: "An art drawn in patience",
+    body1:
+      "Mehndi is more than decoration. Every vine, dot and paisley carries meaning — blessing, celebration, protection. We keep those roots intact while drawing for today's brides and clients.",
+    body2:
+      "Our studio in Maitidevi is small on purpose. Whether you sit for a bridal session or a lesson, you get the artist's full attention.",
+    stat1: "Years of practice",
+    stat2: "Hands adorned",
+    stat3: "Students taught",
+  },
+  why: {
+    label: "Why Learn Mehndi",
+    title: "A skill you can carry anywhere",
+    items: [
+      {
+        title: "Earn from your hands",
+        body: "Weddings, festivals and private events need artists all year round.",
+      },
+      {
+        title: "Learn the real technique",
+        body: "Cone rolling, paste consistency, pressure control and clean line work.",
+      },
+      {
+        title: "Traditional and modern",
+        body: "Bridal, Arabic and Indo-western styles taught side by side.",
+      },
+      {
+        title: "Small in-person batches",
+        body: "Taught face to face at our Maitidevi studio, with hands-on correction.",
+      },
+    ],
+  },
+  courses: {
+    label: "Courses",
+    title: "Learn step by step",
+    note: "Course details below are placeholders and will be confirmed with the studio owner.",
+    duration: "Duration",
+    level: "Level",
+    cta: "Ask about this course",
+    items: [
+      {
+        name: "Beginner Foundation",
+        level: "Beginner",
+        duration: "2 weeks",
+        body: "Cone handling, basic motifs, dots, vines and simple finger designs.",
+      },
+      {
+        name: "Bridal Intensive",
+        level: "Intermediate",
+        duration: "4 weeks",
+        body: "Full hand and feet bridal layouts, portrait work, symmetry and speed.",
+      },
+      {
+        name: "Modern & Arabic",
+        level: "Intermediate",
+        duration: "3 weeks",
+        body: "Arabic flow, minimal designs, glitter and contemporary styling.",
+      },
+    ],
+  },
+  traditional: {
+    label: "Traditional Designs",
+    title: "Rooted in ritual",
+    body: "Dense bridal work, Rajasthani and Marwari motifs, portrait panels and full-coverage feet designs — drawn the way they have been for generations.",
+    tags: ["Bridal", "Rajasthani", "Marwari", "Feet", "Portrait"],
+  },
+  modern: {
+    label: "Modern Designs",
+    title: "Light, clean, contemporary",
+    body: "Minimal wrist bands, negative space, floral trails and Arabic flow — designed for parties, photoshoots and everyday wear.",
+    tags: ["Minimal", "Arabic", "Floral", "Festival", "Glitter"],
+  },
+  gallery: {
+    label: "Gallery",
+    title: "Selected work",
+    body: "A preview of our design categories. Open the gallery to browse and search everything.",
+    cta: "Open gallery",
+    categories: [
+      "Traditional Bridal",
+      "Arabic",
+      "Minimal",
+      "Modern",
+      "Festival",
+      "Floral",
+      "Finger Designs",
+      "Back Hand",
+    ],
+  },
+  studentWorkPage: {
+    label: "Student Work",
+    title: "Student Mehndi Work",
+    intro:
+      "Practice pieces, assessment designs and progress shots from students in our in-person courses. Images are placeholders until real student work is added.",
+  },
+  galleryPage: {
+    title: "Gallery",
+    intro:
+      "Browse our mehndi work by category or search by style. Images are placeholders until the studio's own photos are added.",
+    search: "Search designs",
+    all: "All",
+    results: "designs",
+    empty: "No designs match that search yet.",
+    loadMore: "Load more",
+    note: "Images are watermarked and loaded in small batches so the page stays fast on slow connections.",
+    close: "Close",
+    prev: "Previous design",
+    next: "Next design",
+    zoom: "Zoom",
+    fullscreen: "Fullscreen",
+  },
+
+  video: {
+    label: "Watch",
+    title: "See the cone in motion",
+    body: "A short demonstration of a bridal motif, from first line to finished panel.",
+    play: "Play demo video",
+    note: "Demo video placeholder — real footage to be added.",
+  },
+  testimonials: {
+    label: "Testimonials",
+    title: "What students and clients say",
+    items: [
+      {
+        quote:
+          "I came in never having held a cone. Six weeks later I did my cousin's bridal mehndi myself.",
+        name: "Sneha K.",
+        role: "Student",
+      },
+      {
+        quote:
+          "The design lasted beautifully through the whole wedding and the colour was so deep.",
+        name: "Priya M.",
+        role: "Bridal client",
+      },
+      {
+        quote: "Patient teaching, and she corrects your hand position until it is right.",
+        name: "Li Wen",
+        role: "Student",
+      },
+    ],
+  },
+  faq: {
+    label: "FAQ",
+    title: "Questions, answered",
+    items: [
+      {
+        q: "Do I need any experience to join a course?",
+        a: "No. The foundation course starts from holding the cone correctly.",
+      },
+      {
+        q: "How do I book an appointment?",
+        a: "Contact us first on WeChat, WhatsApp or phone. We confirm the date and time with you directly.",
+      },
+      {
+        q: "What does a design cost?",
+        a: "Pricing depends on the design size and detail, so it is discussed directly with the studio.",
+      },
+      {
+        q: "Do you teach online?",
+        a: "For now, classes are in person only, at our home studio in Maitidevi.",
+      },
+      {
+        q: "Do you travel for weddings?",
+        a: "Yes, for weddings and private events inside the Kathmandu valley. Ask us for details.",
+      },
+    ],
+  },
+  contact: {
+    label: "Contact",
+    title: "Let's talk",
+    body: "Message us to book an appointment, ask about a course, or request a custom design.",
+    wechat: "WeChat",
+    whatsapp: "WhatsApp",
+    phone: "Phone",
+    instagram: "Instagram",
+    facebook: "Facebook",
+    email: "Email",
+    hours: "Studio hours",
+    location: "Location",
+    directions: "Get directions",
+  },
+  coursesPage: {
+    hero: {
+      eyebrow: "In-person courses · Maitidevi, Kathmandu",
+      title: "Learn mehndi properly, hand to hand",
+      body: "Small in-person batches at our home studio. You practise on real hands from the first week, with correction at every stroke.",
+      cta: "Ask about a course",
+      secondary: "See student work",
+    },
+    highlights: [
+      { title: "Small batches", body: "A handful of students per batch so every hand gets corrected." },
+      { title: "Tools provided", body: "Cones, paste, practice sheets and stencils are included during class." },
+      { title: "Certificate", body: "A studio completion certificate after your final assessment design." },
+      { title: "Practice time", body: "Open practice hours at the studio during working hours." },
+    ],
+    detailLabels: {
+      level: "Level",
+      duration: "Duration",
+      schedule: "Schedule",
+      batch: "Batch size",
+      price: "Fee",
+      includes: "What's included",
+      learn: "What you'll learn",
+      enquire: "Enquire about this course",
+    },
+    priceNote: "Fees are confirmed directly with the studio.",
+    note: "Course details are placeholders and will be confirmed with the studio owner.",
+    items: [
+      {
+        id: "foundation",
+        name: "Beginner Foundation",
+        level: "Beginner",
+        duration: "2 weeks",
+        schedule: "5 days a week · 2 hours a day",
+        batch: "3–4 students",
+        price: "Discussed with the studio",
+        body: "Start from zero: how to roll and hold a cone, control pressure, and draw clean, confident lines.",
+        learn: [
+          "Cone rolling and paste consistency",
+          "Dots, teardrops, vines and paisleys",
+          "Simple finger and wrist designs",
+          "Basic hand layout and spacing",
+        ],
+        includes: ["Cones and paste", "Practice sheets", "Design reference book"],
+      },
+      {
+        id: "bridal",
+        name: "Bridal Intensive",
+        level: "Intermediate",
+        duration: "4 weeks",
+        schedule: "5 days a week · 3 hours a day",
+        batch: "2–3 students",
+        price: "Discussed with the studio",
+        body: "Full bridal work: dense hand and feet layouts, portrait panels, symmetry between both hands and working at speed.",
+        learn: [
+          "Full front and back hand bridal layouts",
+          "Feet designs and leg panels",
+          "Portrait and figure panels",
+          "Symmetry, timing and client handling",
+        ],
+        includes: ["Cones and paste", "Bridal layout templates", "Completion certificate"],
+      },
+      {
+        id: "modern",
+        name: "Modern & Arabic",
+        level: "Intermediate",
+        duration: "3 weeks",
+        schedule: "4 days a week · 2 hours a day",
+        batch: "3–4 students",
+        price: "Discussed with the studio",
+        body: "Contemporary styles for parties and photoshoots: Arabic flow, negative space, glitter and stone work.",
+        learn: [
+          "Arabic flow and bold strokes",
+          "Minimal and negative-space designs",
+          "Floral trails and festival bands",
+          "Glitter, stones and finishing",
+        ],
+        includes: ["Cones and paste", "Glitter and stone kit", "Completion certificate"],
+      },
+    ],
+    process: {
+      title: "How joining works",
+      steps: [
+        { title: "Message us", body: "Tell us your level and which course interests you." },
+        { title: "Short call or visit", body: "We agree on timing, batch and fees together." },
+        { title: "Start practising", body: "Come to the studio with nothing but your hands." },
+      ],
+    },
+    faqTitle: "Course questions",
+    faq: [
+      { q: "Do I need to bring anything?", a: "No. Cones, paste and practice materials are provided during class." },
+      { q: "Can I choose my timing?", a: "Timings are flexible between 9 AM and 9 PM, agreed when you join." },
+      { q: "Is there a certificate?", a: "Yes, a studio completion certificate after your final assessment design." },
+      { q: "Are classes online?", a: "No. All teaching is in person at our Maitidevi home studio." },
+    ],
+  },
+  booking: {
+    hero: {
+      eyebrow: "Custom design requests",
+      title: "Tell us the design you have in mind",
+      body: "Weddings, festivals and private events. Build your request in three quick steps, then send it to us on the channel you prefer.",
+    },
+    steps: ["Choose a style", "Add references", "Describe & send"],
+    style: {
+      title: "Traditional or modern?",
+      traditional: {
+        name: "Traditional",
+        body: "Dense bridal work, Rajasthani and Marwari motifs, portrait panels, full feet coverage.",
+      },
+      modern: {
+        name: "Modern",
+        body: "Arabic flow, minimal bands, negative space, floral trails, glitter finishes.",
+      },
+      both: { name: "Not sure yet", body: "Show us references and we'll suggest the right direction." },
+    },
+    occasion: {
+      title: "Occasion",
+      options: ["Wedding", "Festival", "Private event", "Just for me"],
+    },
+    upload: {
+      title: "Reference images",
+      body: "Add up to 4 references. They stay on your device — attach them in the chat when you message us.",
+      button: "Choose images",
+      remove: "Remove",
+      hint: "JPG or PNG, up to 4 images.",
+    },
+    details: {
+      title: "Details",
+      name: "Your name",
+      namePh: "Name",
+      date: "Preferred date",
+      people: "Number of people",
+      placement: "Placement",
+      placementOptions: ["Front hand", "Back hand", "Both hands", "Feet", "Arms", "Other"],
+      notes: "Anything else?",
+      notesPh: "Describe the design, size, timing or anything we should know.",
+    },
+    summary: {
+      title: "Your request",
+      send: "Send on WhatsApp",
+      wechat: "Copy for WeChat",
+      email: "Send by email",
+      copy: "Copy message",
+      copied: "Copied",
+      note: "Appointments are confirmed only after talking with the studio. Prices are discussed directly.",
+    },
+    next: "Next",
+    back: "Back",
+    required: "Choose a style to continue.",
+  },
+  footer: {
+    tagline: "Traditional and modern mehndi, taught and drawn in Kathmandu.",
+    explore: "Explore",
+    reach: "Reach us",
+    rights: "All rights reserved.",
+  },
+};
+
+export type Dict = typeof en;
