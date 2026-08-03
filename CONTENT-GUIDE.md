@@ -18,6 +18,10 @@ add the same key to `zh.ts` (TypeScript will flag it if you forget).
 - Sections inside: `nav`, `common`, `hero`, `about`, `why`, `courses`,
   `traditional`, `modern`, `gallery`, `studentWorkPage`, `galleryPage`, `video`,
   `testimonials`, `faq`, `contact`, `coursesPage`, `booking`, `footer`.
+- `testimonials.items` now contains `photo` (initials or image key), `rating`,
+  `review`, `name`, `role`, `country`, `before`, and `after`. Use gallery keys
+  such as `bridal-1`, `modern-1`, etc. for `before`/`after` images; add new keys
+  in `src/components/home/TestimonialsSection.tsx` if you add more photos.
 - Components read it with `const { t } = useLanguage()` and then `t.hero.title1`.
 
 **`src/i18n/LanguageProvider.tsx`** — the EN / 中文 toggle logic, saves the choice
