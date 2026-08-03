@@ -148,10 +148,17 @@ export function TestimonialsSection() {
             className="flex flex-col rounded-2xl border border-border bg-card p-6 text-center"
           >
             <div className="mx-auto">
-              <Avatar value={item.photo} />
+              <Avatar value={item.photo} name={item.name} />
             </div>
-            <div className="mt-4 flex justify-center">
-              <StarRating rating={item.rating} />
+            <div className="mt-4">
+              <p className="text-sm font-semibold text-foreground">{item.name}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                <span aria-label={item.country}>
+                  {countryFlags[item.country] ?? ""} {item.country}
+                </span>
+                <span className="mx-1">·</span>
+                {item.role}
+              </p>
             </div>
             <blockquote className="mt-4 text-sm leading-relaxed">{item.review}</blockquote>
             <BeforeAfter
@@ -160,15 +167,7 @@ export function TestimonialsSection() {
               beforeLabel={beforeLabel}
               afterLabel={afterLabel}
             />
-            <figcaption className="mt-5 text-xs text-muted-foreground">
-              <span className="font-medium text-foreground">{item.name}</span>
-              <span className="mx-1">·</span>
-              {item.role}
-              <span className="mx-1">·</span>
-              <span aria-label={item.country}>
-                {countryFlags[item.country] ?? ""} {item.country}
-              </span>
-            </figcaption>
+
           </figure>
         ))}
       </div>
