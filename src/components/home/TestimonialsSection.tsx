@@ -106,7 +106,7 @@ function BeforeAfter({ before, after, beforeLabel, afterLabel }: { before: strin
         draggable={false}
         className="aspect-[4/3] w-full object-cover"
       />
-      <div className="absolute inset-0 overflow-hidden" style={{ width: `${pos}%` }}>
+      <div className="absolute inset-0" style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}>
         <img
           src={resolveImage(before)}
           alt={beforeLabel}
@@ -114,7 +114,6 @@ function BeforeAfter({ before, after, beforeLabel, afterLabel }: { before: strin
           decoding="async"
           draggable={false}
           className="h-full w-full object-cover"
-          style={{ width: frameRef.current ? `${frameRef.current.clientWidth}px` : "100%", maxWidth: "none" }}
         />
       </div>
       <span className="pointer-events-none absolute left-2 top-2 rounded-full bg-background/80 px-2 py-0.5 text-[10px] font-medium text-foreground/80 backdrop-blur-sm">
