@@ -1,4 +1,6 @@
+import type { CSSProperties } from "react";
 import { cn } from "@/lib/utils";
+
 
 /**
  * Lightweight SVG "mehndi cone drawing" animation.
