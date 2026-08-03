@@ -56,8 +56,24 @@ export function GalleryPreview() {
 
 export function VideoSection() {
   const { t } = useLanguage();
-  // Nothing is downloaded until the visitor presses play — kind to slow connections.
   const [playing, setPlaying] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+
+  // Inline player + controls.
+  const video = (
+    <video
+      src={demoVideo}
+      poster={demoPoster}
+      controls
+      controlsList="nofullscreen"
+      autoPlay={playing}
+      muted
+      playsInline
+      preload="metadata"
+      className="aspect-video w-full bg-black"
+      aria-label={t.video.title}
+    />
+  );
 
   return (
     <Section id="video" className="bg-card">
@@ -65,17 +81,18 @@ export function VideoSection() {
         <SectionHeading label={t.video.label} title={t.video.title} body={t.video.body} />
         <div className="relative overflow-hidden rounded-2xl border border-border bg-secondary/60">
           {playing ? (
-            <video
-              src={demoVideo}
-              poster={demoPoster}
-              controls
-              autoPlay
-              muted
-              playsInline
-              preload="metadata"
-              className="aspect-video w-full object-cover"
-              aria-label={t.video.title}
-            />
+            <div className="relative">
+              {video}
+              <button
+                type="button"
+                onClick={() => setExpanded(true)}
+                aria-label={t.video.expand}
+                className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-background/85 px-3 py-1.5 text-xs font-medium text-foreground backdrop-blur-sm transition-colors hover:bg-background"
+              >
+                <Maximize2 className="h-3.5 w-3.5" aria-hidden />
+                {t.video.expand}
+              </button>
+            </div>
           ) : (
             <button
               type="button"
@@ -104,6 +121,33 @@ export function VideoSection() {
           )}
         </div>
       </div>
+
+      {/* Large centered box view instead of browser fullscreen so the video quality stays crisp. */}
+      {expanded && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 p-4 backdrop-blur-sm"
+          onClick={() => setExpanded(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={t.video.title}
+        >
+          <div
+            className="relative w-full max-w-5xl overflow-hidden rounded-2xl border border-border bg-card shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setExpanded(false)}
+              aria-label={t.video.close}
+              className="absolute right-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-background/85 px-3 py-1.5 text-xs font-medium text-foreground backdrop-blur-sm transition-colors hover:bg-background"
+            >
+              <X className="h-3.5 w-3.5" aria-hidden />
+              {t.video.close}
+            </button>
+            {video}
+          </div>
+        </div>
+      )}
     </Section>
   );
 }
