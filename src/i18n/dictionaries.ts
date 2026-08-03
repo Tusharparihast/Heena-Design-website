@@ -191,7 +191,7 @@ export const en = {
     reach: "Reach us",
     rights: "All rights reserved.",
   },
-} as const;
+};
 
 type Dict = typeof en;
 
