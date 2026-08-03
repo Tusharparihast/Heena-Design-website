@@ -77,4 +77,33 @@ export const galleryItems: GalleryItem[] = Array.from({ length: 40 }, (_, index)
   };
 });
 
+/** Student work — practice pieces and assessment designs by course students. */
+const studentWorkBases: {
+  src: string;
+  categories: CategoryId[];
+  en: string;
+  zh: string;
+}[] = [
+  { src: bridal, categories: ["bridal", "backhand"], en: "Student bridal panel", zh: "学员新娘满手作品" },
+  { src: arabic, categories: ["arabic", "fronthand"], en: "Student Arabic vine", zh: "学员阿拉伯流线" },
+  { src: minimal, categories: ["minimal", "finger"], en: "Student minimal band", zh: "学员极简手环" },
+  { src: modern, categories: ["modern", "backhand"], en: "Student modern mandala", zh: "学员现代曼陀罗" },
+  { src: floral, categories: ["floral", "fronthand"], en: "Student floral trail", zh: "学员花藤作品" },
+  { src: feet, categories: ["feet", "bridal"], en: "Student feet design", zh: "学员足部作品" },
+];
+
+export const studentWorkItems: GalleryItem[] = Array.from({ length: 24 }, (_, index) => {
+  const base = studentWorkBases[index % studentWorkBases.length]!;
+  const set = Math.floor(index / studentWorkBases.length) + 1;
+  return {
+    id: `student-${index + 1}`,
+    src: base.src,
+    width: 900,
+    height: 1125,
+    categories: base.categories,
+    en: `${base.en} ${set}`,
+    zh: `${base.zh} ${set}`,
+  };
+});
+
 export const GALLERY_PAGE_SIZE = 20;
