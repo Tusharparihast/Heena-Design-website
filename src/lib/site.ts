@@ -1,12 +1,12 @@
 export const site = {
-  /** Placeholder brand name — easy to change in one place once decided. */
-  name: "Rachana Mehndi Studio",
-  shortName: "Rachana",
+  /** Brand name — easy to change in one place. */
+  name: "Nagma Designs",
+  shortName: "Nagma Designs",
   city: "Maitidevi, Kathmandu",
   hours: "9:00 AM – 9:00 PM",
   phone: "+977 98XXXXXXXX",
-  email: "hello@rachanamehndi.com",
-  wechatId: "rachana-mehndi",
+  email: "hello@nagmadesigns.com",
+  wechatId: "nagma-designs",
   whatsapp: "+9779800000000",
   instagram: "https://instagram.com/",
   facebook: "https://facebook.com/",
