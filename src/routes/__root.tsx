@@ -150,6 +150,8 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
+        <MehndiBackdrop />
+        <CursorMehndi />
         <div className="flex min-h-screen flex-col">
           <Navbar />
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
