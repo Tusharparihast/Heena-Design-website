@@ -39,12 +39,12 @@ function CoursesPage() {
           <p className="mt-5 max-w-2xl text-muted-foreground">{c.hero.body}</p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
-              to="/"
-              hash="contact"
+              to="/contact"
               className="inline-flex items-center rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
               {c.hero.cta}
             </Link>
+
             <Link
               to="/student-work"
               className="inline-flex items-center rounded-full border border-border px-6 py-3 text-sm font-medium transition-colors hover:bg-accent"
