@@ -33,12 +33,12 @@ function CustomDesignPage() {
 
   const [step, setStep] = useState(0);
   const [style, setStyle] = useState<StyleKey | null>(null);
-  const [occasion, setOccasion] = useState<string>(b.occasion.options[0]);
+  const [occasion, setOccasion] = useState<string>(b.occasion.options[0] ?? "");
   const [files, setFiles] = useState<{ name: string; url: string }[]>([]);
   const [name, setName] = useState("");
   const [date, setDate] = useState("");
   const [people, setPeople] = useState("1");
-  const [placement, setPlacement] = useState<string>(b.details.placementOptions[0]);
+  const [placement, setPlacement] = useState<string>(b.details.placementOptions[0] ?? "");
   const [notes, setNotes] = useState("");
   const [copied, setCopied] = useState(false);
 
