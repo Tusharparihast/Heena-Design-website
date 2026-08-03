@@ -29,9 +29,8 @@ function GalleryPage() {
         {t.gallery.label}
       </p>
       <h1 className="mt-3 text-4xl font-semibold sm:text-5xl">{t.galleryPage.title}</h1>
-      <p className="mt-4 max-w-2xl text-muted-foreground">{t.galleryPage.intro}</p>
 
-      <div className="mt-10">
+      <div className="mt-6">
         <GalleryBrowser />
       </div>
     </main>
