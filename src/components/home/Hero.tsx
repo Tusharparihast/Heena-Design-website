@@ -82,14 +82,32 @@ export function Hero() {
           <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center text-[color:var(--henna)]/85 drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
             <MehndiPattern className="max-h-[520px]" />
           </div>
-          <img
-            src={heroHand}
-            width={1200}
-            height={1400}
-            alt="Hand decorated with an intricate traditional bridal mehndi design"
-            className="aspect-[6/7] w-full rounded-[2rem] object-cover"
-            style={{ boxShadow: "var(--shadow-soft)" }}
-          />
+          {playVideo ? (
+            <video
+              src={heroVideo}
+              poster={heroHand}
+              width={1200}
+              height={1400}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              aria-label="Artist applying henna mehndi to a hand"
+              className="aspect-[6/7] w-full rounded-[2rem] object-cover"
+              style={{ boxShadow: "var(--shadow-soft)" }}
+            />
+          ) : (
+            <img
+              src={heroHand}
+              width={1200}
+              height={1400}
+              alt="Hand decorated with an intricate traditional bridal mehndi design"
+              className="aspect-[6/7] w-full rounded-[2rem] object-cover"
+              style={{ boxShadow: "var(--shadow-soft)" }}
+            />
+          )}
+
         </div>
       </div>
     </section>
