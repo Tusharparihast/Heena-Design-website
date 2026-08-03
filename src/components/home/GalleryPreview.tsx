@@ -2,6 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { Play } from "lucide-react";
 import { Section, SectionHeading } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { galleryItems } from "@/lib/gallery";
+
 
 export function GalleryPreview() {
   const { t } = useLanguage();
