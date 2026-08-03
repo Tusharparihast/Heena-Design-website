@@ -56,6 +56,7 @@ function ShopPage() {
       };
     }
     document.body.classList.remove("overflow-hidden");
+    return undefined;
   }, [selected]);
 
   useEffect(() => {
