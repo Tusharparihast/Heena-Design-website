@@ -187,54 +187,17 @@
   font-family: var(--font-display);
 }
 
-/* Mehndi cone draw-on animation — uneven, hand-drawn pacing with micro-pauses */
+/* Mehndi cone draw-on animation */
 @keyframes mehndi-draw {
-  0% {
-    stroke-dashoffset: 1200;
-    opacity: 0.35;
-  }
-  6% {
-    opacity: 0.75;
-  }
-  14% {
-    stroke-dashoffset: 930;
-  }
-  20% {
-    /* cone lifts for a beat */
-    stroke-dashoffset: 918;
-  }
-  38% {
-    stroke-dashoffset: 600;
-  }
-  44% {
-    stroke-dashoffset: 588;
-  }
-  50% {
-    opacity: 0.92;
-  }
-  70% {
-    stroke-dashoffset: 250;
-  }
-  76% {
-    stroke-dashoffset: 238;
-  }
-  94% {
-    stroke-dashoffset: 14;
-  }
-  100% {
+  to {
     stroke-dashoffset: 0;
-    opacity: 1;
   }
 }
 
 @keyframes mehndi-fade-up {
   from {
     opacity: 0;
-    transform: translateY(10px) scale(0.7);
-  }
-  60% {
-    opacity: 1;
-    transform: translateY(0) scale(1.12);
+    transform: translateY(14px);
   }
   to {
     opacity: 1;
@@ -245,13 +208,12 @@
 @utility mehndi-path {
   stroke-dasharray: 1200;
   stroke-dashoffset: 1200;
-  animation: mehndi-draw var(--draw-dur, 3.2s) cubic-bezier(0.45, 0.05, 0.3, 1) forwards;
+  animation: mehndi-draw 3.2s ease-out forwards;
 }
 
 @utility fade-up {
-  animation: mehndi-fade-up 0.7s cubic-bezier(0.34, 1.4, 0.5, 1) both;
+  animation: mehndi-fade-up 0.7s ease-out both;
 }
-
 
 @media (prefers-reduced-motion: reduce) {
   *,

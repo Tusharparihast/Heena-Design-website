@@ -1,6 +1,4 @@
-import type { CSSProperties } from "react";
 import { cn } from "@/lib/utils";
-
 
 /**
  * Lightweight SVG "mehndi cone drawing" animation.
@@ -9,18 +7,6 @@ import { cn } from "@/lib/utils";
  */
 
 const C = 200;
-
-/** Deterministic jitter so each stroke draws at a slightly different pace. */
-function draw(delay: number, seed: number): CSSProperties {
-  const n = Math.abs(Math.sin(seed * 12.9898) * 43758.5453) % 1;
-  const dur = 2.4 + n * 1.6; // 2.4s – 4.0s
-  const jitter = (n - 0.5) * 0.24; // ±0.12s uneven start
-  return {
-    animationDelay: `${(delay + jitter).toFixed(2)}s`,
-    ["--draw-dur" as string]: `${dur.toFixed(2)}s`,
-  } as CSSProperties;
-}
-
 
 /** Scalloped (petal edge) ring, the classic mehndi border. */
 function scallopRing(radius: number, count: number, depth: number) {
@@ -58,12 +44,12 @@ export function MehndiPattern({ className }: { className?: string }) {
         <path
           d={scallopRing(146, 24, 10)}
           className="mehndi-path"
-          style={draw(0.1, 1)}
+          style={{ animationDelay: "0.1s" }}
         />
         <path
           d={scallopRing(138, 24, 7)}
           className="mehndi-path"
-          style={draw(0.35, 2)}
+          style={{ animationDelay: "0.35s" }}
         />
       </g>
 
@@ -74,12 +60,12 @@ export function MehndiPattern({ className }: { className?: string }) {
             <path
               d="M200 68 C226 84, 232 116, 214 132 C202 143, 184 138, 182 124 C180 111, 192 103, 200 110"
               className="mehndi-path"
-              style={draw(0.6 + i * 0.12, 5 + i)}
+              style={{ animationDelay: `${0.6 + i * 0.12}s` }}
             />
             <path
               d="M203 82 C218 94, 220 114, 209 124"
               className="mehndi-path"
-              style={draw(0.75 + i * 0.12, 6 + i)}
+              style={{ animationDelay: `${0.75 + i * 0.12}s` }}
             />
           </g>
         ))}
@@ -92,17 +78,17 @@ export function MehndiPattern({ className }: { className?: string }) {
             <path
               d="M200 128 C196 108, 204 92, 200 74"
               className="mehndi-path"
-              style={draw(1.3 + i * 0.07, 7 + i)}
+              style={{ animationDelay: `${1.3 + i * 0.07}s` }}
             />
             <path
               d="M200 116 C209 111, 213 102, 210 94 C202 96, 198 106, 200 116 Z"
               className="mehndi-path"
-              style={draw(1.45 + i * 0.07, 8 + i)}
+              style={{ animationDelay: `${1.45 + i * 0.07}s` }}
             />
             <path
               d="M200 100 C191 96, 187 88, 189 80 C197 83, 202 92, 200 100 Z"
               className="mehndi-path"
-              style={draw(1.55 + i * 0.07, 9 + i)}
+              style={{ animationDelay: `${1.55 + i * 0.07}s` }}
             />
           </g>
         ))}
@@ -113,7 +99,7 @@ export function MehndiPattern({ className }: { className?: string }) {
         <path
           d={scallopRing(58, 14, 9)}
           className="mehndi-path"
-          style={draw(1.9, 3)}
+          style={{ animationDelay: "1.9s" }}
         />
         {Array.from({ length: 7 }).map((_, i) => (
           <path
@@ -121,7 +107,7 @@ export function MehndiPattern({ className }: { className?: string }) {
             d="M200 156 C212 170, 212 190, 200 202 C188 190, 188 170, 200 156 Z"
             transform={`rotate(${i * 51.4} 200 200)`}
             className="mehndi-path"
-            style={draw(2.1 + i * 0.08, 10 + i)}
+            style={{ animationDelay: `${2.1 + i * 0.08}s` }}
           />
         ))}
         <circle
@@ -129,7 +115,7 @@ export function MehndiPattern({ className }: { className?: string }) {
           cy="200"
           r="9"
           className="mehndi-path"
-          style={draw(2.7, 4)}
+          style={{ animationDelay: "2.7s" }}
         />
       </g>
 
@@ -146,7 +132,7 @@ export function MehndiPattern({ className }: { className?: string }) {
               r={i % 3 === 0 ? 2.6 : 1.7}
               fill="currentColor"
               className="fade-up"
-              style={draw(2.4 + i * 0.03, 11 + i)}
+              style={{ animationDelay: `${2.4 + i * 0.03}s` }}
             />
           );
         })}
@@ -161,7 +147,7 @@ export function MehndiPattern({ className }: { className?: string }) {
               r="2.2"
               fill="currentColor"
               className="fade-up"
-              style={draw(2.8 + i * 0.05, 12 + i)}
+              style={{ animationDelay: `${2.8 + i * 0.05}s` }}
             />
           );
         })}
