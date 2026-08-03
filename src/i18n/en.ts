@@ -13,8 +13,7 @@ export const en = {
   },
   common: {
     comingSoon: "Coming soon",
-    comingSoonBody:
-      "This page is being prepared. In the meantime, explore the homepage or message us directly.",
+    comingSoonBody: "This page is being prepared. In the meantime, explore the homepage or message us directly.",
     backHome: "Back to home",
     talkToUs: "Talk to us",
     viewGallery: "View gallery",
@@ -22,7 +21,6 @@ export const en = {
     placeholder: "Placeholder — final content to be confirmed",
   },
   hero: {
-    eyebrow: "Maitidevi, Kathmandu",
     title1: "Traditional Art",
     title2: "Modern Creativity",
     title3: "Learn Authentic Mehndi",
@@ -154,14 +152,12 @@ export const en = {
     title: "What students and clients say",
     items: [
       {
-        quote:
-          "I came in never having held a cone. Six weeks later I did my cousin's bridal mehndi myself.",
+        quote: "I came in never having held a cone. Six weeks later I did my cousin's bridal mehndi myself.",
         name: "Sneha K.",
         role: "Student",
       },
       {
-        quote:
-          "The design lasted beautifully through the whole wedding and the colour was so deep.",
+        quote: "The design lasted beautifully through the whole wedding and the colour was so deep.",
         name: "Priya M.",
         role: "Bridal client",
       },
