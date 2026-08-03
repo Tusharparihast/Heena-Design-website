@@ -2,8 +2,32 @@ import { cn } from "@/lib/utils";
 
 /**
  * Lightweight SVG "mehndi cone drawing" animation.
+ * Hand-drawn style mandala: scalloped rings, paisleys, petals and dot work.
  * Pure CSS stroke-dashoffset animation — no JS, no 3D library.
  */
+
+const C = 200;
+
+/** Scalloped (petal edge) ring, the classic mehndi border. */
+function scallopRing(radius: number, count: number, depth: number) {
+  const step = (Math.PI * 2) / count;
+  let d = "";
+  for (let i = 0; i < count; i++) {
+    const a0 = i * step;
+    const a1 = a0 + step;
+    const x0 = C + radius * Math.cos(a0);
+    const y0 = C + radius * Math.sin(a0);
+    const x1 = C + radius * Math.cos(a1);
+    const y1 = C + radius * Math.sin(a1);
+    const am = a0 + step / 2;
+    const xm = C + (radius + depth) * Math.cos(am);
+    const ym = C + (radius + depth) * Math.sin(am);
+    if (i === 0) d += `M${x0.toFixed(1)} ${y0.toFixed(1)}`;
+    d += ` Q${xm.toFixed(1)} ${ym.toFixed(1)} ${x1.toFixed(1)} ${y1.toFixed(1)}`;
+  }
+  return `${d} Z`;
+}
+
 export function MehndiPattern({ className }: { className?: string }) {
   return (
     <svg
@@ -15,46 +39,118 @@ export function MehndiPattern({ className }: { className?: string }) {
       strokeLinejoin="round"
       aria-hidden
     >
-      <g strokeWidth="2.6">
-        <circle
-          cx="200"
-          cy="200"
-          r="150"
+      {/* outer scalloped border */}
+      <g strokeWidth="1.6">
+        <path
+          d={scallopRing(146, 24, 10)}
           className="mehndi-path"
           style={{ animationDelay: "0.1s" }}
         />
+        <path
+          d={scallopRing(138, 24, 7)}
+          className="mehndi-path"
+          style={{ animationDelay: "0.35s" }}
+        />
+      </g>
+
+      {/* paisley ring — the signature mehndi motif */}
+      <g strokeWidth="2">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <g key={`p${i}`} transform={`rotate(${i * 45} 200 200)`}>
+            <path
+              d="M200 68 C226 84, 232 116, 214 132 C202 143, 184 138, 182 124 C180 111, 192 103, 200 110"
+              className="mehndi-path"
+              style={{ animationDelay: `${0.6 + i * 0.12}s` }}
+            />
+            <path
+              d="M203 82 C218 94, 220 114, 209 124"
+              className="mehndi-path"
+              style={{ animationDelay: `${0.75 + i * 0.12}s` }}
+            />
+          </g>
+        ))}
+      </g>
+
+      {/* fine vine + leaf work between paisleys */}
+      <g strokeWidth="1.3">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <g key={`v${i}`} transform={`rotate(${i * 45 + 22.5} 200 200)`}>
+            <path
+              d="M200 128 C196 108, 204 92, 200 74"
+              className="mehndi-path"
+              style={{ animationDelay: `${1.3 + i * 0.07}s` }}
+            />
+            <path
+              d="M200 116 C209 111, 213 102, 210 94 C202 96, 198 106, 200 116 Z"
+              className="mehndi-path"
+              style={{ animationDelay: `${1.45 + i * 0.07}s` }}
+            />
+            <path
+              d="M200 100 C191 96, 187 88, 189 80 C197 83, 202 92, 200 100 Z"
+              className="mehndi-path"
+              style={{ animationDelay: `${1.55 + i * 0.07}s` }}
+            />
+          </g>
+        ))}
+      </g>
+
+      {/* inner lotus core */}
+      <g strokeWidth="1.8">
+        <path
+          d={scallopRing(58, 14, 9)}
+          className="mehndi-path"
+          style={{ animationDelay: "1.9s" }}
+        />
+        {Array.from({ length: 7 }).map((_, i) => (
+          <path
+            key={`l${i}`}
+            d="M200 156 C212 170, 212 190, 200 202 C188 190, 188 170, 200 156 Z"
+            transform={`rotate(${i * 51.4} 200 200)`}
+            className="mehndi-path"
+            style={{ animationDelay: `${2.1 + i * 0.08}s` }}
+          />
+        ))}
         <circle
           cx="200"
           cy="200"
-          r="118"
+          r="9"
           className="mehndi-path"
-          style={{ animationDelay: "0.5s" }}
+          style={{ animationDelay: "2.7s" }}
         />
-        {Array.from({ length: 12 }).map((_, i) => (
-          <path
-            key={i}
-            d="M200 82 C214 112, 214 138, 200 160 C186 138, 186 112, 200 82 Z"
-            transform={`rotate(${i * 30} 200 200)`}
-            className="mehndi-path"
-            style={{ animationDelay: `${0.8 + i * 0.09}s` }}
-          />
-        ))}
-        {Array.from({ length: 24 }).map((_, i) => (
-          <circle
-            key={`d${i}`}
-            cx="200"
-            cy="38"
-            r="3"
-            transform={`rotate(${i * 15} 200 200)`}
-            className="fade-up"
-            style={{ animationDelay: `${1.8 + i * 0.03}s` }}
-          />
-        ))}
-        <path
-          d="M200 178 C188 190, 188 210, 200 222 C212 210, 212 190, 200 178 Z"
-          className="mehndi-path"
-          style={{ animationDelay: "2.2s" }}
-        />
+      </g>
+
+      {/* dot work — uneven sizes so it reads hand-applied */}
+      <g strokeWidth="0">
+        {Array.from({ length: 24 }).map((_, i) => {
+          const a = (i / 24) * Math.PI * 2;
+          const r = 160;
+          return (
+            <circle
+              key={`d${i}`}
+              cx={(C + r * Math.cos(a)).toFixed(1)}
+              cy={(C + r * Math.sin(a)).toFixed(1)}
+              r={i % 3 === 0 ? 2.6 : 1.7}
+              fill="currentColor"
+              className="fade-up"
+              style={{ animationDelay: `${2.4 + i * 0.03}s` }}
+            />
+          );
+        })}
+        {Array.from({ length: 8 }).map((_, i) => {
+          const a = (i / 8) * Math.PI * 2 + Math.PI / 8;
+          const r = 78;
+          return (
+            <circle
+              key={`dd${i}`}
+              cx={(C + r * Math.cos(a)).toFixed(1)}
+              cy={(C + r * Math.sin(a)).toFixed(1)}
+              r="2.2"
+              fill="currentColor"
+              className="fade-up"
+              style={{ animationDelay: `${2.8 + i * 0.05}s` }}
+            />
+          );
+        })}
       </g>
     </svg>
   );
