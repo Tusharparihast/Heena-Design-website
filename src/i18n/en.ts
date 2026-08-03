@@ -146,7 +146,7 @@ export const en = {
     title: "See the cone in motion",
     body: "A short demonstration of a bridal motif, from first line to finished panel.",
     play: "Play demo video",
-    note: "Demo video placeholder — real footage to be added.",
+    note: "Short demo clip — tap to play. Nothing downloads until you press play.",
   },
   testimonials: {
     label: "Testimonials",
