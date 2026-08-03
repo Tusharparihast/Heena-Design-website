@@ -15,7 +15,7 @@ export function MehndiPattern({ className }: { className?: string }) {
       strokeLinejoin="round"
       aria-hidden
     >
-      <g strokeWidth="1.6">
+      <g strokeWidth="2.6">
         <circle
           cx="200"
           cy="200"
