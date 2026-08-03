@@ -102,7 +102,7 @@ export const en = {
   gallery: {
     label: "Gallery",
     title: "Selected work",
-    body: "A preview of our design categories. The full gallery is coming soon.",
+    body: "A preview of our design categories. Open the gallery to browse and search everything.",
     cta: "Open gallery",
     categories: [
       "Traditional Bridal",
@@ -115,6 +115,23 @@ export const en = {
       "Back Hand",
     ],
   },
+  galleryPage: {
+    title: "Gallery",
+    intro:
+      "Browse our mehndi work by category or search by style. Images are placeholders until the studio's own photos are added.",
+    search: "Search designs",
+    all: "All",
+    results: "designs",
+    empty: "No designs match that search yet.",
+    loadMore: "Load more",
+    note: "Images are watermarked and loaded in small batches so the page stays fast on slow connections.",
+    close: "Close",
+    prev: "Previous design",
+    next: "Next design",
+    zoom: "Zoom",
+    fullscreen: "Fullscreen",
+  },
+
   video: {
     label: "Watch",
     title: "See the cone in motion",
@@ -286,7 +303,7 @@ export const zh: Dict = {
   gallery: {
     label: "作品集",
     title: "精选作品",
-    body: "以下为设计分类预览，完整作品集即将上线。",
+    body: "以下为设计分类预览，点击进入作品集可浏览与搜索全部作品。",
     cta: "打开作品集",
     categories: [
       "传统新娘",
@@ -299,6 +316,22 @@ export const zh: Dict = {
       "手背",
     ],
   },
+  galleryPage: {
+    title: "作品集",
+    intro: "按分类浏览或按风格搜索我们的海娜作品。当前为占位图片，稍后将替换为工作室实拍。",
+    search: "搜索图案",
+    all: "全部",
+    results: "个图案",
+    empty: "暂无符合该搜索的图案。",
+    loadMore: "加载更多",
+    note: "图片均带水印，并分批加载，在网络较慢时也能快速浏览。",
+    close: "关闭",
+    prev: "上一张",
+    next: "下一张",
+    zoom: "放大",
+    fullscreen: "全屏",
+  },
+
   video: {
     label: "观看",
     title: "看锥笔如何落笔",
