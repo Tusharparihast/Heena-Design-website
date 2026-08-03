@@ -1,12 +1,30 @@
 import { Link } from "@tanstack/react-router";
 import { MessageCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 import heroHand from "@/assets/hero-hand.jpg";
+import heroVideoAsset from "@/assets/hero-mehndi.mp4.asset.json";
 import { MehndiPattern } from "@/components/site/MehndiPattern";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { site } from "@/lib/site";
 
+const heroVideo = heroVideoAsset.url;
+
 export function Hero() {
   const { t } = useLanguage();
+  // Only fetch the clip on capable connections — poster image is the fallback.
+  const [playVideo, setPlayVideo] = useState(false);
+
+  useEffect(() => {
+    const conn = (
+      navigator as Navigator & {
+        connection?: { saveData?: boolean; effectiveType?: string };
+      }
+    ).connection;
+    const slow = conn?.saveData || /2g/.test(conn?.effectiveType ?? "");
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!slow && !reduced) setPlayVideo(true);
+  }, []);
+
 
   return (
     <section className="relative overflow-hidden">
