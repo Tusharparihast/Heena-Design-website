@@ -2,12 +2,10 @@ import { Link } from "@tanstack/react-router";
 import { MessageCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import heroHand from "@/assets/hero-hand.jpg";
-import heroVideoAsset from "@/assets/hero-mehndi.mp4.asset.json";
+import heroVideo from "@/assets/hero-mehndi.mp4";
 import { MehndiPattern } from "@/components/site/MehndiPattern";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { site } from "@/lib/site";
-
-const heroVideo = heroVideoAsset.url;
 
 export function Hero() {
   const { t } = useLanguage();
