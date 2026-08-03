@@ -52,23 +52,52 @@ export function GalleryPreview() {
 
 export function VideoSection() {
   const { t } = useLanguage();
+  // Nothing is downloaded until the visitor presses play — kind to slow connections.
+  const [playing, setPlaying] = useState(false);
 
   return (
     <Section id="video" className="bg-card">
       <div className="grid items-center gap-10 lg:grid-cols-2">
         <SectionHeading label={t.video.label} title={t.video.title} body={t.video.body} />
-        <div className="relative flex aspect-video items-center justify-center rounded-2xl border border-border bg-secondary/60">
-          <button
-            type="button"
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground"
-            aria-label={t.video.play}
-          >
-            <Play className="h-4 w-4" aria-hidden />
-            {t.video.play}
-          </button>
-          <span className="absolute bottom-3 text-[11px] text-muted-foreground">
-            {t.video.note}
-          </span>
+        <div className="relative overflow-hidden rounded-2xl border border-border bg-secondary/60">
+          {playing ? (
+            <video
+              src={demoVideo}
+              poster={demoPoster}
+              controls
+              autoPlay
+              muted
+              playsInline
+              preload="metadata"
+              className="aspect-video w-full object-cover"
+              aria-label={t.video.title}
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={() => setPlaying(true)}
+              aria-label={t.video.play}
+              className="group relative block aspect-video w-full"
+            >
+              <img
+                src={demoPoster}
+                alt={t.video.title}
+                loading="lazy"
+                decoding="async"
+                draggable={false}
+                className="h-full w-full object-cover"
+              />
+              <span className="absolute inset-0 flex items-center justify-center bg-background/25 transition-colors group-hover:bg-background/10">
+                <span className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground">
+                  <Play className="h-4 w-4" aria-hidden />
+                  {t.video.play}
+                </span>
+              </span>
+              <span className="absolute inset-x-0 bottom-0 bg-background/70 px-3 py-2 text-[11px] text-muted-foreground backdrop-blur-sm">
+                {t.video.note}
+              </span>
+            </button>
+          )}
         </div>
       </div>
     </Section>
