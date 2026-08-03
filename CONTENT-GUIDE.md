@@ -12,14 +12,15 @@ It exports two big objects:
 
 ```ts
 export const en = { nav: {...}, hero: {...}, courses: {...}, ... }
-export const zh: typeof en = { nav: {...}, hero: {...}, ... }   // 简体中文
+export const zh: Dict = { nav: {...}, hero: {...}, ... }        // 简体中文
+export const dictionaries = { en, zh }
 ```
 
 - `en` = English copy, `zh` = Chinese copy. They have identical shapes, so if you
   add a key to `en` you must add the same key to `zh`.
-- Sections inside: `nav`, `hero`, `about`, `why`, `courses`, `designs`,
-  `galleryPreview`, `galleryPage`, `studentWork`, `customDesign`, `testimonials`,
-  `faq`, `contact`, `footer`.
+- Sections inside: `nav`, `common`, `hero`, `about`, `why`, `courses`,
+  `traditional`, `modern`, `gallery`, `studentWorkPage`, `galleryPage`, `video`,
+  `testimonials`, `faq`, `contact`, `coursesPage`, `booking`, `footer`.
 - Components read it with `const { t } = useLanguage()` and then `t.hero.title1`.
 
 **`src/i18n/LanguageProvider.tsx`** — the EN / 中文 toggle logic, saves the choice
