@@ -50,12 +50,16 @@ function ShopPage() {
   useEffect(() => {
     if (selected) {
       document.body.classList.add("overflow-hidden");
-      const timer = setTimeout(() => closeRef.current?.focus(), 50);
+      setMounted(false);
+      const mountTimer = setTimeout(() => setMounted(true), 10);
+      const focusTimer = setTimeout(() => closeRef.current?.focus(), 50);
       return () => {
         document.body.classList.remove("overflow-hidden");
-        clearTimeout(timer);
+        clearTimeout(mountTimer);
+        clearTimeout(focusTimer);
       };
     }
+    setMounted(false);
     document.body.classList.remove("overflow-hidden");
     return undefined;
   }, [selected]);
