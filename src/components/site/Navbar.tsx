@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Menu, X, Languages } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { site } from "@/lib/site";
@@ -51,12 +51,35 @@ export function Navbar() {
         <div className="flex items-center gap-2">
           <button
             type="button"
+            role="switch"
+            aria-checked={locale === "zh"}
+            aria-label={locale === "en" ? "Switch to Chinese" : "Switch to English"}
             onClick={toggleLocale}
-            className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-accent"
-            aria-label="Switch language"
+            className="relative inline-flex h-8 w-[5.25rem] items-center rounded-full border border-border bg-background p-0.5 transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
           >
-            <Languages className="h-3.5 w-3.5" aria-hidden />
-            {locale === "en" ? "中文" : "EN"}
+            <span
+              className={cn(
+                "absolute left-0.5 top-0.5 h-7 w-[calc(50%-2px)] rounded-full bg-primary transition-transform duration-200 ease-out",
+                locale === "zh" ? "translate-x-full" : "translate-x-0"
+              )}
+              aria-hidden
+            />
+            <span
+              className={cn(
+                "relative z-10 flex-1 text-center text-xs font-semibold transition-colors duration-200",
+                locale === "en" ? "text-primary-foreground" : "text-muted-foreground"
+              )}
+            >
+              EN
+            </span>
+            <span
+              className={cn(
+                "relative z-10 flex-1 text-center text-xs font-semibold transition-colors duration-200",
+                locale === "zh" ? "text-primary-foreground" : "text-muted-foreground"
+              )}
+            >
+              中文
+            </span>
           </button>
           <button
             type="button"
