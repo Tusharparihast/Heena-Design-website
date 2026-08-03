@@ -1,4 +1,5 @@
-import { ArrowDown, Star } from "lucide-react";
+import { useCallback, useRef, useState } from "react";
+import { Star } from "lucide-react";
 import { Section, SectionHeading } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import bridal1 from "@/assets/gallery/bridal-1.jpg";
@@ -66,37 +67,78 @@ function Avatar({ value }: { value: string }) {
 }
 
 function BeforeAfter({ before, after, beforeLabel, afterLabel }: { before: string; after: string; beforeLabel: string; afterLabel: string }) {
+  const [pos, setPos] = useState(50);
+  const frameRef = useRef<HTMLDivElement>(null);
+  const dragging = useRef(false);
+
+  const setFromClientX = useCallback((clientX: number) => {
+    const el = frameRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const next = ((clientX - rect.left) / rect.width) * 100;
+    setPos(Math.min(100, Math.max(0, next)));
+  }, []);
+
   return (
-    <div className="mt-5 grid gap-2">
-      <div className="relative overflow-hidden rounded-xl border border-border bg-secondary/40">
+    <div
+      ref={frameRef}
+      className="relative mt-5 select-none overflow-hidden rounded-xl border border-border bg-secondary/40 touch-none"
+      onPointerDown={(e) => {
+        dragging.current = true;
+        e.currentTarget.setPointerCapture(e.pointerId);
+        setFromClientX(e.clientX);
+      }}
+      onPointerMove={(e) => {
+        if (dragging.current) setFromClientX(e.clientX);
+      }}
+      onPointerUp={() => {
+        dragging.current = false;
+      }}
+      onPointerCancel={() => {
+        dragging.current = false;
+      }}
+    >
+      <img
+        src={resolveImage(after)}
+        alt={afterLabel}
+        loading="lazy"
+        decoding="async"
+        draggable={false}
+        className="aspect-[4/3] w-full object-cover"
+      />
+      <div className="absolute inset-0 overflow-hidden" style={{ width: `${pos}%` }}>
         <img
           src={resolveImage(before)}
           alt={beforeLabel}
           loading="lazy"
           decoding="async"
-          className="aspect-[4/3] w-full object-cover"
+          draggable={false}
+          className="h-full w-full object-cover"
+          style={{ width: frameRef.current ? `${frameRef.current.clientWidth}px` : "100%", maxWidth: "none" }}
         />
-        <span className="pointer-events-none absolute left-2 top-2 rounded-full bg-background/80 px-2 py-0.5 text-[10px] font-medium text-foreground/80 backdrop-blur-sm">
-          {beforeLabel}
-        </span>
       </div>
-      <div className="flex justify-center">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <ArrowDown className="h-4 w-4" aria-hidden="true" />
+      <span className="pointer-events-none absolute left-2 top-2 rounded-full bg-background/80 px-2 py-0.5 text-[10px] font-medium text-foreground/80 backdrop-blur-sm">
+        {beforeLabel}
+      </span>
+      <span className="pointer-events-none absolute right-2 top-2 rounded-full bg-background/80 px-2 py-0.5 text-[10px] font-medium text-foreground/80 backdrop-blur-sm">
+        {afterLabel}
+      </span>
+      <div className="pointer-events-none absolute inset-y-0 w-0.5 bg-background/90" style={{ left: `${pos}%` }}>
+        <div className="absolute top-1/2 left-1/2 flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-background text-primary shadow-md">
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <path d="M9 6 4 12l5 6M15 6l5 6-5 6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </div>
       </div>
-      <div className="relative overflow-hidden rounded-xl border border-border bg-secondary/40">
-        <img
-          src={resolveImage(after)}
-          alt={afterLabel}
-          loading="lazy"
-          decoding="async"
-          className="aspect-[4/3] w-full object-cover"
-        />
-        <span className="pointer-events-none absolute left-2 top-2 rounded-full bg-background/80 px-2 py-0.5 text-[10px] font-medium text-foreground/80 backdrop-blur-sm">
-          {afterLabel}
-        </span>
-      </div>
+      <input
+        type="range"
+        min={0}
+        max={100}
+        value={pos}
+        onChange={(e) => setPos(Number(e.target.value))}
+        aria-label={`${beforeLabel} / ${afterLabel}`}
+        className="absolute inset-x-0 bottom-0 h-8 w-full cursor-ew-resize opacity-0"
+      />
     </div>
   );
 }
