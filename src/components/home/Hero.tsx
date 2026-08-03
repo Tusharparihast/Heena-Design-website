@@ -1,12 +1,30 @@
 import { Link } from "@tanstack/react-router";
 import { MessageCircle } from "lucide-react";
+import { useEffect, useState } from "react";
 import heroHand from "@/assets/hero-hand.jpg";
+import heroVideoAsset from "@/assets/hero-mehndi.mp4.asset.json";
 import { MehndiPattern } from "@/components/site/MehndiPattern";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { site } from "@/lib/site";
 
+const heroVideo = heroVideoAsset.url;
+
 export function Hero() {
   const { t } = useLanguage();
+  // Only fetch the clip on capable connections — poster image is the fallback.
+  const [playVideo, setPlayVideo] = useState(false);
+
+  useEffect(() => {
+    const conn = (
+      navigator as Navigator & {
+        connection?: { saveData?: boolean; effectiveType?: string };
+      }
+    ).connection;
+    const slow = conn?.saveData || /2g/.test(conn?.effectiveType ?? "");
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!slow && !reduced) setPlayVideo(true);
+  }, []);
+
 
   return (
     <section className="relative overflow-hidden">
@@ -64,14 +82,32 @@ export function Hero() {
           <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center text-[color:var(--henna)]/85 drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
             <MehndiPattern className="max-h-[520px]" />
           </div>
-          <img
-            src={heroHand}
-            width={1200}
-            height={1400}
-            alt="Hand decorated with an intricate traditional bridal mehndi design"
-            className="aspect-[6/7] w-full rounded-[2rem] object-cover"
-            style={{ boxShadow: "var(--shadow-soft)" }}
-          />
+          {playVideo ? (
+            <video
+              src={heroVideo}
+              poster={heroHand}
+              width={1200}
+              height={1400}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              aria-label="Artist applying henna mehndi to a hand"
+              className="aspect-[6/7] w-full rounded-[2rem] object-cover"
+              style={{ boxShadow: "var(--shadow-soft)" }}
+            />
+          ) : (
+            <img
+              src={heroHand}
+              width={1200}
+              height={1400}
+              alt="Hand decorated with an intricate traditional bridal mehndi design"
+              className="aspect-[6/7] w-full rounded-[2rem] object-cover"
+              style={{ boxShadow: "var(--shadow-soft)" }}
+            />
+          )}
+
         </div>
       </div>
     </section>
