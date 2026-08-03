@@ -57,13 +57,14 @@ export function Hero() {
             {t.hero.body}
           </p>
           <div className="fade-up mt-8 flex flex-wrap gap-3" style={{ animationDelay: "0.85s" }}>
-            <a
-              href="#contact"
+            <Link
+              to="/contact"
               className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
               <MessageCircle className="h-4 w-4" aria-hidden />
               {t.hero.cta}
-            </a>
+            </Link>
+
             <Link
               to="/gallery"
               className="inline-flex items-center rounded-full border border-border px-6 py-3 text-sm font-medium transition-colors hover:bg-accent"
