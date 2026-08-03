@@ -1,6 +1,7 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Section, SectionHeading } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import bridal1 from "@/assets/gallery/bridal-1.jpg";
 import arabic1 from "@/assets/gallery/arabic-1.jpg";
 import minimal1 from "@/assets/gallery/minimal-1.jpg";
