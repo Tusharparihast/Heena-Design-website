@@ -8,12 +8,20 @@ import {
   galleryCategories,
   galleryItems,
   type CategoryId,
+  type GalleryItem,
 } from "@/lib/gallery";
 import { cn } from "@/lib/utils";
 
-export function GalleryBrowser() {
+type GalleryBrowserProps = {
+  items?: GalleryItem[];
+  categories?: { id: CategoryId; en: string; zh: string }[];
+  intro?: string;
+};
+
+export function GalleryBrowser({ items = galleryItems, categories = galleryCategories, intro }: GalleryBrowserProps) {
   const { t, locale } = useLanguage();
   const g = t.galleryPage;
+  const displayedIntro = intro ?? t.galleryPage.intro;
 
   const [category, setCategory] = useState<CategoryId | "all">("all");
   const [query, setQuery] = useState("");
@@ -22,14 +30,14 @@ export function GalleryBrowser() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return galleryItems.filter((item) => {
+    return items.filter((item) => {
       if (category !== "all" && !item.categories.includes(category)) return false;
       if (!q) return true;
       const haystack = [
         item.en,
         item.zh,
         ...item.categories.map((id) => {
-          const found = galleryCategories.find((c) => c.id === id);
+          const found = categories.find((c) => c.id === id);
           return `${found?.en ?? ""} ${found?.zh ?? ""}`;
         }),
       ]
@@ -37,7 +45,7 @@ export function GalleryBrowser() {
         .toLowerCase();
       return haystack.includes(q);
     });
-  }, [category, query]);
+  }, [category, query, items, categories]);
 
   const shown = filtered.slice(0, visible);
   const labelFor = (index: number) => {
@@ -52,7 +60,9 @@ export function GalleryBrowser() {
 
   return (
     <div>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <p className="mt-4 max-w-2xl text-muted-foreground">{displayedIntro}</p>
+
+      <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative w-full sm:max-w-xs">
           <Search
             className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground"
@@ -77,7 +87,7 @@ export function GalleryBrowser() {
           <Chip active={category === "all"} onClick={() => reset(() => setCategory("all"))}>
             {g.all}
           </Chip>
-          {galleryCategories.map((c) => (
+          {categories.map((c) => (
             <Chip
               key={c.id}
               active={category === c.id}
