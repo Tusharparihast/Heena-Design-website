@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { ChevronDown, MessageCircle, ShoppingBag, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { MessageCircle, ShoppingBag, X } from "lucide-react";
 import { Section, SectionHeading } from "@/components/site/Section";
 import { MehndiPattern } from "@/components/site/MehndiPattern";
 import { useLanguage } from "@/i18n/LanguageProvider";
@@ -33,7 +33,9 @@ function ShopPage() {
   const { t } = useLanguage();
   const s = t.shopPage;
   const [filter, setFilter] = useState<FilterKey>("all");
-  const [expanded, setExpanded] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const closeRef = useRef<HTMLButtonElement>(null);
 
   const items = useMemo(() => {
     const byId = new Map(s.items.map((i) => [i.id, i]));
@@ -43,13 +45,40 @@ function ShopPage() {
       .filter((p) => Boolean(p.copy));
   }, [filter, s.items]);
 
+  const selectedItem = useMemo(() => items.find((i) => i.id === selected), [items, selected]);
+
+  useEffect(() => {
+    if (selected) {
+      document.body.classList.add("overflow-hidden");
+      setMounted(false);
+      const mountTimer = setTimeout(() => setMounted(true), 10);
+      const focusTimer = setTimeout(() => closeRef.current?.focus(), 50);
+      return () => {
+        document.body.classList.remove("overflow-hidden");
+        clearTimeout(mountTimer);
+        clearTimeout(focusTimer);
+      };
+    }
+    setMounted(false);
+    document.body.classList.remove("overflow-hidden");
+    return undefined;
+  }, [selected]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSelected(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   const waLink = (productName?: string) =>
     `https://wa.me/${site.whatsapp.replace(/[^\d]/g, "")}?text=${encodeURIComponent(
       productName ? `Hello ${site.name}, I would like to order: ${productName}` : `Hello ${site.name}, I would like to order from your shop.`
     )}`;
 
   return (
-    <main>
+    <main className="relative">
       <section className="relative overflow-hidden border-b border-border bg-secondary/40 px-4 py-20 sm:py-24">
         <MehndiPattern className="pointer-events-none absolute -right-16 -bottom-24 h-80 w-80 opacity-20" />
         <div className="relative mx-auto max-w-6xl">
@@ -97,15 +126,12 @@ function ShopPage() {
         </div>
 
         <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((p) => {
-            const isExpanded = expanded === p.id;
-            return (
-              <li
-                key={p.id}
-                className={cn(
-                  "group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300",
-                  isExpanded ? "ring-1 ring-primary/30 shadow-lg" : "hover:border-primary/40"
-                )}
+          {items.map((p) => (
+            <li key={p.id}>
+              <button
+                type="button"
+                onClick={() => setSelected(p.id)}
+                className="group flex w-full flex-col overflow-hidden rounded-2xl border border-border bg-card text-left transition-all duration-300 hover:border-primary/40 hover:shadow-md"
               >
                 <div className="relative aspect-square overflow-hidden bg-secondary/40">
                   <img
@@ -126,56 +152,79 @@ function ShopPage() {
                 <div className="flex flex-1 flex-col p-5">
                   <h3 className="text-base font-semibold">{p.copy!.name}</h3>
                   <p className="mt-2 text-sm text-muted-foreground">{p.copy!.body}</p>
-                  <div className="mt-4 flex items-center justify-between gap-3">
-                    <span className="text-sm font-semibold text-primary">{p.copy!.price}</span>
-                    <button
-                      type="button"
-                      onClick={() => setExpanded(isExpanded ? null : p.id)}
-                      aria-expanded={isExpanded}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-xs font-medium transition-colors hover:bg-accent"
-                    >
-                      {isExpanded ? (
-                        <>
-                          <X className="h-3.5 w-3.5" aria-hidden />
-                          {s.hideDetails}
-                        </>
-                      ) : (
-                        <>
-                          <ChevronDown className="h-3.5 w-3.5" aria-hidden />
-                          {s.details}
-                        </>
-                      )}
-                    </button>
-                  </div>
-                  <div
-                    className={cn(
-                      "grid overflow-hidden transition-all duration-300 ease-out",
-                      isExpanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-                    )}
-                  >
-                    <div className="overflow-hidden">
-                      <div className="mt-4 border-t border-border pt-4">
-                        <p className="text-sm leading-relaxed text-foreground">{p.copy!.details}</p>
-                        <a
-                          href={waLink(p.copy!.name)}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-                        >
-                          <ShoppingBag className="h-4 w-4" aria-hidden />
-                          {s.order}
-                        </a>
-                      </div>
-                    </div>
-                  </div>
+                  <span className="mt-4 text-sm font-semibold text-primary">{p.copy!.price}</span>
+                  <span className="mt-2 inline-flex items-center gap-1.5 text-xs font-medium text-primary/80">
+                    {s.details} →
+                  </span>
                 </div>
-              </li>
-            );
-          })}
+              </button>
+            </li>
+          ))}
         </ul>
 
         <p className="mt-8 text-xs text-muted-foreground italic">{s.note}</p>
       </Section>
+
+      {selectedItem ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md bg-foreground/20"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setSelected(null);
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-label={selectedItem.copy!.name}
+        >
+          <div
+            className={cn(
+              "relative w-full max-w-3xl overflow-hidden rounded-2xl border border-border bg-card shadow-2xl transition-all duration-300 ease-out",
+              mounted ? "scale-100 opacity-100" : "scale-95 opacity-0"
+            )}
+          >
+            <button
+              ref={closeRef}
+              type="button"
+              onClick={() => setSelected(null)}
+              className="absolute top-3 right-3 z-10 rounded-full bg-background/80 p-2 text-foreground shadow-sm transition-colors hover:bg-accent"
+              aria-label="Close"
+            >
+              <X className="h-5 w-5" aria-hidden />
+            </button>
+            <div className="grid md:grid-cols-2">
+              <div className="relative aspect-square bg-secondary/40 md:aspect-auto">
+                <img
+                  src={shopImages[selectedItem.id]}
+                  alt={selectedItem.copy!.name}
+                  width={800}
+                  height={800}
+                  className="h-full w-full object-cover"
+                />
+                {selectedItem.featured ? (
+                  <span className="absolute top-3 left-3 rounded-full bg-primary px-3 py-1 text-[11px] font-semibold text-primary-foreground">
+                    {s.featured}
+                  </span>
+                ) : null}
+              </div>
+              <div className="flex flex-col p-6 sm:p-8">
+                <h2 className="text-2xl font-semibold">{selectedItem.copy!.name}</h2>
+                <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{selectedItem.copy!.details}</p>
+                <div className="mt-auto pt-6">
+                  <span className="text-xl font-semibold text-primary">{selectedItem.copy!.price}</span>
+                  <a
+                    href={waLink(selectedItem.copy!.name)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                  >
+                    <ShoppingBag className="h-4 w-4" aria-hidden />
+                    {s.order}
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }
