@@ -46,7 +46,7 @@ function CoursesPage() {
               {c.hero.cta}
             </Link>
             <Link
-              to="/gallery"
+              to="/student-work"
               className="inline-flex items-center rounded-full border border-border px-6 py-3 text-sm font-medium transition-colors hover:bg-accent"
             >
               {c.hero.secondary}

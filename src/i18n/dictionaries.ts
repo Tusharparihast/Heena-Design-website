@@ -115,6 +115,12 @@ export const en = {
       "Back Hand",
     ],
   },
+  studentWorkPage: {
+    label: "Student Work",
+    title: "Student Mehndi Work",
+    intro:
+      "Practice pieces, assessment designs and progress shots from students in our in-person courses. Images are placeholders until real student work is added.",
+  },
   galleryPage: {
     title: "Gallery",
     intro:
@@ -464,6 +470,11 @@ export const zh: Dict = {
       "手指图案",
       "手背",
     ],
+  },
+  studentWorkPage: {
+    label: "学员作品",
+    title: "学员海娜作品",
+    intro: "面授课程中学员的练习作品、结业评估与进步记录。当前为占位图片，稍后将替换为真实学员作品。",
   },
   galleryPage: {
     title: "作品集",

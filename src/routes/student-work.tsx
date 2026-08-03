@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { GalleryBrowser } from "@/components/gallery/GalleryBrowser";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { studentWorkItems } from "@/lib/gallery";
 
-const title = "Mehndi Gallery — Bridal, Arabic & Modern Henna Designs | Rachana";
+const title = "Student Mehndi Work — Beginner to Bridal Practice | Rachana";
 const description =
-  "Browse categorised mehndi designs: traditional bridal, Arabic, minimal, festival, floral, finger and feet designs by our Kathmandu studio.";
+  "See what students have created in our in-person mehndi courses: practice pieces, assessment designs and progress from beginner to bridal work.";
 
-export const Route = createFileRoute("/gallery")({
+export const Route = createFileRoute("/student-work")({
   head: () => ({
     meta: [
       { title },
@@ -17,21 +18,21 @@ export const Route = createFileRoute("/gallery")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: GalleryPage,
+  component: StudentWorkPage,
 });
 
-function GalleryPage() {
+function StudentWorkPage() {
   const { t } = useLanguage();
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
       <p className="text-xs font-semibold tracking-[0.24em] text-primary uppercase">
-        {t.gallery.label}
+        {t.studentWorkPage.label}
       </p>
-      <h1 className="mt-3 text-4xl font-semibold sm:text-5xl">{t.galleryPage.title}</h1>
+      <h1 className="mt-3 text-4xl font-semibold sm:text-5xl">{t.studentWorkPage.title}</h1>
 
       <div className="mt-6">
-        <GalleryBrowser />
+        <GalleryBrowser items={studentWorkItems} intro={t.studentWorkPage.intro} />
       </div>
     </main>
   );
