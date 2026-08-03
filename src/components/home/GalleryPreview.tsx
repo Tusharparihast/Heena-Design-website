@@ -2,6 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { Play } from "lucide-react";
 import { Section, SectionHeading } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { galleryItems } from "@/lib/gallery";
+
 
 export function GalleryPreview() {
   const { t } = useLanguage();
@@ -19,20 +21,31 @@ export function GalleryPreview() {
       </div>
 
       <ul className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        {t.gallery.categories.map((category) => (
-          <li key={category}>
+        {galleryItems.slice(0, 8).map((item, index) => (
+          <li key={item.id}>
             <Link
               to="/gallery"
-              className="group flex aspect-4/5 flex-col justify-end rounded-2xl border border-border bg-accent/50 p-4 transition-colors hover:bg-accent"
+              className="group relative block overflow-hidden rounded-2xl border border-border"
             >
-              <span className="text-sm font-medium group-hover:text-primary">{category}</span>
-              <span className="mt-1 text-[10px] text-muted-foreground">
-                {t.common.comingSoon}
+              <img
+                src={item.src}
+                alt={item.en}
+                width={item.width}
+                height={item.height}
+                loading="lazy"
+                decoding="async"
+                draggable={false}
+                onContextMenu={(event) => event.preventDefault()}
+                className="aspect-4/5 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <span className="absolute inset-x-0 bottom-0 bg-background/80 px-3 py-2 text-xs font-medium backdrop-blur-sm">
+                {t.gallery.categories[index]}
               </span>
             </Link>
           </li>
         ))}
       </ul>
+
     </Section>
   );
 }

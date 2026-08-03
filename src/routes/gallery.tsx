@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ComingSoon } from "@/components/site/ComingSoon";
+import { GalleryBrowser } from "@/components/gallery/GalleryBrowser";
 import { useLanguage } from "@/i18n/LanguageProvider";
 
 const title = "Mehndi Gallery — Bridal, Arabic & Modern Henna Designs | Rachana";
 const description =
-  "Browse categorised mehndi designs: traditional bridal, Arabic, minimal, festival, floral and finger designs by our Kathmandu studio.";
+  "Browse categorised mehndi designs: traditional bridal, Arabic, minimal, festival, floral, finger and feet designs by our Kathmandu studio.";
 
 export const Route = createFileRoute("/gallery")({
   head: () => ({
@@ -22,5 +22,18 @@ export const Route = createFileRoute("/gallery")({
 
 function GalleryPage() {
   const { t } = useLanguage();
-  return <ComingSoon heading={t.nav.gallery} />;
+
+  return (
+    <main className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
+      <p className="text-xs font-semibold tracking-[0.24em] text-primary uppercase">
+        {t.gallery.label}
+      </p>
+      <h1 className="mt-3 text-4xl font-semibold sm:text-5xl">{t.galleryPage.title}</h1>
+      <p className="mt-4 max-w-2xl text-muted-foreground">{t.galleryPage.intro}</p>
+
+      <div className="mt-10">
+        <GalleryBrowser />
+      </div>
+    </main>
+  );
 }
