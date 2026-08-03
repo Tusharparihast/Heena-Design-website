@@ -7,6 +7,7 @@ export const zh: Dict = {
     gallery: "作品集",
     courses: "课程",
     custom: "定制设计",
+    shop: "商店",
     about: "关于我们",
     contact: "联系我们",
   },

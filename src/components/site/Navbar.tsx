@@ -14,6 +14,7 @@ export function Navbar() {
     { to: "/gallery", label: t.nav.gallery },
     { to: "/courses", label: t.nav.courses },
     { to: "/custom-design", label: t.nav.custom },
+    { to: "/shop", label: t.nav.shop },
     { to: "/about", label: t.nav.about },
     { to: "/contact", label: t.nav.contact },
   ] as const;

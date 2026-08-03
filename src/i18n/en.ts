@@ -8,6 +8,7 @@ export const en = {
     gallery: "Gallery",
     courses: "Courses",
     custom: "Custom Design",
+    shop: "Shop",
     about: "About",
     contact: "Contact",
   },
