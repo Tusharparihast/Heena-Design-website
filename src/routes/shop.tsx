@@ -175,7 +175,12 @@ function ShopPage() {
           aria-modal="true"
           aria-label={selectedItem.copy!.name}
         >
-          <div className="relative w-full max-w-3xl scale-100 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl transition-all duration-300">
+          <div
+            className={cn(
+              "relative w-full max-w-3xl overflow-hidden rounded-2xl border border-border bg-card shadow-2xl transition-all duration-300 ease-out",
+              mounted ? "scale-100 opacity-100" : "scale-95 opacity-0"
+            )}
+          >
             <button
               ref={closeRef}
               type="button"
