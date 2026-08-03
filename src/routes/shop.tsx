@@ -34,6 +34,7 @@ function ShopPage() {
   const s = t.shopPage;
   const [filter, setFilter] = useState<FilterKey>("all");
   const [selected, setSelected] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
 
   const items = useMemo(() => {
