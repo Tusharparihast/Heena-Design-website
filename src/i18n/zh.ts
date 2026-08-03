@@ -122,6 +122,8 @@ export const zh: Dict = {
     body: "一段简短的新娘纹样示范，从第一笔到完成。",
     play: "播放示范视频",
     note: "短片示范 —— 点击播放，播放前不会消耗流量。",
+    expand: "放大观看",
+    close: "关闭",
   },
   testimonials: {
     label: "学员与客户评价",
