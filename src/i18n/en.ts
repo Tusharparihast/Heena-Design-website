@@ -155,7 +155,7 @@ export const en = {
     title: "What students and clients say",
     items: [
       {
-        photo: "SK",
+        photo: "person-1",
         rating: 5,
         review: "I came in never having held a cone. Six weeks later I did my cousin's bridal mehndi myself.",
         name: "Sneha K.",
@@ -165,7 +165,7 @@ export const en = {
         after: "modern-1",
       },
       {
-        photo: "PM",
+        photo: "person-2",
         rating: 5,
         review: "The design lasted beautifully through the whole wedding and the colour was so deep.",
         name: "Priya M.",
@@ -175,7 +175,7 @@ export const en = {
         after: "arabic-1",
       },
       {
-        photo: "LW",
+        photo: "person-3",
         rating: 5,
         review: "Patient teaching, and she corrects your hand position until it is right.",
         name: "Li Wen",

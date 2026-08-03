@@ -130,7 +130,7 @@ export const zh: Dict = {
     title: "他们这样说",
     items: [
       {
-        photo: "SK",
+        photo: "person-1",
         rating: 5,
         review: "我来的时候连锥笔都没拿过。六周之后，我亲手为表姐画了新娘海娜。",
         name: "Sneha K.",
@@ -140,7 +140,7 @@ export const zh: Dict = {
         after: "modern-1",
       },
       {
-        photo: "PM",
+        photo: "person-2",
         rating: 5,
         review: "图案在整个婚礼期间都保持得很好，颜色非常深。",
         name: "Priya M.",
@@ -150,7 +150,7 @@ export const zh: Dict = {
         after: "arabic-1",
       },
       {
-        photo: "LW",
+        photo: "person-3",
         rating: 5,
         review: "老师很有耐心，会一直纠正手势直到正确为止。",
         name: "李雯",
