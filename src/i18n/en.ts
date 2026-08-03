@@ -153,6 +153,10 @@ export const en = {
   testimonials: {
     label: "Testimonials",
     title: "What students and clients say",
+    prev: "Previous testimonial",
+    next: "Next testimonial",
+    slide: "Slide",
+    swipeHint: "Swipe to see more",
     items: [
       {
         photo: "person-1",
@@ -183,6 +187,26 @@ export const en = {
         country: "China",
         before: "finger-1",
         after: "minimal-1",
+      },
+      {
+        photo: "person-2",
+        rating: 5,
+        review: "I joined the bridal course and now feel confident taking real wedding appointments.",
+        name: "Anjali R.",
+        role: "Student",
+        country: "India",
+        before: "festival-1",
+        after: "feet-1",
+      },
+      {
+        photo: "person-1",
+        rating: 5,
+        review: "She listened to every detail I wanted and the final design was better than the reference.",
+        name: "Mei L.",
+        role: "Bridal client",
+        country: "China",
+        before: "minimal-1",
+        after: "bridal-1",
       },
     ],
   },

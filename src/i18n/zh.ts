@@ -128,6 +128,10 @@ export const zh: Dict = {
   testimonials: {
     label: "学员与客户评价",
     title: "他们这样说",
+    prev: "上一条评价",
+    next: "下一条评价",
+    slide: "幻灯片",
+    swipeHint: "左右滑动查看更多",
     items: [
       {
         photo: "person-1",
@@ -158,6 +162,26 @@ export const zh: Dict = {
         country: "中国",
         before: "finger-1",
         after: "minimal-1",
+      },
+      {
+        photo: "person-2",
+        rating: 5,
+        review: "我参加了新娘彩绘课程，现在有信心接真正的婚礼预约了。",
+        name: "Anjali R.",
+        role: "学员",
+        country: "印度",
+        before: "festival-1",
+        after: "feet-1",
+      },
+      {
+        photo: "person-1",
+        rating: 5,
+        review: "老师认真倾听我的每一个要求，最终效果比参考图还要好。",
+        name: "Mei L.",
+        role: "新娘客户",
+        country: "中国",
+        before: "minimal-1",
+        after: "bridal-1",
       },
     ],
   },
