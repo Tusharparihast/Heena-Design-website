@@ -30,12 +30,13 @@ export function CoursesSection() {
                 <dd>{course.duration}</dd>
               </div>
             </dl>
-            <a
-              href="#contact"
+            <Link
+              to="/contact"
               className="mt-6 inline-flex items-center justify-center rounded-full border border-primary px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
             >
               {t.courses.cta}
-            </a>
+            </Link>
+
           </article>
         ))}
       </div>
