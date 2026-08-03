@@ -416,59 +416,78 @@ export const en = {
       care: "Aftercare",
       practice: "Practice tools",
     },
-    order: "Order",
+    order: "Order on WhatsApp",
+    details: "Details",
+    hideDetails: "Hide details",
     featured: "Popular",
     items: [
       {
         id: "henna-cone",
         name: "Fresh henna cone",
-        body: "Hand-rolled natural henna cone, mixed the same morning for a deep stain.",
+        body: "Hand-rolled natural henna cone.",
+        details:
+          "Mixed the same morning for a deep, reliable stain. Ready to use — just snip the tip and start drawing. Store in the fridge and use within 2–3 days for best colour.",
         price: "Rs. 150 / cone",
       },
       {
         id: "cone-pack",
         name: "Cone pack (5 pieces)",
-        body: "Five fresh cones for events, practice sessions or a full bridal set.",
+        body: "Five fresh cones for events or practice.",
+        details:
+          "A convenient pack of five hand-rolled cones. Great for a full bridal set, a practice session or a small party. Same fresh paste as our single cones.",
         price: "Rs. 650 / pack",
       },
       {
         id: "bridal-kit",
         name: "Bridal henna kit",
-        body: "Cones, stencils, aftercare oil and a care card packed for the wedding day.",
+        body: "Everything for the wedding day.",
+        details:
+          "Cones, stencils, aftercare oil and a printed care card packed together for bridal appointments. Designed to cover full hands and feet with consistent results.",
         price: "Rs. 2,500",
       },
       {
         id: "starter-kit",
         name: "Beginner starter kit",
-        body: "Everything a new student needs: cones, practice sheets and a design booklet.",
+        body: "Everything a new student needs.",
+        details:
+          "Cones, practice sheets and a design reference booklet to get you started at home. The same materials we use in the foundation course.",
         price: "Rs. 1,800",
       },
       {
         id: "aftercare-oil",
         name: "Aftercare oil",
-        body: "Natural oil blend to seal the paste and darken the stain after it flakes off.",
+        body: "Natural oil blend to seal the paste.",
+        details:
+          "A small bottle of natural oil blend to dab over the dried paste. Helps protect the design and encourages a darker stain after the paste flakes off.",
         price: "Rs. 400",
       },
       {
         id: "practice-book",
         name: "Design practice book",
-        body: "Printed traditional and Arabic patterns to trace and practise at home.",
+        body: "Traditional and Arabic patterns to trace.",
+        details:
+          "Printed traditional and Arabic motifs, grids and blank panels to trace, practise pressure and build muscle memory before working on real skin.",
         price: "Rs. 700",
       },
       {
         id: "practice-hand",
         name: "Silicone practice hand",
-        body: "Reusable practice hand so you can repeat bridal patterns before the real thing.",
+        body: "Reusable hand for bridal patterns.",
+        details:
+          "A flexible silicone practice hand that mimics real skin curves. Wash and reuse to repeat full bridal panels until your lines are confident.",
         price: "Rs. 1,200",
       },
       {
         id: "stencils",
         name: "Stencil sheet set",
-        body: "Reusable paisley and floral stencils for fast, even festival designs.",
+        body: "Reusable paisley and floral stencils.",
+        details:
+          "A set of reusable paisley, floral and festival-band stencils. Lay, trace, then fill — perfect for fast, even designs on busy event days.",
         price: "Rs. 550",
       },
     ],
   },
+
   footer: {
     tagline: "Traditional and modern mehndi, taught and drawn in Kathmandu.",
     explore: "Explore",
