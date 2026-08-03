@@ -14,6 +14,8 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { LanguageProvider } from "@/i18n/LanguageProvider";
 import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
+import { MehndiBackdrop } from "@/components/site/MehndiBackdrop";
+import { CursorMehndi } from "@/components/site/CursorMehndi";
 import { site } from "@/lib/site";
 
 function NotFoundComponent() {
@@ -148,6 +150,8 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
+        <MehndiBackdrop />
+        <CursorMehndi />
         <div className="flex min-h-screen flex-col">
           <Navbar />
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}

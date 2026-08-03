@@ -215,6 +215,49 @@
   animation: mehndi-fade-up 0.7s ease-out both;
 }
 
+/* Ambient background motifs */
+@keyframes mehndi-drift {
+  0% {
+    transform: rotate(0deg) translateY(0) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) translateY(-18px) scale(1.05);
+  }
+  100% {
+    transform: rotate(360deg) translateY(0) scale(1);
+  }
+}
+
+@utility mehndi-drift {
+  animation: mehndi-drift 48s linear infinite;
+  will-change: transform;
+}
+
+/* Cursor mehndi dots */
+@keyframes mehndi-dot-fade {
+  0% {
+    opacity: 0.75;
+    transform: translate(-50%, -50%) scale(0.4);
+  }
+  25% {
+    opacity: 0.7;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+}
+
+.mehndi-dot {
+  position: fixed;
+  border-radius: 9999px;
+  background: color-mix(in oklab, var(--henna) 70%, transparent);
+  animation: mehndi-dot-fade 0.9s ease-out forwards;
+  pointer-events: none;
+}
+
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
