@@ -19,8 +19,7 @@ export function ComingSoon({ heading, blurb }: { heading: string; blurb?: string
           {t.common.backHome}
         </Link>
         <Link
-          to="/"
-          hash="contact"
+          to="/contact"
           className="inline-flex items-center rounded-full border border-border px-6 py-3 text-sm font-medium transition-colors hover:bg-accent"
         >
           {t.common.talkToUs}
