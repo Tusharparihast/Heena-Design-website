@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ComingSoon } from "@/components/site/ComingSoon";
 import { useLanguage } from "@/i18n/LanguageProvider";
 
-const title = "About Our Mehndi Studio in Maitidevi, Kathmandu | Rachana";
+const title = "About Nagma Designs — Mehndi Studio in Maitidevi, Kathmandu";
 const description =
   "A small home studio in Maitidevi, Kathmandu, drawing traditional and modern mehndi and teaching the craft in person, open 9 AM to 9 PM.";
 

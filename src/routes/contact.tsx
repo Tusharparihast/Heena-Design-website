@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ContactSection } from "@/components/home/ContactSection";
 
-const title = "Contact & Appointments — Mehndi Studio Kathmandu | Rachana";
+const title = "Contact & Appointments — Nagma Designs | Mehndi Studio Kathmandu";
 const description =
   "Reach our Maitidevi studio on WeChat, WhatsApp or phone to book a mehndi appointment or ask about henna classes. Open daily 9 AM to 9 PM.";
 

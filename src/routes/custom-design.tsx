@@ -7,7 +7,7 @@ import { useLanguage } from "@/i18n/LanguageProvider";
 import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
-const title = "Custom Mehndi Design Requests — Weddings & Events | Rachana";
+const title = "Custom Mehndi Design Requests — Weddings & Events | Nagma Designs";
 const description =
   "Request a custom henna design for weddings, festivals and private events in Kathmandu. Share references and we will shape the design with you.";
 

@@ -9,7 +9,7 @@ import { TestimonialsSection } from "@/components/home/TestimonialsSection";
 import { FaqSection } from "@/components/home/FaqSection";
 import { ContactSection } from "@/components/home/ContactSection";
 
-const title = "Rachana Mehndi Studio — Bridal Henna & Mehndi Classes in Kathmandu";
+const title = "Nagma Designs — Bridal Henna & Mehndi Classes in Kathmandu";
 const description =
   "Traditional and modern mehndi in Maitidevi, Kathmandu. Bridal and festival henna appointments, plus in-person mehndi courses for beginners and professionals.";
 
