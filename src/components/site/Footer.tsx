@@ -32,6 +32,11 @@ export function Footer() {
               </Link>
             </li>
             <li>
+              <Link to="/shop" className="hover:text-foreground">
+                {t.nav.shop}
+              </Link>
+            </li>
+            <li>
               <Link to="/about" className="hover:text-foreground">
                 {t.nav.about}
               </Link>
