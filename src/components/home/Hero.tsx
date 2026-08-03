@@ -61,7 +61,7 @@ export function Hero() {
         </div>
 
         <div className="relative">
-          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center text-primary/40">
+          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center text-[color:var(--henna)]/85 drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
             <MehndiPattern className="max-h-[520px]" />
           </div>
           <img
