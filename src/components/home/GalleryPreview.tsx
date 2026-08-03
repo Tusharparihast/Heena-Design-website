@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Play } from "lucide-react";
+import { Maximize2, Minimize2, Play, X } from "lucide-react";
 import { useState } from "react";
 // Local files so the project runs the same way after downloading it into VS Code.
 import demoPoster from "@/assets/hero-hand.jpg";
