@@ -3,7 +3,7 @@ import { GalleryBrowser } from "@/components/gallery/GalleryBrowser";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { studentWorkItems } from "@/lib/gallery";
 
-const title = "Student Mehndi Work — Beginner to Bridal Practice | Rachana";
+const title = "Student Mehndi Work — Beginner to Bridal Practice | Nagma Designs";
 const description =
   "See what students have created in our in-person mehndi courses: practice pieces, assessment designs and progress from beginner to bridal work.";
 

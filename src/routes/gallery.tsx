@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { GalleryBrowser } from "@/components/gallery/GalleryBrowser";
 import { useLanguage } from "@/i18n/LanguageProvider";
 
-const title = "Mehndi Gallery — Bridal, Arabic & Modern Henna Designs | Rachana";
+const title = "Mehndi Gallery — Bridal, Arabic & Modern Henna Designs | Nagma Designs";
 const description =
   "Browse categorised mehndi designs: traditional bridal, Arabic, minimal, festival, floral, finger and feet designs by our Kathmandu studio.";
 
