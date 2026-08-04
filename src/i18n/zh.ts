@@ -492,6 +492,11 @@ export const zh: Dict = {
         paymentLine: "订单确认后，付款说明将通过您选择的联系方式发送。",
         close: "完成",
       },
+      toast: {
+        title: "订单申请已发送",
+        description: "我们会尽快确认库存并与您联系确认订单。",
+      },
+
     },
     items: [
       {

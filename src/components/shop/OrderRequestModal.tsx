@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Clock, QrCode, Send, X } from "lucide-react";
+import { toast } from "sonner";
 import { z } from "zod";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { MAX_ORDER_QTY, formatNpr, shopImages, shopProducts, unitPriceNpr } from "@/lib/shop";
@@ -7,6 +8,7 @@ import { useDiscountOverrides, withResolvedDiscount } from "@/lib/shop-overrides
 import { cn } from "@/lib/utils";
 import { ShopPrice } from "./DiscountBadge";
 import { QuantityStepper } from "./QuantityStepper";
+
 
 type ContactMethod = "wechat" | "whatsapp" | "phone" | "email";
 type Status = "idle" | "sending" | "done";
@@ -134,7 +136,14 @@ export function OrderRequestModal({
     setErrors({});
     setStatus("sending");
     // No backend yet — the request is prepared for a future server function.
-    window.setTimeout(() => setStatus("done"), 900);
+    window.setTimeout(() => {
+      setStatus("done");
+      toast.success(f.toast?.title ?? "Order submitted", {
+        description: f.toast?.description ?? "We will contact you shortly to confirm your order.",
+        duration: 5000,
+      });
+    }, 900);
+
   };
 
   return (
