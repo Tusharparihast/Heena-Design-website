@@ -51,15 +51,16 @@ export function formatNpr(amount: number) {
 }
 
 /**
- * Approximate NPR → CNY reference rate for Chinese-language price hints.
+ * Fallback NPR → CNY reference rate for Chinese-language price hints.
+ * The live daily rate is fetched via useCnyRate() (src/lib/use-cny-rate.ts);
+ * this constant is only used until that loads or if the FX API is unreachable.
  * Payment is always settled in NPR; the ¥ figure is a courtesy estimate.
- * Adjust this single number as the exchange rate moves.
  */
 export const NPR_PER_CNY = 19;
 
-/** Approximate CNY equivalent of an NPR amount, e.g. "≈ ¥34". */
-export function formatCny(nprAmount: number) {
-  const cny = Math.max(1, Math.round(nprAmount / NPR_PER_CNY));
+/** Approximate CNY equivalent of an NPR amount, e.g. "≈ ¥34". Pass the live rate from useCnyRate(). */
+export function formatCny(nprAmount: number, nprPerCny: number = NPR_PER_CNY) {
+  const cny = Math.max(1, Math.round(nprAmount / nprPerCny));
   return `≈ ¥${cny.toLocaleString("en-US")}`;
 }
 
