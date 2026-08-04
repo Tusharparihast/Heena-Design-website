@@ -80,14 +80,24 @@ export interface CatalogOverrides {
   added: CustomProduct[];
   /** Ids of products (built-in or custom) temporarily hidden from the shop. */
   hidden: string[];
-  /** Ids of built-in products removed from the catalog (restorable). */
+  /** Ids of products (built-in or custom) in the trash — restorable. */
   deleted: string[];
+  /** Ids of built-in products permanently deleted from the trash. */
+  purged: string[];
   /** Studio-created categories, shown as extra shop filters. */
   categories: CustomCategory[];
   /** Renames for built-in categories, keyed by built-in category id. */
   categoryEdits: Record<string, CategoryEdit>;
-  /** Ids of built-in categories removed from the shop. */
+  /** Ids of categories (built-in or custom) in the trash — restorable. */
   deletedCategories: string[];
+  /** Ids of built-in categories permanently deleted from the trash. */
+  purgedCategories: string[];
+  /**
+   * Product ids reassigned to a fallback category when a category was
+   * trashed, keyed by the trashed category id — restoring the category
+   * moves them back.
+   */
+  trashCategoryProducts: Record<string, string[]>;
 }
 
 export const emptyCatalogOverrides: CatalogOverrides = {
@@ -95,9 +105,12 @@ export const emptyCatalogOverrides: CatalogOverrides = {
   added: [],
   hidden: [],
   deleted: [],
+  purged: [],
   categories: [],
   categoryEdits: {},
   deletedCategories: [],
+  purgedCategories: [],
+  trashCategoryProducts: {},
 };
 
 /** Text the storefront renders for a product (mirrors the i18n item shape). */
@@ -234,7 +247,11 @@ function sanitize(raw: unknown): CatalogOverrides {
     : [];
   const rawDeleted = obj["deleted"];
   const deleted = Array.isArray(rawDeleted)
-    ? rawDeleted.filter((id): id is string => typeof id === "string" && id in shopImagesIds)
+    ? rawDeleted.filter((id): id is string => typeof id === "string" && knownIds.has(id))
+    : [];
+  const rawPurged = obj["purged"];
+  const purged = Array.isArray(rawPurged)
+    ? rawPurged.filter((id): id is string => typeof id === "string" && id in shopImagesIds)
     : [];
   const rawCategoryEdits = obj["categoryEdits"];
   const categoryEdits: Record<string, CategoryEdit> = {};
