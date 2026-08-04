@@ -1008,14 +1008,28 @@ function AdminProductsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this product?</AlertDialogTitle>
             <AlertDialogDescription>
-              {deleteId && overrides.added.some((c) => c.id === deleteId)
-                ? "It will be removed from the shop immediately. This cannot be undone."
-                : "It will be removed from the shop immediately. You can restore it later from the Deleted products list."}
+              It will be removed from the shop and kept in the trash — you can restore it or
+              delete it permanently from there.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete}>Delete product</AlertDialogAction>
+            <AlertDialogAction onClick={confirmDelete}>Move to trash</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={purgeId !== null} onOpenChange={(open) => !open && setPurgeId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this product permanently?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This cannot be undone — the product will never appear in the shop again.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmPurgeProduct}>Delete permanently</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -1029,12 +1043,31 @@ function AdminProductsPage() {
             <AlertDialogTitle>Delete this category?</AlertDialogTitle>
             <AlertDialogDescription>
               Products in this category will be moved to “{deleteCategoryFallback?.nameEn}”. The
-              category filter will disappear from the shop.
+              category itself goes to the trash — restore it anytime (its products move back) or
+              delete it permanently.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteCategory}>Delete category</AlertDialogAction>
+            <AlertDialogAction onClick={confirmDeleteCategory}>Move to trash</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={purgeCategoryId !== null}
+        onOpenChange={(open) => !open && setPurgeCategoryId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this category permanently?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This cannot be undone. Its products stay in the category they were moved to.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmPurgeCategory}>Delete permanently</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
