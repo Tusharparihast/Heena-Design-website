@@ -1,4 +1,6 @@
-import { Clock, Facebook, Instagram, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
+import type { ComponentType } from "react";
+import { Clock, Facebook, Instagram, Mail, MapPin, Phone } from "lucide-react";
+import { WeChatIcon, WhatsAppIcon } from "@/components/site/BrandIcons";
 import { Section, SectionHeading } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { site } from "@/lib/site";
@@ -6,15 +8,15 @@ import { site } from "@/lib/site";
 export function ContactSection() {
   const { t } = useLanguage();
 
-  const channels = [
+  const channels: Array<{
+    icon: ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
+    label: string;
+    value: string;
+    href?: string;
+  }> = [
+    { icon: WeChatIcon, label: t.contact.wechat, value: site.wechatId },
     {
-      icon: MessageCircle,
-      label: t.contact.wechat,
-      value: site.wechatId,
-      href: undefined as string | undefined,
-    },
-    {
-      icon: MessageCircle,
+      icon: WhatsAppIcon,
       label: t.contact.whatsapp,
       value: site.whatsapp,
       href: `https://wa.me/${site.whatsapp.replace(/[^0-9]/g, "")}`,
