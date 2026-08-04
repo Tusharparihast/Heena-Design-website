@@ -216,6 +216,16 @@ export const zh: Dict = {
     copyWechat: "点击复制微信号",
     copied: "微信号已复制",
   },
+  wechatWidget: {
+    open: "微信联系我们",
+    close: "关闭微信面板",
+    title: "微信咨询",
+    body: "添加我们的微信号，营业时间内随时留言，我们会尽快回复。",
+    idLabel: "微信号",
+    copy: "复制微信号",
+    whatsapp: "改用 WhatsApp 联系",
+    phone: "致电工作室",
+  },
   coursesPage: {
     hero: {
       eyebrow: "面授课程 · 加德满都马伊蒂德维",

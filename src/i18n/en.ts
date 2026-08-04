@@ -253,6 +253,16 @@ export const en = {
     copyWechat: "Tap to copy WeChat ID",
     copied: "WeChat ID copied to clipboard",
   },
+  wechatWidget: {
+    open: "Chat with us on WeChat",
+    close: "Close WeChat panel",
+    title: "Chat on WeChat",
+    body: "The fastest way to reach us — add our WeChat ID and message any time during studio hours.",
+    idLabel: "WeChat ID",
+    copy: "Copy ID",
+    whatsapp: "Chat on WhatsApp instead",
+    phone: "Call the studio",
+  },
   coursesPage: {
     hero: {
       eyebrow: "In-person courses · Maitidevi, Kathmandu",
