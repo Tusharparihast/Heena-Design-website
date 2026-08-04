@@ -232,7 +232,7 @@ export function OrderRequestModal({
               <div className="rounded-xl border border-border bg-secondary/40 p-4">
                 <div className="flex items-center gap-3">
                   <img
-                    src={shopImages[product.id]}
+                    src={product.image}
                     alt={copy.name}
                     width={56}
                     height={56}
