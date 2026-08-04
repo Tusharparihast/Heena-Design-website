@@ -181,6 +181,16 @@ function cleanCustomProduct(raw: unknown): CustomProduct | undefined {
   };
 }
 
+function cleanCustomCategory(raw: unknown): CustomCategory | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const c = raw as Record<string, unknown>;
+  const id = cleanText(c["id"]);
+  const nameEn = cleanText(c["nameEn"]);
+  if (!id || !nameEn) return undefined;
+  if ((DEFAULT_CATEGORY_IDS as readonly string[]).includes(id)) return undefined;
+  return { id, nameEn, nameZh: cleanText(c["nameZh"]) ?? "" };
+}
+
 function sanitize(raw: unknown): CatalogOverrides {
   if (!raw || typeof raw !== "object") return emptyCatalogOverrides;
   const obj = raw as Record<string, unknown>;
@@ -196,11 +206,25 @@ function sanitize(raw: unknown): CatalogOverrides {
   const added = Array.isArray(rawAdded)
     ? rawAdded.map(cleanCustomProduct).filter((c): c is CustomProduct => Boolean(c))
     : [];
+  const seenCategoryIds = new Set<string>();
+  const rawCategories = obj["categories"];
+  const categories = (Array.isArray(rawCategories) ? rawCategories : [])
+    .map(cleanCustomCategory)
+    .filter((c): c is CustomCategory => {
+      if (!c || seenCategoryIds.has(c.id)) return false;
+      seenCategoryIds.add(c.id);
+      return true;
+    });
+  const knownIds = new Set<string>([...Object.keys(shopImagesIds), ...added.map((c) => c.id)]);
   const rawHidden = obj["hidden"];
   const hidden = Array.isArray(rawHidden)
-    ? rawHidden.filter((id): id is string => typeof id === "string" && id in shopImagesIds)
+    ? rawHidden.filter((id): id is string => typeof id === "string" && knownIds.has(id))
     : [];
-  return { edits, added, hidden };
+  const rawDeleted = obj["deleted"];
+  const deleted = Array.isArray(rawDeleted)
+    ? rawDeleted.filter((id): id is string => typeof id === "string" && id in shopImagesIds)
+    : [];
+  return { edits, added, hidden, deleted, categories };
 }
 
 const shopImagesIds: Record<string, true> = Object.fromEntries(shopProducts.map((p) => [p.id, true]));
@@ -224,7 +248,7 @@ function migrateLegacyDiscounts(): CatalogOverrides | null {
         if (pct !== undefined) edits[id] = { discount: pct };
       }
     }
-    const migrated: CatalogOverrides = { edits, added: [], hidden: [] };
+    const migrated: CatalogOverrides = { edits, added: [], hidden: [], deleted: [], categories: [] };
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
     window.localStorage.removeItem(LEGACY_DISCOUNT_KEY);
     return migrated;
