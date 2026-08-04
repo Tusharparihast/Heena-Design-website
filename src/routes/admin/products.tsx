@@ -127,24 +127,26 @@ function AdminProductsPage() {
   /* ---------------- Rows ---------------- */
 
   const rows = useMemo<Row[]>(() => {
-    const baseRows: Row[] = shopProducts.map((p) => {
-      const edit = overrides.edits[p.id];
-      const eff = applyEdit(p, edit);
-      return {
-        id: p.id,
-        custom: false,
-        image: eff.image,
-        name: edit?.nameEn ?? productNamesEn.get(p.id) ?? p.id,
-        category: eff.category,
-        priceNpr: eff.priceNpr,
-        stock: eff.stock,
-        featured: Boolean(eff.featured),
-        discount: eff.discount,
-        defaultDiscount: p.discount,
-        hidden: overrides.hidden.includes(p.id),
-        hasEdit: Boolean(edit),
-      };
-    });
+    const baseRows: Row[] = shopProducts
+      .filter((p) => !overrides.deleted.includes(p.id))
+      .map((p) => {
+        const edit = overrides.edits[p.id];
+        const eff = applyEdit(p, edit);
+        return {
+          id: p.id,
+          custom: false,
+          image: eff.image,
+          name: edit?.nameEn ?? productNamesEn.get(p.id) ?? p.id,
+          category: eff.category,
+          priceNpr: eff.priceNpr,
+          stock: eff.stock,
+          featured: Boolean(eff.featured),
+          discount: eff.discount,
+          defaultDiscount: p.discount,
+          hidden: overrides.hidden.includes(p.id),
+          hasEdit: Boolean(edit),
+        };
+      });
     const customRows: Row[] = overrides.added.map((c) => ({
       id: c.id,
       custom: true,
@@ -156,11 +158,20 @@ function AdminProductsPage() {
       featured: c.featured,
       discount: c.discount,
       defaultDiscount: undefined,
-      hidden: false,
+      hidden: overrides.hidden.includes(c.id),
       hasEdit: false,
     }));
     return [...baseRows, ...customRows];
   }, [overrides]);
+
+  /** Category options for the editor dialog: built-ins + studio-created. */
+  const editorCategories = useMemo(
+    () => [
+      ...DEFAULT_CATEGORY_IDS.map((id) => ({ value: id as string, label: en.shopPage.filters[id] })),
+      ...overrides.categories.map((c) => ({ value: c.id, label: c.nameEn })),
+    ],
+    [overrides.categories],
+  );
 
   const visibleRows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -388,13 +399,91 @@ function AdminProductsPage() {
 
   const confirmDelete = () => {
     if (!deleteId) return;
-    const name = overrides.added.find((c) => c.id === deleteId)?.nameEn ?? "Product";
-    commit(
-      { ...overrides, added: overrides.added.filter((c) => c.id !== deleteId) },
-      "Product deleted",
-      `${name} no longer appears in the shop.`,
-    );
+    const custom = overrides.added.find((c) => c.id === deleteId);
+    if (custom) {
+      // Custom products are removed permanently.
+      commit(
+        {
+          ...overrides,
+          added: overrides.added.filter((c) => c.id !== deleteId),
+          hidden: overrides.hidden.filter((id) => id !== deleteId),
+        },
+        "Product deleted",
+        `${custom.nameEn} no longer appears in the shop.`,
+      );
+    } else {
+      // Built-in products move to the restorable "Deleted products" list.
+      const name = productNamesEn.get(deleteId) ?? deleteId;
+      commit(
+        {
+          ...overrides,
+          deleted: [...overrides.deleted, deleteId],
+          hidden: overrides.hidden.filter((id) => id !== deleteId),
+        },
+        "Product deleted",
+        `${name} was removed from the shop. You can restore it below.`,
+      );
+    }
     setDeleteId(null);
+  };
+
+  const restoreProduct = (id: string) => {
+    const name = productNamesEn.get(id) ?? id;
+    commit(
+      { ...overrides, deleted: overrides.deleted.filter((x) => x !== id) },
+      "Product restored",
+      `${name} is back in the shop.`,
+    );
+  };
+
+  /* ---------------- Categories ---------------- */
+
+  const addCategory = () => {
+    const nameEn = catNameEn.trim();
+    if (!nameEn) return;
+    const taken = new Set<string>([
+      ...DEFAULT_CATEGORY_IDS,
+      ...overrides.categories.map((c) => c.id),
+    ]);
+    const category: CustomCategory = {
+      id: makeCategoryId(nameEn, taken),
+      nameEn,
+      nameZh: catNameZh.trim(),
+    };
+    commit(
+      { ...overrides, categories: [...overrides.categories, category] },
+      "Category added",
+      `${nameEn} is now available when editing products.`,
+    );
+    setCatNameEn("");
+    setCatNameZh("");
+  };
+
+  const confirmDeleteCategory = () => {
+    if (!deleteCategoryId) return;
+    const cat = overrides.categories.find((c) => c.id === deleteCategoryId);
+    const FALLBACK = "cones";
+    // Products in the deleted category move to the first built-in category.
+    const edits = Object.fromEntries(
+      Object.entries(overrides.edits).map(([id, e]) => [
+        id,
+        e.category === deleteCategoryId ? { ...e, category: FALLBACK } : e,
+      ]),
+    );
+    const added = overrides.added.map((c) =>
+      c.category === deleteCategoryId ? { ...c, category: FALLBACK } : c,
+    );
+    commit(
+      {
+        ...overrides,
+        edits,
+        added,
+        categories: overrides.categories.filter((c) => c.id !== deleteCategoryId),
+      },
+      "Category deleted",
+      cat ? `Its products were moved to “${en.shopPage.filters[FALLBACK]}”.` : undefined,
+    );
+    setDeleteCategoryId(null);
   };
 
   const resetAll = () => {
