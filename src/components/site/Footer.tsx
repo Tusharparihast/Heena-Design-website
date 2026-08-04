@@ -83,35 +83,30 @@ export function Footer() {
 
         <div>
           <h3 className="text-sm font-semibold tracking-wide uppercase">{t.footer.reach}</h3>
-          <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-            <li>
-              {t.contact.wechat}: {site.wechatId}
-            </li>
-            <li>
-              {t.contact.whatsapp}: {site.whatsapp}
-            </li>
-            <li>
-              {t.contact.phone}: {site.phone}
-            </li>
-            <li>
-              <a href={`mailto:${site.email}`} className="hover:text-foreground">
-                {site.email}
-              </a>
-            </li>
-            <li>
-              {t.contact.hours}: {site.hours}
-            </li>
-            <li>
-              <a
-                href={site.mapUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="hover:text-foreground"
-              >
-                {site.city}
-              </a>
-            </li>
+          <ul className="mt-4 flex flex-wrap items-center gap-2.5">
+            {reachLinks.map((c) => {
+              const Icon = c.icon;
+              const cls =
+                "flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:text-foreground hover:shadow-sm";
+              return (
+                <li key={c.label}>
+                  {c.onClick ? (
+                    <button type="button" onClick={c.onClick} aria-label={c.label} title={c.label} className={cls}>
+                      <Icon className="h-5 w-5" aria-hidden />
+                    </button>
+                  ) : (
+                    <a href={c.href} target="_blank" rel="noreferrer" aria-label={c.label} title={c.label} className={cls}>
+                      <Icon className="h-5 w-5" aria-hidden />
+                    </a>
+                  )}
+                </li>
+              );
+            })}
           </ul>
+          <p className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+            <Clock className="h-4 w-4 text-primary" aria-hidden />
+            {site.hours}
+          </p>
         </div>
       </div>
       <div className="border-t border-border/70 py-6 text-center text-xs text-muted-foreground">
