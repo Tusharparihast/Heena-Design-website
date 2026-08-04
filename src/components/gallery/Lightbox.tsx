@@ -187,7 +187,7 @@ export function Lightbox({
             onPointerCancel={handlePointerUp}
             onClick={handleImageClick}
             className={`max-h-[80vh] w-auto max-w-[92vw] select-none rounded-lg object-contain transition-transform duration-300 ease-out will-change-transform ${
-              zoomed ? "cursor-grab active:cursor-grabbing" : "cursor-zoom-in"
+              zoomed ? "cursor-grab touch-none active:cursor-grabbing" : "cursor-zoom-in"
             }`}
             style={{
               transform: zoomed ? `translate(${pan.x}px, ${pan.y}px) scale(${ZOOM_SCALE})` : undefined,
