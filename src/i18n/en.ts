@@ -551,6 +551,11 @@ export const en = {
         paymentLine: "After confirmation, payment instructions arrive via your preferred contact method.",
         close: "Done",
       },
+      toast: {
+        title: "Order request sent",
+        description: "We will review availability and contact you to confirm.",
+      },
+
     },
     items: [
       {
