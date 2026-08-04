@@ -14,41 +14,12 @@ export type HomepageHeroMedia = {
   imageMode?: boolean;
 };
 
-export type HomepageHeroOverrides = {
-  eyebrow?: string | undefined;
-  title1?: string | undefined;
-  title2?: string | undefined;
-  title3?: string | undefined;
-  body?: string | undefined;
-  cta?: string | undefined;
-  secondary?: string | undefined;
-  media?: HomepageHeroMedia;
-};
+export type HomepageHeroOverrides = Partial<Dict["hero"]> & { media?: HomepageHeroMedia };
 
-export type HomepageAboutOverrides = {
-  label?: string | undefined;
-  title?: string | undefined;
-  body1?: string | undefined;
-  body2?: string | undefined;
-  stat1?: string | undefined;
-  stat2?: string | undefined;
-  stat3?: string | undefined;
-  /** About image override. Can be a base64 data URL or path. */
-  imageUrl?: string | undefined;
-};
+export type HomepageAboutOverrides = Partial<Dict["about"]> & { imageUrl?: string | undefined };
 
-
-export type HomepageVideoOverrides = {
-  label?: string | undefined;
-  title?: string | undefined;
-  body?: string | undefined;
-  play?: string | undefined;
-  note?: string | undefined;
-  expand?: string | undefined;
-  close?: string | undefined;
-  /** External URL or local path to the demo video. */
+export type HomepageVideoOverrides = Partial<Dict["video"]> & {
   videoUrl?: string | undefined;
-  /** Poster for the demo video. Can be a base64 data URL or path. */
   posterUrl?: string | undefined;
 };
 
@@ -86,9 +57,17 @@ export function writeHomepageOverrides(overrides: HomepageOverrides) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(overrides));
 }
 
-/** Keep only entries whose value is not undefined. Empty strings are kept intentionally. */
-function pickDefined<T extends Record<string, unknown>>(obj: T): Partial<T> {
-  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined)) as Partial<T>;
+/** Merge a base dictionary section with an override, keeping only defined override values. */
+function mergeSection<T extends Record<string, string>>(
+  base: T,
+  override: Partial<T>,
+): T {
+  const result = { ...base };
+  for (const key of Object.keys(override) as (keyof T)[]) {
+    const value = override[key];
+    if (value !== undefined) result[key] = value;
+  }
+  return result;
 }
 
 /** Apply homepage text overrides to a base dictionary. */
@@ -100,19 +79,18 @@ export function mergeHomepageDictionary(
   const next: Dict = { ...dict };
   if (overrides.hero) {
     const { media: _, ...heroText } = overrides.hero;
-    next.hero = { ...dict.hero, ...pickDefined(heroText) };
+    next.hero = mergeSection(dict.hero, heroText);
   }
   if (overrides.about) {
     const { imageUrl: _, ...aboutText } = overrides.about;
-    next.about = { ...dict.about, ...pickDefined(aboutText) };
+    next.about = mergeSection(dict.about, aboutText);
   }
   if (overrides.video) {
     const { videoUrl: _, posterUrl: __, ...videoText } = overrides.video;
-    next.video = { ...dict.video, ...pickDefined(videoText) };
+    next.video = mergeSection(dict.video, videoText);
   }
   return next;
 }
-
 
 /** Merge a single locale patch into the existing overrides object. */
 export function mergeHomepageOverrides(
