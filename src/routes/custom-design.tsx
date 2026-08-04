@@ -172,14 +172,14 @@ function CustomDesignPage() {
 
                     <h2 className="mt-8 text-xl font-semibold">{b.occasion.title}</h2>
                     <div className="mt-4 flex flex-wrap gap-2">
-                      {b.occasion.options.map((opt) => (
+                      {b.occasion.options.map((opt, idx) => (
                         <button
                           key={opt}
                           type="button"
-                          onClick={() => setOccasion(opt)}
+                          onClick={() => setOccasionIdx(idx)}
                           className={cn(
                             "rounded-full border px-4 py-2 text-sm transition-colors",
-                            occasion === opt
+                            occasionIdx === idx
                               ? "border-primary bg-primary/10 text-primary"
                               : "border-border hover:bg-accent",
                           )}
@@ -277,12 +277,12 @@ function CustomDesignPage() {
                       </Field>
                       <Field label={b.details.placement}>
                         <select
-                          value={placement}
-                          onChange={(e) => setPlacement(e.target.value)}
+                          value={placementIdx}
+                          onChange={(e) => setPlacementIdx(Number(e.target.value))}
                           className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                         >
-                          {b.details.placementOptions.map((opt) => (
-                            <option key={opt} value={opt}>
+                          {b.details.placementOptions.map((opt, idx) => (
+                            <option key={opt} value={idx}>
                               {opt}
                             </option>
                           ))}
@@ -290,16 +290,18 @@ function CustomDesignPage() {
                       </Field>
                       <Field label={b.details.budget}>
                         <select
-                          value={budgetChoice}
-                          onChange={(e) => setBudgetChoice(e.target.value)}
+                          value={budgetIdx}
+                          onChange={(e) => setBudgetIdx(Number(e.target.value))}
                           className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                         >
-                          {b.details.budgetOptions.map((opt) => (
-                            <option key={opt} value={opt}>
+                          {b.details.budgetOptions.map((opt, idx) => (
+                            <option key={opt} value={idx}>
                               {opt}
                             </option>
                           ))}
-                          <option value={b.details.budgetCustom}>{b.details.budgetCustom}</option>
+                          <option value={b.details.budgetOptions.length}>
+                            {b.details.budgetCustom}
+                          </option>
                         </select>
                         {isCustomBudget && (
                           <input
