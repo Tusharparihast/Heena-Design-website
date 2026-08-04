@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import {
+  DEFAULT_CATEGORY_IDS,
   formatNpr,
   shopProducts,
   type ShopCategory,
@@ -26,7 +27,6 @@ const STORAGE_KEY = "nd-shop-catalog-overrides";
 const LEGACY_DISCOUNT_KEY = "nd-shop-discount-overrides";
 const CHANGE_EVENT = "nd:shop-catalog-overrides";
 
-const CATEGORIES: ShopCategory[] = ["cones", "kits", "care", "practice"];
 const STOCK_STATUSES: StockStatus[] = ["in", "low", "out"];
 
 /** Editable fields for a built-in product. Missing keys keep the defaults. */
@@ -43,6 +43,13 @@ export interface ProductEdit {
   featured?: boolean;
   /** Uploaded photo as a (compressed) data URL. */
   image?: string | undefined;
+}
+
+/** A studio-created product category (in addition to the built-in ones). */
+export interface CustomCategory {
+  id: string;
+  nameEn: string;
+  nameZh: string;
 }
 
 /** A fully custom product added from the admin dashboard. */
@@ -65,11 +72,21 @@ export interface CatalogOverrides {
   edits: Record<string, ProductEdit>;
   /** Custom products created in the dashboard. */
   added: CustomProduct[];
-  /** Ids of built-in products hidden from the shop. */
+  /** Ids of products (built-in or custom) temporarily hidden from the shop. */
   hidden: string[];
+  /** Ids of built-in products removed from the catalog (restorable). */
+  deleted: string[];
+  /** Studio-created categories, shown as extra shop filters. */
+  categories: CustomCategory[];
 }
 
-export const emptyCatalogOverrides: CatalogOverrides = { edits: {}, added: [], hidden: [] };
+export const emptyCatalogOverrides: CatalogOverrides = {
+  edits: {},
+  added: [],
+  hidden: [],
+  deleted: [],
+  categories: [],
+};
 
 /** Text the storefront renders for a product (mirrors the i18n item shape). */
 export interface ProductCopy {
@@ -124,7 +141,8 @@ export function cleanEdit(edit: ProductEdit): ProductEdit | undefined {
   if (bodyZh) out.bodyZh = bodyZh;
   if (priceNpr !== undefined) out.priceNpr = priceNpr;
   if (edit.stock && STOCK_STATUSES.includes(edit.stock)) out.stock = edit.stock;
-  if (edit.category && CATEGORIES.includes(edit.category)) out.category = edit.category;
+  const category = cleanText(edit.category);
+  if (category && category.length <= 40) out.category = category;
   if (typeof edit.featured === "boolean") out.featured = edit.featured;
   if (image) out.image = image;
   if (edit.discount === null) out.discount = null;
@@ -143,9 +161,7 @@ function cleanCustomProduct(raw: unknown): CustomProduct | undefined {
   const priceNpr = cleanPrice(c["priceNpr"]);
   const image = cleanImage(c["image"]);
   if (!id || !nameEn || priceNpr === undefined || !image) return undefined;
-  const category = CATEGORIES.includes(c["category"] as ShopCategory)
-    ? (c["category"] as ShopCategory)
-    : "cones";
+  const category = cleanText(c["category"]) ?? "cones";
   const stock = STOCK_STATUSES.includes(c["stock"] as StockStatus)
     ? (c["stock"] as StockStatus)
     : "in";
@@ -165,6 +181,16 @@ function cleanCustomProduct(raw: unknown): CustomProduct | undefined {
   };
 }
 
+function cleanCustomCategory(raw: unknown): CustomCategory | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const c = raw as Record<string, unknown>;
+  const id = cleanText(c["id"]);
+  const nameEn = cleanText(c["nameEn"]);
+  if (!id || !nameEn) return undefined;
+  if ((DEFAULT_CATEGORY_IDS as readonly string[]).includes(id)) return undefined;
+  return { id, nameEn, nameZh: cleanText(c["nameZh"]) ?? "" };
+}
+
 function sanitize(raw: unknown): CatalogOverrides {
   if (!raw || typeof raw !== "object") return emptyCatalogOverrides;
   const obj = raw as Record<string, unknown>;
@@ -180,11 +206,25 @@ function sanitize(raw: unknown): CatalogOverrides {
   const added = Array.isArray(rawAdded)
     ? rawAdded.map(cleanCustomProduct).filter((c): c is CustomProduct => Boolean(c))
     : [];
+  const seenCategoryIds = new Set<string>();
+  const rawCategories = obj["categories"];
+  const categories = (Array.isArray(rawCategories) ? rawCategories : [])
+    .map(cleanCustomCategory)
+    .filter((c): c is CustomCategory => {
+      if (!c || seenCategoryIds.has(c.id)) return false;
+      seenCategoryIds.add(c.id);
+      return true;
+    });
+  const knownIds = new Set<string>([...Object.keys(shopImagesIds), ...added.map((c) => c.id)]);
   const rawHidden = obj["hidden"];
   const hidden = Array.isArray(rawHidden)
-    ? rawHidden.filter((id): id is string => typeof id === "string" && id in shopImagesIds)
+    ? rawHidden.filter((id): id is string => typeof id === "string" && knownIds.has(id))
     : [];
-  return { edits, added, hidden };
+  const rawDeleted = obj["deleted"];
+  const deleted = Array.isArray(rawDeleted)
+    ? rawDeleted.filter((id): id is string => typeof id === "string" && id in shopImagesIds)
+    : [];
+  return { edits, added, hidden, deleted, categories };
 }
 
 const shopImagesIds: Record<string, true> = Object.fromEntries(shopProducts.map((p) => [p.id, true]));
@@ -208,7 +248,7 @@ function migrateLegacyDiscounts(): CatalogOverrides | null {
         if (pct !== undefined) edits[id] = { discount: pct };
       }
     }
-    const migrated: CatalogOverrides = { edits, added: [], hidden: [] };
+    const migrated: CatalogOverrides = { edits, added: [], hidden: [], deleted: [], categories: [] };
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
     window.localStorage.removeItem(LEGACY_DISCOUNT_KEY);
     return migrated;
@@ -245,7 +285,9 @@ export function isCatalogPristine(overrides: CatalogOverrides): boolean {
   return (
     Object.keys(overrides.edits).length === 0 &&
     overrides.added.length === 0 &&
-    overrides.hidden.length === 0
+    overrides.hidden.length === 0 &&
+    overrides.deleted.length === 0 &&
+    overrides.categories.length === 0
   );
 }
 
@@ -286,12 +328,15 @@ function toShopProduct(c: CustomProduct): ShopProduct {
   };
 }
 
-/** The full effective catalog: built-ins (minus hidden, with edits) + custom. */
+/** The full effective catalog: built-ins (minus hidden/deleted, with edits) + custom. */
 export function effectiveProducts(overrides: CatalogOverrides): ShopProduct[] {
   const base = shopProducts
-    .filter((p) => !overrides.hidden.includes(p.id))
+    .filter((p) => !overrides.hidden.includes(p.id) && !overrides.deleted.includes(p.id))
     .map((p) => applyEdit(p, overrides.edits[p.id]));
-  return [...base, ...overrides.added.map(toShopProduct)];
+  const custom = overrides.added
+    .filter((c) => !overrides.hidden.includes(c.id))
+    .map(toShopProduct);
+  return [...base, ...custom];
 }
 
 /** Related products from an already-effective catalog (same category first). */
@@ -355,6 +400,38 @@ export function makeProductId(name: string, taken: ReadonlySet<string>): string 
     n += 1;
   }
   return candidate;
+}
+
+/** URL-safe unique id for a new custom category, derived from its name. */
+export function makeCategoryId(name: string, taken: ReadonlySet<string>): string {
+  const slug =
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 30) || "category";
+  let candidate = `cat-${slug}`;
+  let n = 2;
+  while (taken.has(candidate)) {
+    candidate = `cat-${slug}-${n}`;
+    n += 1;
+  }
+  return candidate;
+}
+
+/**
+ * Display label for any category id: built-ins use the i18n dictionary labels,
+ * custom categories use the names entered in the admin dashboard.
+ */
+export function categoryLabel(
+  categoryId: string,
+  overrides: CatalogOverrides,
+  locale: "en" | "zh",
+  dictLabels: Record<string, string>,
+): string {
+  const custom = overrides.categories.find((c) => c.id === categoryId);
+  if (custom) return (locale === "zh" ? custom.nameZh : "") || custom.nameEn;
+  return dictLabels[categoryId] ?? categoryId;
 }
 
 /* ------------------------------------------------------------------ */

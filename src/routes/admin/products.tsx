@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { MoreVertical, Pencil, Percent, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
+import { MoreVertical, Pencil, Percent, Plus, RotateCcw, Search, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -47,19 +47,24 @@ import {
 import { en, zh } from "@/i18n/dictionaries";
 import {
   applyEdit,
+  categoryLabel,
   cleanEdit,
   clearCatalogOverrides,
   emptyCatalogOverrides,
   isCatalogPristine,
+  makeCategoryId,
   makeProductId,
   readCatalogOverrides,
   writeCatalogOverrides,
   type CatalogOverrides,
+  type CustomCategory,
   type CustomProduct,
   type ProductEdit,
 } from "@/lib/catalog-overrides";
 import {
+  DEFAULT_CATEGORY_IDS,
   formatNpr,
+  shopImages,
   shopProducts,
   type ShopCategory,
   type StockStatus,
@@ -103,6 +108,9 @@ function AdminProductsPage() {
   const [editor, setEditor] = useState<EditorTarget | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [resetOpen, setResetOpen] = useState(false);
+  const [catNameEn, setCatNameEn] = useState("");
+  const [catNameZh, setCatNameZh] = useState("");
+  const [deleteCategoryId, setDeleteCategoryId] = useState<string | null>(null);
 
   // Load saved overrides once on mount (localStorage is client-only).
   useEffect(() => {
@@ -119,24 +127,26 @@ function AdminProductsPage() {
   /* ---------------- Rows ---------------- */
 
   const rows = useMemo<Row[]>(() => {
-    const baseRows: Row[] = shopProducts.map((p) => {
-      const edit = overrides.edits[p.id];
-      const eff = applyEdit(p, edit);
-      return {
-        id: p.id,
-        custom: false,
-        image: eff.image,
-        name: edit?.nameEn ?? productNamesEn.get(p.id) ?? p.id,
-        category: eff.category,
-        priceNpr: eff.priceNpr,
-        stock: eff.stock,
-        featured: Boolean(eff.featured),
-        discount: eff.discount,
-        defaultDiscount: p.discount,
-        hidden: overrides.hidden.includes(p.id),
-        hasEdit: Boolean(edit),
-      };
-    });
+    const baseRows: Row[] = shopProducts
+      .filter((p) => !overrides.deleted.includes(p.id))
+      .map((p) => {
+        const edit = overrides.edits[p.id];
+        const eff = applyEdit(p, edit);
+        return {
+          id: p.id,
+          custom: false,
+          image: eff.image,
+          name: edit?.nameEn ?? productNamesEn.get(p.id) ?? p.id,
+          category: eff.category,
+          priceNpr: eff.priceNpr,
+          stock: eff.stock,
+          featured: Boolean(eff.featured),
+          discount: eff.discount,
+          defaultDiscount: p.discount,
+          hidden: overrides.hidden.includes(p.id),
+          hasEdit: Boolean(edit),
+        };
+      });
     const customRows: Row[] = overrides.added.map((c) => ({
       id: c.id,
       custom: true,
@@ -148,11 +158,20 @@ function AdminProductsPage() {
       featured: c.featured,
       discount: c.discount,
       defaultDiscount: undefined,
-      hidden: false,
+      hidden: overrides.hidden.includes(c.id),
       hasEdit: false,
     }));
     return [...baseRows, ...customRows];
   }, [overrides]);
+
+  /** Category options for the editor dialog: built-ins + studio-created. */
+  const editorCategories = useMemo(
+    () => [
+      ...DEFAULT_CATEGORY_IDS.map((id) => ({ value: id as string, label: en.shopPage.filters[id] })),
+      ...overrides.categories.map((c) => ({ value: c.id, label: c.nameEn })),
+    ],
+    [overrides.categories],
+  );
 
   const visibleRows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -380,13 +399,91 @@ function AdminProductsPage() {
 
   const confirmDelete = () => {
     if (!deleteId) return;
-    const name = overrides.added.find((c) => c.id === deleteId)?.nameEn ?? "Product";
-    commit(
-      { ...overrides, added: overrides.added.filter((c) => c.id !== deleteId) },
-      "Product deleted",
-      `${name} no longer appears in the shop.`,
-    );
+    const custom = overrides.added.find((c) => c.id === deleteId);
+    if (custom) {
+      // Custom products are removed permanently.
+      commit(
+        {
+          ...overrides,
+          added: overrides.added.filter((c) => c.id !== deleteId),
+          hidden: overrides.hidden.filter((id) => id !== deleteId),
+        },
+        "Product deleted",
+        `${custom.nameEn} no longer appears in the shop.`,
+      );
+    } else {
+      // Built-in products move to the restorable "Deleted products" list.
+      const name = productNamesEn.get(deleteId) ?? deleteId;
+      commit(
+        {
+          ...overrides,
+          deleted: [...overrides.deleted, deleteId],
+          hidden: overrides.hidden.filter((id) => id !== deleteId),
+        },
+        "Product deleted",
+        `${name} was removed from the shop. You can restore it below.`,
+      );
+    }
     setDeleteId(null);
+  };
+
+  const restoreProduct = (id: string) => {
+    const name = productNamesEn.get(id) ?? id;
+    commit(
+      { ...overrides, deleted: overrides.deleted.filter((x) => x !== id) },
+      "Product restored",
+      `${name} is back in the shop.`,
+    );
+  };
+
+  /* ---------------- Categories ---------------- */
+
+  const addCategory = () => {
+    const nameEn = catNameEn.trim();
+    if (!nameEn) return;
+    const taken = new Set<string>([
+      ...DEFAULT_CATEGORY_IDS,
+      ...overrides.categories.map((c) => c.id),
+    ]);
+    const category: CustomCategory = {
+      id: makeCategoryId(nameEn, taken),
+      nameEn,
+      nameZh: catNameZh.trim(),
+    };
+    commit(
+      { ...overrides, categories: [...overrides.categories, category] },
+      "Category added",
+      `${nameEn} is now available when editing products.`,
+    );
+    setCatNameEn("");
+    setCatNameZh("");
+  };
+
+  const confirmDeleteCategory = () => {
+    if (!deleteCategoryId) return;
+    const cat = overrides.categories.find((c) => c.id === deleteCategoryId);
+    const FALLBACK = "cones";
+    // Products in the deleted category move to the first built-in category.
+    const edits = Object.fromEntries(
+      Object.entries(overrides.edits).map(([id, e]) => [
+        id,
+        e.category === deleteCategoryId ? { ...e, category: FALLBACK } : e,
+      ]),
+    );
+    const added = overrides.added.map((c) =>
+      c.category === deleteCategoryId ? { ...c, category: FALLBACK } : c,
+    );
+    commit(
+      {
+        ...overrides,
+        edits,
+        added,
+        categories: overrides.categories.filter((c) => c.id !== deleteCategoryId),
+      },
+      "Category deleted",
+      cat ? `Its products were moved to “${en.shopPage.filters[FALLBACK]}”.` : undefined,
+    );
+    setDeleteCategoryId(null);
   };
 
   const resetAll = () => {
@@ -480,7 +577,9 @@ function AdminProductsPage() {
                             </Badge>
                           ) : null}
                         </p>
-                        <p className="text-xs text-muted-foreground capitalize">{row.category}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {categoryLabel(row.category, overrides, "en", en.shopPage.filters)}
+                        </p>
                       </div>
                     </div>
                   </TableCell>
@@ -546,16 +645,12 @@ function AdminProductsPage() {
                     />
                   </TableCell>
                   <TableCell>
-                    {row.custom ? (
-                      <span className="text-xs text-muted-foreground">—</span>
-                    ) : (
-                      <Switch
-                        checked={!row.hidden}
-                        onCheckedChange={(v) => setVisible(row, v)}
-                        disabled={!loaded}
-                        aria-label={`Shop visibility for ${row.name}`}
-                      />
-                    )}
+                    <Switch
+                      checked={!row.hidden}
+                      onCheckedChange={(v) => setVisible(row, v)}
+                      disabled={!loaded}
+                      aria-label={`Shop visibility for ${row.name}`}
+                    />
                   </TableCell>
                   <TableCell className="pr-6 text-right">
                     <DropdownMenu>
@@ -575,15 +670,13 @@ function AdminProductsPage() {
                             Reset to defaults
                           </DropdownMenuItem>
                         ) : null}
-                        {row.custom ? (
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onClick={() => setDeleteId(row.id)}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete product
-                          </DropdownMenuItem>
-                        ) : null}
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => setDeleteId(row.id)}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete product
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -601,6 +694,118 @@ function AdminProductsPage() {
         </CardContent>
       </Card>
 
+      {/* Categories */}
+      <Card className="shadow-none">
+        <CardContent className="p-4 sm:p-5">
+          <h3 className="text-sm font-semibold">Categories</h3>
+          <p className="mt-1 max-w-lg text-xs text-muted-foreground">
+            Categories group products in the shop filters. Add your own below — the built-in ones
+            can&apos;t be removed.
+          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <Input
+              value={catNameEn}
+              onChange={(e) => setCatNameEn(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") addCategory();
+              }}
+              placeholder="Category name (English)"
+              aria-label="New category name in English"
+              maxLength={40}
+              className="h-9 w-56"
+            />
+            <Input
+              value={catNameZh}
+              onChange={(e) => setCatNameZh(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") addCategory();
+              }}
+              placeholder="类别名称（中文，可选）"
+              aria-label="New category name in Chinese (optional)"
+              maxLength={40}
+              className="h-9 w-56"
+            />
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={addCategory}
+              disabled={!loaded || !catNameEn.trim()}
+            >
+              <Plus className="mr-1.5 h-3.5 w-3.5" />
+              Add category
+            </Button>
+          </div>
+          <ul className="mt-4 flex flex-wrap gap-2">
+            {DEFAULT_CATEGORY_IDS.map((id) => (
+              <li
+                key={id}
+                className="flex items-center gap-2 rounded-full border border-border bg-secondary/40 px-3 py-1.5 text-xs"
+              >
+                {en.shopPage.filters[id]}
+                <Badge variant="outline" className="text-[10px]">
+                  Built-in
+                </Badge>
+              </li>
+            ))}
+            {overrides.categories.map((c) => (
+              <li
+                key={c.id}
+                className="flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs"
+              >
+                {c.nameEn}
+                {c.nameZh ? <span className="text-muted-foreground">· {c.nameZh}</span> : null}
+                <button
+                  type="button"
+                  onClick={() => setDeleteCategoryId(c.id)}
+                  aria-label={`Delete category ${c.nameEn}`}
+                  className="ml-0.5 rounded-full p-0.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
+
+      {/* Deleted built-in products (restorable) */}
+      {overrides.deleted.length > 0 ? (
+        <Card className="shadow-none">
+          <CardContent className="p-4 sm:p-5">
+            <h3 className="text-sm font-semibold">Deleted products</h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Removed from the shop — restore them anytime.
+            </p>
+            <ul className="mt-3 space-y-2">
+              {overrides.deleted.map((id) => (
+                <li
+                  key={id}
+                  className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2"
+                >
+                  <span className="flex min-w-0 items-center gap-3">
+                    {shopImages[id] ? (
+                      <img
+                        src={shopImages[id]}
+                        alt=""
+                        width={32}
+                        height={32}
+                        loading="lazy"
+                        className="h-8 w-8 shrink-0 rounded-md object-cover"
+                      />
+                    ) : null}
+                    <span className="truncate text-sm">{productNamesEn.get(id) ?? id}</span>
+                  </span>
+                  <Button variant="outline" size="sm" onClick={() => restoreProduct(id)}>
+                    <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+                    Restore
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      ) : null}
+
       <p className="text-center text-xs text-muted-foreground">
         Product changes are saved in this browser for now — they'll move to the database with the
         backend phase so every visitor sees them.
@@ -609,6 +814,7 @@ function AdminProductsPage() {
       <ProductEditorDialog
         open={editor !== null}
         initial={editorInitial}
+        categories={editorCategories}
         onOpenChange={(open) => {
           if (!open) setEditor(null);
         }}
@@ -621,12 +827,33 @@ function AdminProductsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this product?</AlertDialogTitle>
             <AlertDialogDescription>
-              It will be removed from the shop immediately. This cannot be undone.
+              {deleteId && overrides.added.some((c) => c.id === deleteId)
+                ? "It will be removed from the shop immediately. This cannot be undone."
+                : "It will be removed from the shop immediately. You can restore it later from the Deleted products list."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete}>Delete product</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={deleteCategoryId !== null}
+        onOpenChange={(open) => !open && setDeleteCategoryId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this category?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Products in this category will be moved to “{en.shopPage.filters.cones}”. The category
+              filter will disappear from the shop.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteCategory}>Delete category</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

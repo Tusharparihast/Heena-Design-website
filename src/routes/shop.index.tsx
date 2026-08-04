@@ -8,7 +8,7 @@ import { OrderRequestModal } from "@/components/shop/OrderRequestModal";
 import { QuantityStepper } from "@/components/shop/QuantityStepper";
 import { StockBadge } from "@/components/shop/StockBadge";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { MAX_ORDER_QTY, type ShopCategory, type ShopProduct } from "@/lib/shop";
+import { DEFAULT_CATEGORY_IDS, MAX_ORDER_QTY, type ShopProduct } from "@/lib/shop";
 import {
   effectiveProducts,
   resolveCopy,
@@ -36,23 +36,33 @@ export const Route = createFileRoute("/shop/")({
   component: ShopPage,
 });
 
-const filterKeys = ["all", "cones", "kits", "care", "practice"] as const;
-type FilterKey = (typeof filterKeys)[number];
-
 function ShopPage() {
   const { t, locale } = useLanguage();
   const s = t.shopPage;
-  const [filter, setFilter] = useState<FilterKey>("all");
+  const [filter, setFilter] = useState<string>("all");
   const [order, setOrder] = useState<{ id: string; qty: number } | null>(null);
   const overrides = useCatalogOverrides();
+
+  /** Filter chips: All + built-in categories + studio-created categories. */
+  const chips = useMemo(() => {
+    const base = DEFAULT_CATEGORY_IDS.map((id) => ({ id: id as string, label: s.filters[id] }));
+    const custom = overrides.categories.map((c) => ({
+      id: c.id,
+      label: (locale === "zh" ? c.nameZh : "") || c.nameEn,
+    }));
+    return [{ id: "all", label: s.filters.all }, ...base, ...custom];
+  }, [s.filters, overrides.categories, locale]);
+
+  // Fall back to "all" if the active chip was a custom category that got deleted.
+  const activeFilter = chips.some((c) => c.id === filter) ? filter : "all";
 
   const items = useMemo(() => {
     const byId = new Map(s.items.map((i) => [i.id, i]));
     return effectiveProducts(overrides)
-      .filter((p) => filter === "all" || p.category === (filter as ShopCategory))
+      .filter((p) => activeFilter === "all" || p.category === activeFilter)
       .map((product) => ({ product, copy: resolveCopy(product, byId.get(product.id), overrides, locale) }))
       .filter((x): x is { product: ShopProduct; copy: ProductCopy } => x.copy !== null);
-  }, [filter, s.items, overrides, locale]);
+  }, [activeFilter, s.items, overrides, locale]);
 
   const waLink = `https://wa.me/${site.whatsapp.replace(/[^\d]/g, "")}?text=${encodeURIComponent(
     `Hello ${site.name}, I would like to order from your shop.`
@@ -90,18 +100,18 @@ function ShopPage() {
         <SectionHeading label={s.hero.eyebrow} title={s.hero.title} />
 
         <div className="mt-8 flex flex-wrap gap-2">
-          {filterKeys.map((key) => (
+          {chips.map((chip) => (
             <button
-              key={key}
+              key={chip.id}
               type="button"
-              onClick={() => setFilter(key)}
-              aria-pressed={filter === key}
+              onClick={() => setFilter(chip.id)}
+              aria-pressed={activeFilter === chip.id}
               className={cn(
                 "rounded-full border px-4 py-2 text-sm transition-colors",
-                filter === key ? "border-primary bg-primary text-primary-foreground" : "border-border hover:bg-accent"
+                activeFilter === chip.id ? "border-primary bg-primary text-primary-foreground" : "border-border hover:bg-accent"
               )}
             >
-              {s.filters[key]}
+              {chip.label}
             </button>
           ))}
         </div>

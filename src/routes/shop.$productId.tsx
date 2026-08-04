@@ -10,6 +10,7 @@ import { en } from "@/i18n/dictionaries";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { MAX_ORDER_QTY, type ShopProduct } from "@/lib/shop";
 import {
+  categoryLabel,
   effectiveProducts,
   relatedFrom,
   resolveCopy,
@@ -122,7 +123,7 @@ function ProductPage() {
 
           {/* Details */}
           <div className="flex flex-col">
-            <p className="text-xs font-semibold tracking-[0.2em] text-primary uppercase">{s.filters[product.category]}</p>
+            <p className="text-xs font-semibold tracking-[0.2em] text-primary uppercase">{categoryLabel(product.category, overrides, locale, s.filters)}</p>
             <h1 className="mt-3 text-3xl font-semibold sm:text-4xl">{copy.name}</h1>
 
             <div className="mt-4 flex flex-wrap items-center gap-3">
