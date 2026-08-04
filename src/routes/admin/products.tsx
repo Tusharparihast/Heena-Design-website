@@ -599,6 +599,33 @@ function AdminProductsPage() {
     ? effectiveCategories(overrides, en.shopPage.filters).find((c) => c.id !== deleteCategoryId)
     : undefined;
 
+  /* ---------------- Trash ---------------- */
+
+  /** Trashed products (built-in and custom) awaiting restore or permanent deletion. */
+  const trashProducts = useMemo(
+    () =>
+      overrides.deleted.map((id) => {
+        const custom = overrides.added.find((c) => c.id === id);
+        return {
+          id,
+          name: custom?.nameEn ?? productNamesEn.get(id) ?? id,
+          image: custom?.image ?? shopImages[id],
+        };
+      }),
+    [overrides],
+  );
+
+  /** Trashed categories (built-in and custom) awaiting restore or permanent deletion. */
+  const trashCategories = useMemo(
+    () =>
+      overrides.deletedCategories.map((id) => ({
+        id,
+        name: categoryLabel(id, overrides, "en", en.shopPage.filters),
+        movedCount: (overrides.trashCategoryProducts[id] ?? []).length,
+      })),
+    [overrides],
+  );
+
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -856,40 +883,106 @@ function AdminProductsPage() {
         </CardContent>
       </Card>
 
-      {/* Deleted built-in products (restorable) */}
-      {overrides.deleted.length > 0 ? (
+      {/* Trash: deleted products & categories — restore or delete permanently */}
+      {trashProducts.length > 0 || trashCategories.length > 0 ? (
         <Card className="shadow-none">
           <CardContent className="p-4 sm:p-5">
-            <h3 className="text-sm font-semibold">Deleted products</h3>
+            <h3 className="flex items-center gap-2 text-sm font-semibold">
+              <Trash2 className="h-4 w-4 text-muted-foreground" aria-hidden />
+              Trash
+            </h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              Removed from the shop — restore them anytime.
+              Deleted products and categories stay here until you restore them or delete them
+              permanently.
             </p>
-            <ul className="mt-3 space-y-2">
-              {overrides.deleted.map((id) => (
-                <li
-                  key={id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2"
-                >
-                  <span className="flex min-w-0 items-center gap-3">
-                    {shopImages[id] ? (
-                      <img
-                        src={shopImages[id]}
-                        alt=""
-                        width={32}
-                        height={32}
-                        loading="lazy"
-                        className="h-8 w-8 shrink-0 rounded-md object-cover"
-                      />
-                    ) : null}
-                    <span className="truncate text-sm">{productNamesEn.get(id) ?? id}</span>
-                  </span>
-                  <Button variant="outline" size="sm" onClick={() => restoreProduct(id)}>
-                    <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-                    Restore
-                  </Button>
-                </li>
-              ))}
-            </ul>
+
+            {trashCategories.length > 0 ? (
+              <div className="mt-4">
+                <h4 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                  Categories
+                </h4>
+                <ul className="mt-2 space-y-2">
+                  {trashCategories.map((c) => (
+                    <li
+                      key={c.id}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border px-3 py-2"
+                    >
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm">{c.name}</span>
+                        {c.movedCount > 0 ? (
+                          <span className="block text-xs text-muted-foreground">
+                            {c.movedCount} product{c.movedCount === 1 ? "" : "s"} will move back on
+                            restore
+                          </span>
+                        ) : null}
+                      </span>
+                      <span className="flex shrink-0 items-center gap-2">
+                        <Button variant="outline" size="sm" onClick={() => restoreCategory(c.id)}>
+                          <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+                          Restore
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          onClick={() => setPurgeCategoryId(c.id)}
+                          aria-label={`Delete category ${c.name} permanently`}
+                        >
+                          <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                          Delete permanently
+                        </Button>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {trashProducts.length > 0 ? (
+              <div className="mt-4">
+                <h4 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                  Products
+                </h4>
+                <ul className="mt-2 space-y-2">
+                  {trashProducts.map((p) => (
+                    <li
+                      key={p.id}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border px-3 py-2"
+                    >
+                      <span className="flex min-w-0 items-center gap-3">
+                        {p.image ? (
+                          <img
+                            src={p.image}
+                            alt=""
+                            width={32}
+                            height={32}
+                            loading="lazy"
+                            className="h-8 w-8 shrink-0 rounded-md object-cover"
+                          />
+                        ) : null}
+                        <span className="truncate text-sm">{p.name}</span>
+                      </span>
+                      <span className="flex shrink-0 items-center gap-2">
+                        <Button variant="outline" size="sm" onClick={() => restoreProduct(p.id)}>
+                          <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+                          Restore
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          onClick={() => setPurgeId(p.id)}
+                          aria-label={`Delete product ${p.name} permanently`}
+                        >
+                          <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                          Delete permanently
+                        </Button>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </CardContent>
         </Card>
       ) : null}
