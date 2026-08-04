@@ -77,43 +77,41 @@ export function Lightbox({
       </div>
 
       <div className="relative flex flex-1 items-center justify-center overflow-auto px-2 pb-4">
-        <div
-          className="relative flex w-full items-center justify-center"
-          onClick={(event) => event.stopPropagation()}
+        <IconButton
+          label={labels.prev}
+          onClick={onPrev}
+          className="absolute left-2 z-10 sm:left-4"
         >
-          <IconButton
-            label={labels.prev}
-            onClick={onPrev}
-            className="absolute left-2 z-10 sm:left-4"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </IconButton>
-          <img
-            src={item.src}
-            alt={label}
-            width={item.width}
-            height={item.height}
-            draggable={false}
-            onContextMenu={(event) => event.preventDefault()}
-            onClick={() => setZoomed((v) => !v)}
-            className={
-              zoomed
-                ? "max-w-none cursor-zoom-out rounded-lg"
-                : "max-h-[80vh] w-auto max-w-[92vw] cursor-zoom-in rounded-lg object-contain"
-            }
-            style={zoomed ? { width: "min(1600px, 190vw)" } : undefined}
-          />
-          <span className="pointer-events-none absolute bottom-6 rounded-full bg-background/70 px-3 py-1 text-[11px] text-foreground/70">
-            {site.shortName}
-          </span>
-          <IconButton
-            label={labels.next}
-            onClick={onNext}
-            className="absolute right-2 z-10 sm:right-4"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </IconButton>
-        </div>
+          <ChevronLeft className="h-5 w-5" />
+        </IconButton>
+        <img
+          src={item.src}
+          alt={label}
+          width={item.width}
+          height={item.height}
+          draggable={false}
+          onContextMenu={(event) => event.preventDefault()}
+          onClick={(event) => {
+            event.stopPropagation();
+            setZoomed((v) => !v);
+          }}
+          className={
+            zoomed
+              ? "max-w-none cursor-zoom-out rounded-lg"
+              : "max-h-[80vh] w-auto max-w-[92vw] cursor-zoom-in rounded-lg object-contain"
+          }
+          style={zoomed ? { width: "min(1600px, 190vw)" } : undefined}
+        />
+        <span className="pointer-events-none absolute bottom-6 rounded-full bg-background/70 px-3 py-1 text-[11px] text-foreground/70">
+          {site.shortName}
+        </span>
+        <IconButton
+          label={labels.next}
+          onClick={onNext}
+          className="absolute right-2 z-10 sm:right-4"
+        >
+          <ChevronRight className="h-5 w-5" />
+        </IconButton>
       </div>
     </div>
   );
@@ -133,7 +131,10 @@ function IconButton({
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={(event) => {
+        event.stopPropagation();
+        onClick();
+      }}
       aria-label={label}
       title={label}
       className={`inline-flex h-10 w-10 items-center justify-center rounded-full bg-background/85 text-foreground transition-colors hover:bg-background ${className ?? ""}`}
