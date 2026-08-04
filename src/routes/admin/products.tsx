@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { MoreVertical, Pencil, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
+import { MoreVertical, Pencil, Percent, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
