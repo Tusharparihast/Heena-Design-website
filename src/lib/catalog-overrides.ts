@@ -285,7 +285,9 @@ export function isCatalogPristine(overrides: CatalogOverrides): boolean {
   return (
     Object.keys(overrides.edits).length === 0 &&
     overrides.added.length === 0 &&
-    overrides.hidden.length === 0
+    overrides.hidden.length === 0 &&
+    overrides.deleted.length === 0 &&
+    overrides.categories.length === 0
   );
 }
 
@@ -326,12 +328,15 @@ function toShopProduct(c: CustomProduct): ShopProduct {
   };
 }
 
-/** The full effective catalog: built-ins (minus hidden, with edits) + custom. */
+/** The full effective catalog: built-ins (minus hidden/deleted, with edits) + custom. */
 export function effectiveProducts(overrides: CatalogOverrides): ShopProduct[] {
   const base = shopProducts
-    .filter((p) => !overrides.hidden.includes(p.id))
+    .filter((p) => !overrides.hidden.includes(p.id) && !overrides.deleted.includes(p.id))
     .map((p) => applyEdit(p, overrides.edits[p.id]));
-  return [...base, ...overrides.added.map(toShopProduct)];
+  const custom = overrides.added
+    .filter((c) => !overrides.hidden.includes(c.id))
+    .map(toShopProduct);
+  return [...base, ...custom];
 }
 
 /** Related products from an already-effective catalog (same category first). */
@@ -395,6 +400,38 @@ export function makeProductId(name: string, taken: ReadonlySet<string>): string 
     n += 1;
   }
   return candidate;
+}
+
+/** URL-safe unique id for a new custom category, derived from its name. */
+export function makeCategoryId(name: string, taken: ReadonlySet<string>): string {
+  const slug =
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 30) || "category";
+  let candidate = `cat-${slug}`;
+  let n = 2;
+  while (taken.has(candidate)) {
+    candidate = `cat-${slug}-${n}`;
+    n += 1;
+  }
+  return candidate;
+}
+
+/**
+ * Display label for any category id: built-ins use the i18n dictionary labels,
+ * custom categories use the names entered in the admin dashboard.
+ */
+export function categoryLabel(
+  categoryId: string,
+  overrides: CatalogOverrides,
+  locale: "en" | "zh",
+  dictLabels: Record<string, string>,
+): string {
+  const custom = overrides.categories.find((c) => c.id === categoryId);
+  if (custom) return (locale === "zh" ? custom.nameZh : "") || custom.nameEn;
+  return dictLabels[categoryId] ?? categoryId;
 }
 
 /* ------------------------------------------------------------------ */
