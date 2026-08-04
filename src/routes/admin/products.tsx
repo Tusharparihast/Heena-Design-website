@@ -557,33 +557,35 @@ function AdminProductsPage() {
                       />
                     )}
                   </TableCell>
-                  <TableCell className="pr-6 text-right whitespace-nowrap">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      aria-label={`Edit ${row.name}`}
-                      onClick={() =>
-                        setEditor(
-                          row.custom
-                            ? { kind: "custom", id: row.id }
-                            : { kind: "base", id: row.id },
-                        )
-                      }
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    {row.custom ? (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-destructive hover:text-destructive"
-                        aria-label={`Delete ${row.name}`}
-                        onClick={() => setDeleteId(row.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    ) : null}
+                  <TableCell className="pr-6 text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Actions for ${row.name}`}>
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setEditor(row.custom ? { kind: "custom", id: row.id } : { kind: "base", id: row.id })}>
+                          <Pencil className="mr-2 h-4 w-4" />
+                          Edit details
+                        </DropdownMenuItem>
+                        {!row.custom && row.hasEdit ? (
+                          <DropdownMenuItem onClick={() => resetRow(row.id)}>
+                            <RotateCcw className="mr-2 h-4 w-4" />
+                            Reset to defaults
+                          </DropdownMenuItem>
+                        ) : null}
+                        {row.custom ? (
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => setDeleteId(row.id)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete product
+                          </DropdownMenuItem>
+                        ) : null}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}
