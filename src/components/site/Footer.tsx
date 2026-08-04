@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { Clock, Facebook, Instagram, Mail, MapPin, Phone } from "lucide-react";
 import { toast } from "sonner";
