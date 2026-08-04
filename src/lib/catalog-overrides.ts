@@ -45,6 +45,13 @@ export interface ProductEdit {
   image?: string | undefined;
 }
 
+/** A studio-created product category (in addition to the built-in ones). */
+export interface CustomCategory {
+  id: string;
+  nameEn: string;
+  nameZh: string;
+}
+
 /** A fully custom product added from the admin dashboard. */
 export interface CustomProduct {
   id: string;
@@ -65,11 +72,21 @@ export interface CatalogOverrides {
   edits: Record<string, ProductEdit>;
   /** Custom products created in the dashboard. */
   added: CustomProduct[];
-  /** Ids of built-in products hidden from the shop. */
+  /** Ids of products (built-in or custom) temporarily hidden from the shop. */
   hidden: string[];
+  /** Ids of built-in products removed from the catalog (restorable). */
+  deleted: string[];
+  /** Studio-created categories, shown as extra shop filters. */
+  categories: CustomCategory[];
 }
 
-export const emptyCatalogOverrides: CatalogOverrides = { edits: {}, added: [], hidden: [] };
+export const emptyCatalogOverrides: CatalogOverrides = {
+  edits: {},
+  added: [],
+  hidden: [],
+  deleted: [],
+  categories: [],
+};
 
 /** Text the storefront renders for a product (mirrors the i18n item shape). */
 export interface ProductCopy {
@@ -124,7 +141,8 @@ export function cleanEdit(edit: ProductEdit): ProductEdit | undefined {
   if (bodyZh) out.bodyZh = bodyZh;
   if (priceNpr !== undefined) out.priceNpr = priceNpr;
   if (edit.stock && STOCK_STATUSES.includes(edit.stock)) out.stock = edit.stock;
-  if (edit.category && CATEGORIES.includes(edit.category)) out.category = edit.category;
+  const category = cleanText(edit.category);
+  if (category && category.length <= 40) out.category = category;
   if (typeof edit.featured === "boolean") out.featured = edit.featured;
   if (image) out.image = image;
   if (edit.discount === null) out.discount = null;
@@ -143,9 +161,7 @@ function cleanCustomProduct(raw: unknown): CustomProduct | undefined {
   const priceNpr = cleanPrice(c["priceNpr"]);
   const image = cleanImage(c["image"]);
   if (!id || !nameEn || priceNpr === undefined || !image) return undefined;
-  const category = CATEGORIES.includes(c["category"] as ShopCategory)
-    ? (c["category"] as ShopCategory)
-    : "cones";
+  const category = cleanText(c["category"]) ?? "cones";
   const stock = STOCK_STATUSES.includes(c["stock"] as StockStatus)
     ? (c["stock"] as StockStatus)
     : "in";
