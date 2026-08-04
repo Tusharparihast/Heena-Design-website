@@ -164,8 +164,18 @@ export function OrderRequestModal({
         aria-modal="true"
         aria-label={f.title}
         className={cn(
-          "absolute top-0 right-0 flex h-full w-full max-w-md flex-col border-l border-border bg-card shadow-2xl transition-transform duration-300 ease-out",
-          mounted ? "translate-x-0" : "translate-x-full"
+          "absolute flex flex-col bg-card shadow-2xl duration-300 ease-out",
+          // Mobile: full-height drawer sliding in from the right edge.
+          // Desktop: centered dialog fading/scaling in — a side drawer feels out of place on wide screens.
+          isMobile
+            ? cn(
+                "inset-y-0 right-0 h-full w-full max-w-md border-l border-border transition-transform",
+                mounted ? "translate-x-0" : "translate-x-full"
+              )
+            : cn(
+                "top-1/2 left-1/2 max-h-[88vh] w-[min(38rem,calc(100vw-2.5rem))] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border transition-[opacity,scale]",
+                mounted ? "scale-100 opacity-100" : "scale-95 opacity-0"
+              )
         )}
       >
         <div className="flex items-start justify-between gap-4 border-b border-border p-5">
