@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Award, Check, Clock, GraduationCap, Package, Users } from "lucide-react";
+import { ArrowDown, ArrowRight, Award, Check, Clock, GraduationCap, Package, Users } from "lucide-react";
 import { Section, SectionHeading } from "@/components/site/Section";
 import { MehndiPattern } from "@/components/site/MehndiPattern";
 import { useLanguage } from "@/i18n/LanguageProvider";
@@ -136,17 +136,29 @@ function CoursesPage() {
 
       <Section>
         <h2 className="text-3xl font-semibold sm:text-4xl">{c.process.title}</h2>
-        <ol className="mt-8 grid gap-6 md:grid-cols-3">
+        <div className="mt-8 flex flex-col items-stretch gap-4 md:flex-row md:items-center">
           {c.process.steps.map((step, i) => (
-            <li key={step.title} className="rounded-2xl border border-border bg-card p-6">
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold text-primary">
-                {i + 1}
-              </span>
-              <h3 className="mt-4 text-lg font-semibold">{step.title}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{step.body}</p>
-            </li>
+            <div key={`wrapper-${step.title}`} className="contents">
+              <article key={`step-${step.title}`} className="flex-1 rounded-2xl border border-border bg-card p-6">
+                <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold text-primary">
+                  {i + 1}
+                </span>
+                <h3 className="mt-4 text-lg font-semibold">{step.title}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{step.body}</p>
+              </article>
+              {i < c.process.steps.length - 1 && (
+                <div key={`arrow-${step.title}`} className="flex items-center justify-center py-2 md:px-2 md:py-0">
+                  <ArrowDown className="h-5 w-5 text-primary/70 arrow-pulse md:hidden" aria-hidden />
+                  <ArrowRight
+                    className="hidden h-5 w-5 text-primary/70 arrow-pulse md:block"
+                    style={{ animationDelay: `${i * 0.2}s` }}
+                    aria-hidden
+                  />
+                </div>
+              )}
+            </div>
           ))}
-        </ol>
+        </div>
       </Section>
 
       <Section className="bg-card">
