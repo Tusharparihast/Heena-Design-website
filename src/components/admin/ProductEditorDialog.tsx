@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { ImagePlus, Loader2, RotateCcw } from "lucide-react";
+import { ImagePlus, Loader2, Plus, RotateCcw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -54,8 +54,6 @@ export interface ProductEditorInitial {
   stock: StockStatus;
   discount?: number | undefined;
   featured: boolean;
-  /** Whether a built-in product already has overrides (shows the reset button). */
-  hasEdit: boolean;
 }
 
 /** A selectable category option (built-in or studio-created). */
@@ -103,7 +101,7 @@ export function ProductEditorDialog({
   categories,
   onOpenChange,
   onSave,
-  onResetEdit,
+  onAddCategory,
 }: {
   open: boolean;
   initial: ProductEditorInitial | null;
@@ -111,8 +109,8 @@ export function ProductEditorDialog({
   categories: CategoryOption[];
   onOpenChange: (open: boolean) => void;
   onSave: (values: ProductFormValues) => void;
-  /** Clear all overrides for a built-in product. */
-  onResetEdit?: (() => void) | undefined;
+  /** Create a custom category from inside the editor; returns the new category id. */
+  onAddCategory?: ((nameEn: string, nameZh: string) => string | null) | undefined;
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -124,7 +122,7 @@ export function ProductEditorDialog({
             categories={categories}
             onCancel={() => onOpenChange(false)}
             onSave={onSave}
-            onResetEdit={onResetEdit}
+            onAddCategory={onAddCategory}
           />
         ) : null}
       </DialogContent>
@@ -137,13 +135,13 @@ function ProductEditorForm({
   categories,
   onCancel,
   onSave,
-  onResetEdit,
+  onAddCategory,
 }: {
   initial: ProductEditorInitial;
   categories: CategoryOption[];
   onCancel: () => void;
   onSave: (values: ProductFormValues) => void;
-  onResetEdit?: (() => void) | undefined;
+  onAddCategory?: ((nameEn: string, nameZh: string) => string | null) | undefined;
 }) {
   const isNew = initial.id === null;
   const fileInput = useRef<HTMLInputElement>(null);
@@ -161,6 +159,9 @@ function ProductEditorForm({
   const [discount, setDiscount] = useState(initial.discount ? String(initial.discount) : "");
   const [featured, setFeatured] = useState(initial.featured);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [newCatOpen, setNewCatOpen] = useState(false);
+  const [newCatEn, setNewCatEn] = useState("");
+  const [newCatZh, setNewCatZh] = useState("");
 
   const pickImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -187,6 +188,18 @@ function ProductEditorForm({
     if (!initial.defaultImage) return;
     setImage(initial.defaultImage);
     setImageChanged(false);
+  };
+
+  const addNewCategory = () => {
+    const nameEn = newCatEn.trim();
+    if (!nameEn || !onAddCategory) return;
+    const id = onAddCategory(nameEn, newCatZh.trim());
+    if (id) {
+      setCategory(id);
+      setNewCatEn("");
+      setNewCatZh("");
+      setNewCatOpen(false);
+    }
   };
 
   const submit = (e: React.FormEvent) => {
@@ -358,6 +371,69 @@ function ProductEditorForm({
                   ))}
                 </SelectContent>
               </Select>
+              {onAddCategory ? (
+                newCatOpen ? (
+                  <div className="mt-2 space-y-1.5 rounded-lg border border-border p-2">
+                    <Input
+                      value={newCatEn}
+                      onChange={(e) => setNewCatEn(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addNewCategory();
+                        }
+                      }}
+                      placeholder="New category (English)"
+                      aria-label="New category name in English"
+                      maxLength={40}
+                      className="h-8 text-xs"
+                    />
+                    <Input
+                      value={newCatZh}
+                      onChange={(e) => setNewCatZh(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addNewCategory();
+                        }
+                      }}
+                      placeholder="新类别（中文，可选）"
+                      aria-label="New category name in Chinese (optional)"
+                      maxLength={40}
+                      className="h-8 text-xs"
+                    />
+                    <div className="flex gap-1.5">
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="h-7 flex-1 text-xs"
+                        onClick={addNewCategory}
+                        disabled={!newCatEn.trim()}
+                      >
+                        Add
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={() => setNewCatOpen(false)}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setNewCatOpen(true)}
+                    className="mt-1.5 flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                  >
+                    <Plus className="h-3 w-3" />
+                    New category
+                  </button>
+                )
+              ) : null}
             </div>
             <div>
               <Label>Stock</Label>
@@ -404,21 +480,11 @@ function ProductEditorForm({
         </div>
       </div>
 
-      <DialogFooter className="mt-6 gap-2 sm:justify-between">
-        <div>
-          {!isNew && !initial.isCustom && initial.hasEdit && onResetEdit ? (
-            <Button type="button" variant="ghost" size="sm" onClick={onResetEdit}>
-              <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-              Reset to defaults
-            </Button>
-          ) : null}
-        </div>
-        <div className="flex gap-2">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button type="submit">{isNew ? "Add product" : "Save product"}</Button>
-        </div>
+      <DialogFooter className="mt-6 gap-2">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button type="submit">{isNew ? "Add product" : "Save product"}</Button>
       </DialogFooter>
     </form>
   );
