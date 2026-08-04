@@ -174,33 +174,39 @@ function ProductPage() {
           </div>
         </div>
 
-        {/* Features + usage */}
-        <div className="mt-12 grid gap-8 sm:grid-cols-2">
-          <div className="rounded-2xl border border-border bg-card p-6">
-            <h2 className="text-base font-semibold">{d.features}</h2>
-            <ul className="mt-4 space-y-2.5">
-              {copy.features.map((feature) => (
-                <li key={feature} className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
-                  {feature}
-                </li>
-              ))}
-            </ul>
+        {/* Features + usage (hidden for custom products without this content) */}
+        {copy.features.length > 0 || copy.usage.length > 0 ? (
+          <div className="mt-12 grid gap-8 sm:grid-cols-2">
+            {copy.features.length > 0 ? (
+              <div className="rounded-2xl border border-border bg-card p-6">
+                <h2 className="text-base font-semibold">{d.features}</h2>
+                <ul className="mt-4 space-y-2.5">
+                  {copy.features.map((feature) => (
+                    <li key={feature} className="flex items-start gap-2.5 text-sm text-muted-foreground">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {copy.usage.length > 0 ? (
+              <div className="rounded-2xl border border-border bg-card p-6">
+                <h2 className="text-base font-semibold">{d.usage}</h2>
+                <ol className="mt-4 space-y-2.5">
+                  {copy.usage.map((step, i) => (
+                    <li key={step} className="flex items-start gap-3 text-sm text-muted-foreground">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-semibold text-primary">
+                        {i + 1}
+                      </span>
+                      {step}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            ) : null}
           </div>
-          <div className="rounded-2xl border border-border bg-card p-6">
-            <h2 className="text-base font-semibold">{d.usage}</h2>
-            <ol className="mt-4 space-y-2.5">
-              {copy.usage.map((step, i) => (
-                <li key={step} className="flex items-start gap-3 text-sm text-muted-foreground">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-semibold text-primary">
-                    {i + 1}
-                  </span>
-                  {step}
-                </li>
-              ))}
-            </ol>
-          </div>
-        </div>
+        ) : null}
 
         {/* Related products */}
         {related.length > 0 ? (
@@ -216,7 +222,7 @@ function ProductPage() {
                   >
                     <div className="relative aspect-square overflow-hidden bg-secondary/40">
                       <img
-                        src={shopImages[p.id]}
+                        src={p.image}
                         alt={p.copy!.name}
                         width={800}
                         height={800}
