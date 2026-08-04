@@ -84,10 +84,10 @@ export function Hero() {
           <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center text-primary/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]">
             <MehndiPattern className="max-h-[520px]" />
           </div>
-          {playVideo ? (
+          {showVideo ? (
             <video
-              src={heroVideo}
-              poster={heroHand}
+              src={videoUrl}
+              poster={posterUrl}
               width={1200}
               height={1400}
               autoPlay
@@ -101,7 +101,7 @@ export function Hero() {
             />
           ) : (
             <img
-              src={heroHand}
+              src={imageUrl}
               width={1200}
               height={1400}
               alt="Hand decorated with an intricate traditional bridal mehndi design"
@@ -109,8 +109,8 @@ export function Hero() {
               style={{ boxShadow: "var(--shadow-soft)" }}
             />
           )}
-
         </div>
+
       </div>
     </section>
   );
