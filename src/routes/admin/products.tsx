@@ -114,7 +114,9 @@ function AdminProductsPage() {
   const [discountDrafts, setDiscountDrafts] = useState<Record<string, string>>({});
   const [editor, setEditor] = useState<EditorTarget | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  
+  const [purgeId, setPurgeId] = useState<string | null>(null);
+  const [purgeCategoryId, setPurgeCategoryId] = useState<string | null>(null);
+
   const [catNameEn, setCatNameEn] = useState("");
   const [catNameZh, setCatNameZh] = useState("");
   const [deleteCategoryId, setDeleteCategoryId] = useState<string | null>(null);
@@ -138,7 +140,7 @@ function AdminProductsPage() {
 
   const rows = useMemo<Row[]>(() => {
     const baseRows: Row[] = shopProducts
-      .filter((p) => !overrides.deleted.includes(p.id))
+      .filter((p) => !overrides.deleted.includes(p.id) && !overrides.purged.includes(p.id))
       .map((p) => {
         const edit = overrides.edits[p.id];
         const eff = applyEdit(p, edit);
@@ -156,19 +158,21 @@ function AdminProductsPage() {
           hidden: overrides.hidden.includes(p.id),
         };
       });
-    const customRows: Row[] = overrides.added.map((c) => ({
-      id: c.id,
-      custom: true,
-      image: c.image,
-      name: c.nameEn,
-      category: c.category,
-      priceNpr: c.priceNpr,
-      stock: c.stock,
-      featured: c.featured,
-      discount: c.discount,
-      defaultDiscount: undefined,
-      hidden: overrides.hidden.includes(c.id),
-    }));
+    const customRows: Row[] = overrides.added
+      .filter((c) => !overrides.deleted.includes(c.id))
+      .map((c) => ({
+        id: c.id,
+        custom: true,
+        image: c.image,
+        name: c.nameEn,
+        category: c.category,
+        priceNpr: c.priceNpr,
+        stock: c.stock,
+        featured: c.featured,
+        discount: c.discount,
+        defaultDiscount: undefined,
+        hidden: overrides.hidden.includes(c.id),
+      }));
     return [...baseRows, ...customRows];
   }, [overrides]);
 
@@ -382,43 +386,55 @@ function AdminProductsPage() {
   };
 
 
+  /** Product display name for toasts/dialogs — works for built-in and custom. */
+  const productName = (id: string) =>
+    overrides.added.find((c) => c.id === id)?.nameEn ?? productNamesEn.get(id) ?? id;
+
   const confirmDelete = () => {
     if (!deleteId) return;
-    const custom = overrides.added.find((c) => c.id === deleteId);
-    if (custom) {
-      // Custom products are removed permanently.
-      commit(
-        {
-          ...overrides,
-          added: overrides.added.filter((c) => c.id !== deleteId),
-          hidden: overrides.hidden.filter((id) => id !== deleteId),
-        },
-        "Product deleted",
-        `${custom.nameEn} no longer appears in the shop.`,
-      );
-    } else {
-      // Built-in products move to the restorable "Deleted products" list.
-      const name = productNamesEn.get(deleteId) ?? deleteId;
-      commit(
-        {
-          ...overrides,
-          deleted: [...overrides.deleted, deleteId],
-          hidden: overrides.hidden.filter((id) => id !== deleteId),
-        },
-        "Product deleted",
-        `${name} was removed from the shop. You can restore it below.`,
-      );
-    }
+    const name = productName(deleteId);
+    // Built-in and custom products alike move to the trash (restorable).
+    commit(
+      {
+        ...overrides,
+        deleted: [...overrides.deleted, deleteId],
+        hidden: overrides.hidden.filter((id) => id !== deleteId),
+      },
+      "Product moved to trash",
+      `${name} was removed from the shop. Restore it — or delete it permanently — from the trash below.`,
+    );
     setDeleteId(null);
   };
 
   const restoreProduct = (id: string) => {
-    const name = productNamesEn.get(id) ?? id;
+    const name = productName(id);
     commit(
       { ...overrides, deleted: overrides.deleted.filter((x) => x !== id) },
       "Product restored",
       `${name} is back in the shop.`,
     );
+  };
+
+  const confirmPurgeProduct = () => {
+    if (!purgeId) return;
+    const name = productName(purgeId);
+    const isCustom = overrides.added.some((c) => c.id === purgeId);
+    const edits = { ...overrides.edits };
+    delete edits[purgeId];
+    commit(
+      {
+        ...overrides,
+        // Custom products are dropped entirely; built-ins are remembered as purged
+        // so they never reappear.
+        added: overrides.added.filter((c) => c.id !== purgeId),
+        edits,
+        deleted: overrides.deleted.filter((x) => x !== purgeId),
+        purged: isCustom ? overrides.purged : [...overrides.purged, purgeId],
+      },
+      "Product permanently deleted",
+      `${name} is gone for good.`,
+    );
+    setPurgeId(null);
   };
 
   /* ---------------- Categories ---------------- */
@@ -462,38 +478,95 @@ function AdminProductsPage() {
       setDeleteCategoryId(null);
       return;
     }
-    const isBuiltin = (DEFAULT_CATEGORY_IDS as readonly string[]).includes(deleteCategoryId);
-    // Products in the deleted category move to the first remaining category.
-    const edits = Object.fromEntries(
-      Object.entries(overrides.edits).map(([id, e]) => [
-        id,
-        e.category === deleteCategoryId ? { ...e, category: fallback.id } : e,
-      ]),
-    );
-    const added = overrides.added.map((c) =>
-      c.category === deleteCategoryId ? { ...c, category: fallback.id } : c,
-    );
+    // Every product currently in this category moves to the fallback — including
+    // built-ins using their default category — and is remembered so restoring the
+    // category brings its products back.
+    const movedIds: string[] = [];
+    const edits = { ...overrides.edits };
+    for (const p of shopProducts) {
+      if (overrides.deleted.includes(p.id) || overrides.purged.includes(p.id)) continue;
+      const effCategory = edits[p.id]?.category ?? p.category;
+      if (effCategory === deleteCategoryId) {
+        edits[p.id] = { ...(edits[p.id] ?? {}), category: fallback.id };
+        movedIds.push(p.id);
+      }
+    }
+    const added = overrides.added.map((c) => {
+      if (c.category !== deleteCategoryId || overrides.deleted.includes(c.id)) return c;
+      movedIds.push(c.id);
+      return { ...c, category: fallback.id };
+    });
+    // The category itself (built-in or custom) goes to the trash — its data and
+    // any rename stay intact so it can be restored exactly as it was.
     commit(
       {
         ...overrides,
         edits,
         added,
-        categories: isBuiltin
-          ? overrides.categories
-          : overrides.categories.filter((c) => c.id !== deleteCategoryId),
-        categoryEdits: isBuiltin
-          ? Object.fromEntries(
-              Object.entries(overrides.categoryEdits).filter(([k]) => k !== deleteCategoryId),
-            )
-          : overrides.categoryEdits,
-        deletedCategories: isBuiltin
-          ? [...overrides.deletedCategories, deleteCategoryId]
-          : overrides.deletedCategories,
+        deletedCategories: [...overrides.deletedCategories, deleteCategoryId],
+        trashCategoryProducts:
+          movedIds.length > 0
+            ? { ...overrides.trashCategoryProducts, [deleteCategoryId]: movedIds }
+            : overrides.trashCategoryProducts,
       },
-      "Category deleted",
-      `Its products were moved to “${fallback.nameEn}”.`,
+      "Category moved to trash",
+      movedIds.length > 0
+        ? `Its products were moved to “${fallback.nameEn}” — restoring brings them back.`
+        : "Restore it — or delete it permanently — from the trash below.",
     );
     setDeleteCategoryId(null);
+  };
+
+  const restoreCategory = (id: string) => {
+    const name = categoryLabel(id, overrides, "en", en.shopPage.filters);
+    const movedSet = new Set(overrides.trashCategoryProducts[id] ?? []);
+    const builtinIds = new Set(shopProducts.map((p) => p.id));
+    const edits = { ...overrides.edits };
+    for (const pid of movedSet) {
+      if (builtinIds.has(pid)) edits[pid] = { ...(edits[pid] ?? {}), category: id };
+    }
+    const added = overrides.added.map((c) => (movedSet.has(c.id) ? { ...c, category: id } : c));
+    const trashCategoryProducts = { ...overrides.trashCategoryProducts };
+    delete trashCategoryProducts[id];
+    commit(
+      {
+        ...overrides,
+        edits,
+        added,
+        deletedCategories: overrides.deletedCategories.filter((c) => c !== id),
+        trashCategoryProducts,
+      },
+      "Category restored",
+      movedSet.size > 0 ? `${name} is back, along with its products.` : `${name} is back.`,
+    );
+  };
+
+  const confirmPurgeCategory = () => {
+    if (!purgeCategoryId) return;
+    const id = purgeCategoryId;
+    const name = categoryLabel(id, overrides, "en", en.shopPage.filters);
+    const isBuiltin = (DEFAULT_CATEGORY_IDS as readonly string[]).includes(id);
+    const categoryEdits = { ...overrides.categoryEdits };
+    delete categoryEdits[id];
+    const trashCategoryProducts = { ...overrides.trashCategoryProducts };
+    delete trashCategoryProducts[id];
+    // Products were already reassigned when the category was trashed — they stay
+    // in their fallback category.
+    commit(
+      {
+        ...overrides,
+        categories: overrides.categories.filter((c) => c.id !== id),
+        categoryEdits,
+        deletedCategories: overrides.deletedCategories.filter((c) => c !== id),
+        purgedCategories: isBuiltin
+          ? [...overrides.purgedCategories, id]
+          : overrides.purgedCategories,
+        trashCategoryProducts,
+      },
+      "Category permanently deleted",
+      `${name} is gone for good.`,
+    );
+    setPurgeCategoryId(null);
   };
 
   const saveRenameCategory = () => {
@@ -525,6 +598,33 @@ function AdminProductsPage() {
   const deleteCategoryFallback = deleteCategoryId
     ? effectiveCategories(overrides, en.shopPage.filters).find((c) => c.id !== deleteCategoryId)
     : undefined;
+
+  /* ---------------- Trash ---------------- */
+
+  /** Trashed products (built-in and custom) awaiting restore or permanent deletion. */
+  const trashProducts = useMemo(
+    () =>
+      overrides.deleted.map((id) => {
+        const custom = overrides.added.find((c) => c.id === id);
+        return {
+          id,
+          name: custom?.nameEn ?? productNamesEn.get(id) ?? id,
+          image: custom?.image ?? shopImages[id],
+        };
+      }),
+    [overrides],
+  );
+
+  /** Trashed categories (built-in and custom) awaiting restore or permanent deletion. */
+  const trashCategories = useMemo(
+    () =>
+      overrides.deletedCategories.map((id) => ({
+        id,
+        name: categoryLabel(id, overrides, "en", en.shopPage.filters),
+        movedCount: (overrides.trashCategoryProducts[id] ?? []).length,
+      })),
+    [overrides],
+  );
 
 
   return (
@@ -783,40 +883,106 @@ function AdminProductsPage() {
         </CardContent>
       </Card>
 
-      {/* Deleted built-in products (restorable) */}
-      {overrides.deleted.length > 0 ? (
+      {/* Trash: deleted products & categories — restore or delete permanently */}
+      {trashProducts.length > 0 || trashCategories.length > 0 ? (
         <Card className="shadow-none">
           <CardContent className="p-4 sm:p-5">
-            <h3 className="text-sm font-semibold">Deleted products</h3>
+            <h3 className="flex items-center gap-2 text-sm font-semibold">
+              <Trash2 className="h-4 w-4 text-muted-foreground" aria-hidden />
+              Trash
+            </h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              Removed from the shop — restore them anytime.
+              Deleted products and categories stay here until you restore them or delete them
+              permanently.
             </p>
-            <ul className="mt-3 space-y-2">
-              {overrides.deleted.map((id) => (
-                <li
-                  key={id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2"
-                >
-                  <span className="flex min-w-0 items-center gap-3">
-                    {shopImages[id] ? (
-                      <img
-                        src={shopImages[id]}
-                        alt=""
-                        width={32}
-                        height={32}
-                        loading="lazy"
-                        className="h-8 w-8 shrink-0 rounded-md object-cover"
-                      />
-                    ) : null}
-                    <span className="truncate text-sm">{productNamesEn.get(id) ?? id}</span>
-                  </span>
-                  <Button variant="outline" size="sm" onClick={() => restoreProduct(id)}>
-                    <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-                    Restore
-                  </Button>
-                </li>
-              ))}
-            </ul>
+
+            {trashCategories.length > 0 ? (
+              <div className="mt-4">
+                <h4 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                  Categories
+                </h4>
+                <ul className="mt-2 space-y-2">
+                  {trashCategories.map((c) => (
+                    <li
+                      key={c.id}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border px-3 py-2"
+                    >
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm">{c.name}</span>
+                        {c.movedCount > 0 ? (
+                          <span className="block text-xs text-muted-foreground">
+                            {c.movedCount} product{c.movedCount === 1 ? "" : "s"} will move back on
+                            restore
+                          </span>
+                        ) : null}
+                      </span>
+                      <span className="flex shrink-0 items-center gap-2">
+                        <Button variant="outline" size="sm" onClick={() => restoreCategory(c.id)}>
+                          <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+                          Restore
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          onClick={() => setPurgeCategoryId(c.id)}
+                          aria-label={`Delete category ${c.name} permanently`}
+                        >
+                          <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                          Delete permanently
+                        </Button>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {trashProducts.length > 0 ? (
+              <div className="mt-4">
+                <h4 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+                  Products
+                </h4>
+                <ul className="mt-2 space-y-2">
+                  {trashProducts.map((p) => (
+                    <li
+                      key={p.id}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border px-3 py-2"
+                    >
+                      <span className="flex min-w-0 items-center gap-3">
+                        {p.image ? (
+                          <img
+                            src={p.image}
+                            alt=""
+                            width={32}
+                            height={32}
+                            loading="lazy"
+                            className="h-8 w-8 shrink-0 rounded-md object-cover"
+                          />
+                        ) : null}
+                        <span className="truncate text-sm">{p.name}</span>
+                      </span>
+                      <span className="flex shrink-0 items-center gap-2">
+                        <Button variant="outline" size="sm" onClick={() => restoreProduct(p.id)}>
+                          <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+                          Restore
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          onClick={() => setPurgeId(p.id)}
+                          aria-label={`Delete product ${p.name} permanently`}
+                        >
+                          <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                          Delete permanently
+                        </Button>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </CardContent>
         </Card>
       ) : null}
@@ -842,14 +1008,28 @@ function AdminProductsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this product?</AlertDialogTitle>
             <AlertDialogDescription>
-              {deleteId && overrides.added.some((c) => c.id === deleteId)
-                ? "It will be removed from the shop immediately. This cannot be undone."
-                : "It will be removed from the shop immediately. You can restore it later from the Deleted products list."}
+              It will be removed from the shop and kept in the trash — you can restore it or
+              delete it permanently from there.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete}>Delete product</AlertDialogAction>
+            <AlertDialogAction onClick={confirmDelete}>Move to trash</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={purgeId !== null} onOpenChange={(open) => !open && setPurgeId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this product permanently?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This cannot be undone — the product will never appear in the shop again.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmPurgeProduct}>Delete permanently</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -863,12 +1043,31 @@ function AdminProductsPage() {
             <AlertDialogTitle>Delete this category?</AlertDialogTitle>
             <AlertDialogDescription>
               Products in this category will be moved to “{deleteCategoryFallback?.nameEn}”. The
-              category filter will disappear from the shop.
+              category itself goes to the trash — restore it anytime (its products move back) or
+              delete it permanently.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteCategory}>Delete category</AlertDialogAction>
+            <AlertDialogAction onClick={confirmDeleteCategory}>Move to trash</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={purgeCategoryId !== null}
+        onOpenChange={(open) => !open && setPurgeCategoryId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this category permanently?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This cannot be undone. Its products stay in the category they were moved to.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmPurgeCategory}>Delete permanently</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
