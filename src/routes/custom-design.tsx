@@ -33,23 +33,31 @@ function CustomDesignPage() {
 
   const [step, setStep] = useState(0);
   const [style, setStyle] = useState<StyleKey | null>(null);
-  const [occasion, setOccasion] = useState<string>(b.occasion.options[0] ?? "");
+  // Store option indexes (not the translated text) so switching languages
+  // re-translates the summary instead of keeping the old-language string.
+  const [occasionIdx, setOccasionIdx] = useState(0);
   const [files, setFiles] = useState<{ name: string; url: string }[]>([]);
   const [name, setName] = useState("");
   const [date, setDate] = useState("");
   const [people, setPeople] = useState("1");
-  const [placement, setPlacement] = useState<string>(b.details.placementOptions[0] ?? "");
-  const [budgetChoice, setBudgetChoice] = useState<string>(b.details.budgetOptions[0] ?? "");
+  const [placementIdx, setPlacementIdx] = useState(0);
+  const [budgetIdx, setBudgetIdx] = useState(0);
   const [budgetCustom, setBudgetCustom] = useState("");
   const [notes, setNotes] = useState("");
   const [copied, setCopied] = useState(false);
 
+  const occasion = b.occasion.options[occasionIdx] ?? b.occasion.options[0] ?? "";
+  const placement = b.details.placementOptions[placementIdx] ?? b.details.placementOptions[0] ?? "";
+
   // Object URLs are only for local previews — revoke them on unmount.
   useEffect(() => () => files.forEach((f) => URL.revokeObjectURL(f.url)), [files]);
 
-  // "Custom amount" swaps the preset for whatever the visitor types in.
-  const isCustomBudget = budgetChoice === b.details.budgetCustom;
-  const budget = isCustomBudget ? budgetCustom.trim() : budgetChoice;
+  // "Custom amount" (the option after the last preset) swaps the preset for
+  // whatever the visitor types in.
+  const isCustomBudget = budgetIdx >= b.details.budgetOptions.length;
+  const budget = isCustomBudget
+    ? budgetCustom.trim()
+    : (b.details.budgetOptions[budgetIdx] ?? b.details.budgetOptions[0] ?? "");
 
   // Today's date in local time — used to block past dates in the picker.
   const today = useMemo(() => {
@@ -164,14 +172,14 @@ function CustomDesignPage() {
 
                     <h2 className="mt-8 text-xl font-semibold">{b.occasion.title}</h2>
                     <div className="mt-4 flex flex-wrap gap-2">
-                      {b.occasion.options.map((opt) => (
+                      {b.occasion.options.map((opt, idx) => (
                         <button
                           key={opt}
                           type="button"
-                          onClick={() => setOccasion(opt)}
+                          onClick={() => setOccasionIdx(idx)}
                           className={cn(
                             "rounded-full border px-4 py-2 text-sm transition-colors",
-                            occasion === opt
+                            occasionIdx === idx
                               ? "border-primary bg-primary/10 text-primary"
                               : "border-border hover:bg-accent",
                           )}
@@ -269,12 +277,12 @@ function CustomDesignPage() {
                       </Field>
                       <Field label={b.details.placement}>
                         <select
-                          value={placement}
-                          onChange={(e) => setPlacement(e.target.value)}
+                          value={placementIdx}
+                          onChange={(e) => setPlacementIdx(Number(e.target.value))}
                           className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                         >
-                          {b.details.placementOptions.map((opt) => (
-                            <option key={opt} value={opt}>
+                          {b.details.placementOptions.map((opt, idx) => (
+                            <option key={opt} value={idx}>
                               {opt}
                             </option>
                           ))}
@@ -282,16 +290,18 @@ function CustomDesignPage() {
                       </Field>
                       <Field label={b.details.budget}>
                         <select
-                          value={budgetChoice}
-                          onChange={(e) => setBudgetChoice(e.target.value)}
+                          value={budgetIdx}
+                          onChange={(e) => setBudgetIdx(Number(e.target.value))}
                           className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                         >
-                          {b.details.budgetOptions.map((opt) => (
-                            <option key={opt} value={opt}>
+                          {b.details.budgetOptions.map((opt, idx) => (
+                            <option key={opt} value={idx}>
                               {opt}
                             </option>
                           ))}
-                          <option value={b.details.budgetCustom}>{b.details.budgetCustom}</option>
+                          <option value={b.details.budgetOptions.length}>
+                            {b.details.budgetCustom}
+                          </option>
                         </select>
                         {isCustomBudget && (
                           <input

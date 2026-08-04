@@ -31,12 +31,17 @@ function AppointmentPage() {
 
   const [name, setName] = useState("");
   const [contact, setContact] = useState("");
-  const [service, setService] = useState<string>(a.form.serviceOptions[0] ?? "");
+  // Store option indexes (not the translated text) so switching languages
+  // re-translates the summary instead of keeping the old-language string.
+  const [serviceIdx, setServiceIdx] = useState(0);
   const [date, setDate] = useState("");
-  const [time, setTime] = useState<string>(a.form.timeOptions[0] ?? "");
+  const [timeIdx, setTimeIdx] = useState(0);
   const [people, setPeople] = useState("1");
   const [notes, setNotes] = useState("");
   const [copied, setCopied] = useState(false);
+
+  const service = a.form.serviceOptions[serviceIdx] ?? a.form.serviceOptions[0] ?? "";
+  const time = a.form.timeOptions[timeIdx] ?? a.form.timeOptions[0] ?? "";
 
   // Today's date in local time — blocks past dates in the picker.
   const today = useMemo(() => {
@@ -124,14 +129,14 @@ function AppointmentPage() {
                 {a.form.service}
               </span>
               <div className="flex flex-wrap gap-2">
-                {a.form.serviceOptions.map((opt) => (
+                {a.form.serviceOptions.map((opt, idx) => (
                   <button
                     key={opt}
                     type="button"
-                    onClick={() => setService(opt)}
+                    onClick={() => setServiceIdx(idx)}
                     className={cn(
                       "rounded-full border px-4 py-2 text-sm transition-colors",
-                      service === opt
+                      serviceIdx === idx
                         ? "border-primary bg-primary/10 text-primary"
                         : "border-border hover:bg-accent",
                     )}
@@ -154,12 +159,12 @@ function AppointmentPage() {
               </Field>
               <Field label={a.form.time}>
                 <select
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
+                  value={timeIdx}
+                  onChange={(e) => setTimeIdx(Number(e.target.value))}
                   className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                 >
-                  {a.form.timeOptions.map((opt) => (
-                    <option key={opt} value={opt}>
+                  {a.form.timeOptions.map((opt, idx) => (
+                    <option key={opt} value={idx}>
                       {opt}
                     </option>
                   ))}
