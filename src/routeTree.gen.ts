@@ -21,6 +21,8 @@ import { Route as ShopRouteImport } from './routes/shop'
 import { Route as StudentWorkRouteImport } from './routes/student-work'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminSectionRouteImport } from './routes/admin/$section'
+import { Route as ShopIndexRouteImport } from './routes/shop.index'
+import { Route as ShopProductIdRouteImport } from './routes/shop.$productId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -82,6 +84,16 @@ const AdminSectionRoute = AdminSectionRouteImport.update({
   path: '/$section',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const ShopIndexRoute = ShopIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ShopRoute,
+} as any)
+const ShopProductIdRoute = ShopProductIdRouteImport.update({
+  id: '/$productId',
+  path: '/$productId',
+  getParentRoute: () => ShopRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -92,10 +104,12 @@ export interface FileRoutesByFullPath {
   '/courses': typeof CoursesRoute
   '/custom-design': typeof CustomDesignRoute
   '/gallery': typeof GalleryRoute
-  '/shop': typeof ShopRoute
+  '/shop': typeof ShopRouteWithChildren
   '/student-work': typeof StudentWorkRoute
   '/admin/$section': typeof AdminSectionRoute
+  '/shop/$productId': typeof ShopProductIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/shop/': typeof ShopIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -105,10 +119,11 @@ export interface FileRoutesByTo {
   '/courses': typeof CoursesRoute
   '/custom-design': typeof CustomDesignRoute
   '/gallery': typeof GalleryRoute
-  '/shop': typeof ShopRoute
   '/student-work': typeof StudentWorkRoute
   '/admin/$section': typeof AdminSectionRoute
+  '/shop/$productId': typeof ShopProductIdRoute
   '/admin': typeof AdminIndexRoute
+  '/shop': typeof ShopIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -120,10 +135,12 @@ export interface FileRoutesById {
   '/courses': typeof CoursesRoute
   '/custom-design': typeof CustomDesignRoute
   '/gallery': typeof GalleryRoute
-  '/shop': typeof ShopRoute
+  '/shop': typeof ShopRouteWithChildren
   '/student-work': typeof StudentWorkRoute
   '/admin/$section': typeof AdminSectionRoute
+  '/shop/$productId': typeof ShopProductIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/shop/': typeof ShopIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -139,7 +156,9 @@ export interface FileRouteTypes {
     | '/shop'
     | '/student-work'
     | '/admin/$section'
+    | '/shop/$productId'
     | '/admin/'
+    | '/shop/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -149,10 +168,11 @@ export interface FileRouteTypes {
     | '/courses'
     | '/custom-design'
     | '/gallery'
-    | '/shop'
     | '/student-work'
     | '/admin/$section'
+    | '/shop/$productId'
     | '/admin'
+    | '/shop'
   id:
     | '__root__'
     | '/'
@@ -166,7 +186,9 @@ export interface FileRouteTypes {
     | '/shop'
     | '/student-work'
     | '/admin/$section'
+    | '/shop/$productId'
     | '/admin/'
+    | '/shop/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -178,7 +200,7 @@ export interface RootRouteChildren {
   CoursesRoute: typeof CoursesRoute
   CustomDesignRoute: typeof CustomDesignRoute
   GalleryRoute: typeof GalleryRoute
-  ShopRoute: typeof ShopRoute
+  ShopRoute: typeof ShopRouteWithChildren
   StudentWorkRoute: typeof StudentWorkRoute
 }
 
@@ -268,6 +290,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSectionRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/shop/': {
+      id: '/shop/'
+      path: '/'
+      fullPath: '/shop/'
+      preLoaderRoute: typeof ShopIndexRouteImport
+      parentRoute: typeof ShopRoute
+    }
+    '/shop/$productId': {
+      id: '/shop/$productId'
+      path: '/$productId'
+      fullPath: '/shop/$productId'
+      preLoaderRoute: typeof ShopProductIdRouteImport
+      parentRoute: typeof ShopRoute
+    }
   }
 }
 
@@ -285,6 +321,18 @@ const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
   AdminRouteRouteChildren,
 )
 
+interface ShopRouteChildren {
+  ShopProductIdRoute: typeof ShopProductIdRoute
+  ShopIndexRoute: typeof ShopIndexRoute
+}
+
+const ShopRouteChildren: ShopRouteChildren = {
+  ShopProductIdRoute: ShopProductIdRoute,
+  ShopIndexRoute: ShopIndexRoute,
+}
+
+const ShopRouteWithChildren = ShopRoute._addFileChildren(ShopRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRouteRoute: AdminRouteRouteWithChildren,
@@ -294,7 +342,7 @@ const rootRouteChildren: RootRouteChildren = {
   CoursesRoute: CoursesRoute,
   CustomDesignRoute: CustomDesignRoute,
   GalleryRoute: GalleryRoute,
-  ShopRoute: ShopRoute,
+  ShopRoute: ShopRouteWithChildren,
   StudentWorkRoute: StudentWorkRoute,
 }
 export const routeTree = rootRouteImport
