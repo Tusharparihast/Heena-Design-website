@@ -1,9 +1,11 @@
-import aboutHenna from "@/assets/about-henna.jpg";
 import { Section, SectionHeading } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { useAboutImage } from "@/lib/use-homepage-media";
+
 
 export function AboutSection() {
   const { t } = useLanguage();
+  const aboutImage = useAboutImage();
 
   const stats = [
     { value: "10+", label: t.about.stat1 },
@@ -15,7 +17,7 @@ export function AboutSection() {
     <Section id="about" className="bg-card">
       <div className="grid items-center gap-12 lg:grid-cols-2">
         <img
-          src={aboutHenna}
+          src={aboutImage}
           width={1200}
           height={900}
           loading="lazy"
@@ -23,6 +25,7 @@ export function AboutSection() {
           className="w-full rounded-2xl object-cover"
           style={{ boxShadow: "var(--shadow-soft)" }}
         />
+
         <div>
           <SectionHeading label={t.about.label} title={t.about.title} />
           <p className="mt-4 text-muted-foreground">{t.about.body1}</p>
