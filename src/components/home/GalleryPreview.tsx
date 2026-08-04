@@ -1,12 +1,11 @@
 import { Link } from "@tanstack/react-router";
 import { Maximize2, Minimize2, Play, X } from "lucide-react";
 import { useState } from "react";
-// Local files so the project runs the same way after downloading it into VS Code.
-import demoPoster from "@/assets/hero-hand.jpg";
-import demoVideo from "@/assets/hero-mehndi.mp4";
 import { Section, SectionHeading } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { galleryItems } from "@/lib/gallery";
+import { useVideoMedia } from "@/lib/use-homepage-media";
+
 
 
 export function GalleryPreview() {
@@ -56,14 +55,15 @@ export function GalleryPreview() {
 
 export function VideoSection() {
   const { t } = useLanguage();
+  const { videoUrl, posterUrl } = useVideoMedia();
   const [playing, setPlaying] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
   // Inline player + controls.
   const video = (
     <video
-      src={demoVideo}
-      poster={demoPoster}
+      src={videoUrl}
+      poster={posterUrl}
       controls
       controlsList="nofullscreen"
       autoPlay={playing}
@@ -74,6 +74,7 @@ export function VideoSection() {
       aria-label={t.video.title}
     />
   );
+
 
   return (
     <Section id="video" className="bg-card">
@@ -101,13 +102,14 @@ export function VideoSection() {
               className="group relative block aspect-video w-full"
             >
               <img
-                src={demoPoster}
+                src={posterUrl}
                 alt={t.video.title}
                 loading="lazy"
                 decoding="async"
                 draggable={false}
                 className="h-full w-full object-cover"
               />
+
               <span className="absolute inset-0 flex items-center justify-center bg-background/25 transition-colors group-hover:bg-background/10">
                 <span className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground">
                   <Play className="h-4 w-4" aria-hidden />
