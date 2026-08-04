@@ -60,7 +60,7 @@ export function AdminSidebar({ collapsed, mobileOpen, onCloseMobile }: AdminSide
               <li key={item.to}>
                 <Link
                   to={item.to}
-                  activeOptions={{ exact: item.exact }}
+                  activeOptions={{ exact: item.exact ?? false }}
                   onClick={onCloseMobile}
                   title={item.label}
                   activeProps={{
