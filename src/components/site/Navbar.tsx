@@ -41,9 +41,20 @@ export function Navbar() {
                 to={l.to}
                 activeOptions={{ exact: l.to === "/" }}
                 activeProps={{ className: "text-primary" }}
-                className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                className="group inline-flex flex-col items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
               >
-                {l.label}
+                {({ isActive }) => (
+                  <>
+                    <span>{l.label}</span>
+                    <span
+                      className={cn(
+                        "h-0.5 w-4 rounded-full bg-primary transition-all duration-300",
+                        isActive ? "opacity-100" : "opacity-0 group-hover:opacity-60"
+                      )}
+                      aria-hidden
+                    />
+                  </>
+                )}
               </Link>
             </li>
           ))}
@@ -103,9 +114,20 @@ export function Navbar() {
                 onClick={() => setOpen(false)}
                 activeOptions={{ exact: l.to === "/" }}
                 activeProps={{ className: "text-primary" }}
-                className="block py-2 text-sm text-muted-foreground"
+                className="group inline-flex flex-col gap-1 py-2 text-sm text-muted-foreground"
               >
-                {l.label}
+                {({ isActive }) => (
+                  <>
+                    <span>{l.label}</span>
+                    <span
+                      className={cn(
+                        "h-0.5 w-4 rounded-full bg-primary transition-all duration-300",
+                        isActive ? "opacity-100" : "opacity-0 group-hover:opacity-60"
+                      )}
+                      aria-hidden
+                    />
+                  </>
+                )}
               </Link>
             </li>
           ))}
