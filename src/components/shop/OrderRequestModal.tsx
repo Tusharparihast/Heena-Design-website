@@ -3,7 +3,8 @@ import { CheckCircle2, Clock, QrCode, Send, X } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { MAX_ORDER_QTY, formatNpr, shopImages, shopProducts, unitPriceNpr } from "@/lib/shop";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { MAX_ORDER_QTY, formatCny, formatNpr, shopImages, shopProducts, unitPriceNpr } from "@/lib/shop";
 import { useDiscountOverrides, withResolvedDiscount } from "@/lib/shop-overrides";
 import { cn } from "@/lib/utils";
 import { ShopPrice } from "./DiscountBadge";
@@ -45,7 +46,8 @@ export function OrderRequestModal({
   initialQty?: number;
   onClose: () => void;
 }) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
+  const isMobile = useIsMobile();
   const f = t.shopPage.orderForm;
 
   const [mounted, setMounted] = useState(false);
