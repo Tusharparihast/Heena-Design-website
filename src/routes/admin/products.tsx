@@ -114,7 +114,9 @@ function AdminProductsPage() {
   const [discountDrafts, setDiscountDrafts] = useState<Record<string, string>>({});
   const [editor, setEditor] = useState<EditorTarget | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  
+  const [purgeId, setPurgeId] = useState<string | null>(null);
+  const [purgeCategoryId, setPurgeCategoryId] = useState<string | null>(null);
+
   const [catNameEn, setCatNameEn] = useState("");
   const [catNameZh, setCatNameZh] = useState("");
   const [deleteCategoryId, setDeleteCategoryId] = useState<string | null>(null);
@@ -138,7 +140,7 @@ function AdminProductsPage() {
 
   const rows = useMemo<Row[]>(() => {
     const baseRows: Row[] = shopProducts
-      .filter((p) => !overrides.deleted.includes(p.id))
+      .filter((p) => !overrides.deleted.includes(p.id) && !overrides.purged.includes(p.id))
       .map((p) => {
         const edit = overrides.edits[p.id];
         const eff = applyEdit(p, edit);
@@ -156,7 +158,9 @@ function AdminProductsPage() {
           hidden: overrides.hidden.includes(p.id),
         };
       });
-    const customRows: Row[] = overrides.added.map((c) => ({
+    const customRows: Row[] = overrides.added
+      .filter((c) => !overrides.deleted.includes(c.id))
+      .map((c) => ({
       id: c.id,
       custom: true,
       image: c.image,
