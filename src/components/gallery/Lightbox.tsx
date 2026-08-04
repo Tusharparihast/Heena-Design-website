@@ -35,6 +35,8 @@ export function Lightbox({
   useEffect(() => {
     setZoomed(false);
     resetPan();
+    isDragging.current = false;
+    setDragging(false);
   }, [item.id, resetPan]);
 
   const handleKey = useCallback(
