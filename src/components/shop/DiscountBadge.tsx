@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
  * Small sale badge shown on products that carry a studio discount.
  * The discount itself is set per product in src/lib/shop.ts (admin-managed later).
  */
-export function DiscountBadge({ percent, className }: { percent?: number; className?: string }) {
+export function DiscountBadge({ percent, className }: { percent?: number | undefined; className?: string }) {
   const { t } = useLanguage();
   if (!percent) return null;
   return (
