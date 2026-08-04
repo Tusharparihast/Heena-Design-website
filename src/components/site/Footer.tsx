@@ -27,7 +27,7 @@ function ReachButton({
   onClick?: () => void;
   label: string;
   filled?: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   const base =
     "group flex flex-col items-center gap-2 rounded-xl p-3 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
