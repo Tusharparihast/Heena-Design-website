@@ -266,8 +266,8 @@ export const en = {
   coursesPage: {
     hero: {
       eyebrow: "In-person courses · Maitidevi, Kathmandu",
-      title: "Learn mehndi properly, hand to hand",
-      body: "Small in-person batches at our home studio. You practise on real hands from the first week, with correction at every stroke.",
+      title: "Master the timeless art of Mehndi",
+      body: "Learn directly from experienced artists in a calm, hands-on home like environment",
       cta: "Ask about a course",
       secondary: "See student work",
     },
