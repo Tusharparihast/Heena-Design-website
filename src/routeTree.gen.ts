@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdminRouteRouteImport } from './routes/admin/route'
+import { Route as AppointmentRouteImport } from './routes/appointment'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as CoursesRouteImport } from './routes/courses'
 import { Route as CustomDesignRouteImport } from './routes/custom-design'
@@ -34,6 +35,11 @@ const AboutRoute = AboutRouteImport.update({
 const AdminRouteRoute = AdminRouteRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppointmentRoute = AppointmentRouteImport.update({
+  id: '/appointment',
+  path: '/appointment',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
   '/about': typeof AboutRoute
+  '/appointment': typeof AppointmentRoute
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
   '/custom-design': typeof CustomDesignRoute
@@ -93,6 +100,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/appointment': typeof AppointmentRoute
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
   '/custom-design': typeof CustomDesignRoute
@@ -107,6 +115,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteRouteWithChildren
   '/about': typeof AboutRoute
+  '/appointment': typeof AppointmentRoute
   '/contact': typeof ContactRoute
   '/courses': typeof CoursesRoute
   '/custom-design': typeof CustomDesignRoute
@@ -122,6 +131,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/about'
+    | '/appointment'
     | '/contact'
     | '/courses'
     | '/custom-design'
@@ -134,6 +144,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/appointment'
     | '/contact'
     | '/courses'
     | '/custom-design'
@@ -147,6 +158,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/about'
+    | '/appointment'
     | '/contact'
     | '/courses'
     | '/custom-design'
@@ -161,6 +173,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRouteRoute: typeof AdminRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
+  AppointmentRoute: typeof AppointmentRoute
   ContactRoute: typeof ContactRoute
   CoursesRoute: typeof CoursesRoute
   CustomDesignRoute: typeof CustomDesignRoute
@@ -190,6 +203,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/appointment': {
+      id: '/appointment'
+      path: '/appointment'
+      fullPath: '/appointment'
+      preLoaderRoute: typeof AppointmentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -269,6 +289,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRouteRoute: AdminRouteRouteWithChildren,
   AboutRoute: AboutRoute,
+  AppointmentRoute: AppointmentRoute,
   ContactRoute: ContactRoute,
   CoursesRoute: CoursesRoute,
   CustomDesignRoute: CustomDesignRoute,
