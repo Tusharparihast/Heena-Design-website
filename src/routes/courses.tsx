@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Award, Check, Clock, GraduationCap, Package, Users } from "lucide-react";
+import { ArrowDown, ArrowRight, Award, Check, Clock, GraduationCap, Package, Users } from "lucide-react";
 import { Section, SectionHeading } from "@/components/site/Section";
 import { MehndiPattern } from "@/components/site/MehndiPattern";
 import { useLanguage } from "@/i18n/LanguageProvider";
@@ -147,6 +147,26 @@ function CoursesPage() {
             </li>
           ))}
         </ol>
+        <div className="mt-6 hidden justify-center gap-4 md:flex">
+          {[0, 1].map((i) => (
+            <ArrowRight
+              key={i}
+              className="h-6 w-6 text-primary/70 arrow-pulse"
+              style={{ animationDelay: `${i * 0.2}s` }}
+              aria-hidden
+            />
+          ))}
+        </div>
+        <div className="mt-6 flex justify-center gap-4 md:hidden">
+          {[0, 1].map((i) => (
+            <ArrowDown
+              key={i}
+              className="h-6 w-6 text-primary/70 arrow-pulse"
+              style={{ animationDelay: `${i * 0.2}s` }}
+              aria-hidden
+            />
+          ))}
+        </div>
       </Section>
 
       <Section className="bg-card">
