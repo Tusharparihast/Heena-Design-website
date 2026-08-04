@@ -478,38 +478,95 @@ function AdminProductsPage() {
       setDeleteCategoryId(null);
       return;
     }
-    const isBuiltin = (DEFAULT_CATEGORY_IDS as readonly string[]).includes(deleteCategoryId);
-    // Products in the deleted category move to the first remaining category.
-    const edits = Object.fromEntries(
-      Object.entries(overrides.edits).map(([id, e]) => [
-        id,
-        e.category === deleteCategoryId ? { ...e, category: fallback.id } : e,
-      ]),
-    );
-    const added = overrides.added.map((c) =>
-      c.category === deleteCategoryId ? { ...c, category: fallback.id } : c,
-    );
+    // Every product currently in this category moves to the fallback — including
+    // built-ins using their default category — and is remembered so restoring the
+    // category brings its products back.
+    const movedIds: string[] = [];
+    const edits = { ...overrides.edits };
+    for (const p of shopProducts) {
+      if (overrides.deleted.includes(p.id) || overrides.purged.includes(p.id)) continue;
+      const effCategory = edits[p.id]?.category ?? p.category;
+      if (effCategory === deleteCategoryId) {
+        edits[p.id] = { ...(edits[p.id] ?? {}), category: fallback.id };
+        movedIds.push(p.id);
+      }
+    }
+    const added = overrides.added.map((c) => {
+      if (c.category !== deleteCategoryId || overrides.deleted.includes(c.id)) return c;
+      movedIds.push(c.id);
+      return { ...c, category: fallback.id };
+    });
+    // The category itself (built-in or custom) goes to the trash — its data and
+    // any rename stay intact so it can be restored exactly as it was.
     commit(
       {
         ...overrides,
         edits,
         added,
-        categories: isBuiltin
-          ? overrides.categories
-          : overrides.categories.filter((c) => c.id !== deleteCategoryId),
-        categoryEdits: isBuiltin
-          ? Object.fromEntries(
-              Object.entries(overrides.categoryEdits).filter(([k]) => k !== deleteCategoryId),
-            )
-          : overrides.categoryEdits,
-        deletedCategories: isBuiltin
-          ? [...overrides.deletedCategories, deleteCategoryId]
-          : overrides.deletedCategories,
+        deletedCategories: [...overrides.deletedCategories, deleteCategoryId],
+        trashCategoryProducts:
+          movedIds.length > 0
+            ? { ...overrides.trashCategoryProducts, [deleteCategoryId]: movedIds }
+            : overrides.trashCategoryProducts,
       },
-      "Category deleted",
-      `Its products were moved to “${fallback.nameEn}”.`,
+      "Category moved to trash",
+      movedIds.length > 0
+        ? `Its products were moved to “${fallback.nameEn}” — restoring brings them back.`
+        : "Restore it — or delete it permanently — from the trash below.",
     );
     setDeleteCategoryId(null);
+  };
+
+  const restoreCategory = (id: string) => {
+    const name = categoryLabel(id, overrides, "en", en.shopPage.filters);
+    const movedSet = new Set(overrides.trashCategoryProducts[id] ?? []);
+    const builtinIds = new Set(shopProducts.map((p) => p.id));
+    const edits = { ...overrides.edits };
+    for (const pid of movedSet) {
+      if (builtinIds.has(pid)) edits[pid] = { ...(edits[pid] ?? {}), category: id };
+    }
+    const added = overrides.added.map((c) => (movedSet.has(c.id) ? { ...c, category: id } : c));
+    const trashCategoryProducts = { ...overrides.trashCategoryProducts };
+    delete trashCategoryProducts[id];
+    commit(
+      {
+        ...overrides,
+        edits,
+        added,
+        deletedCategories: overrides.deletedCategories.filter((c) => c !== id),
+        trashCategoryProducts,
+      },
+      "Category restored",
+      movedSet.size > 0 ? `${name} is back, along with its products.` : `${name} is back.`,
+    );
+  };
+
+  const confirmPurgeCategory = () => {
+    if (!purgeCategoryId) return;
+    const id = purgeCategoryId;
+    const name = categoryLabel(id, overrides, "en", en.shopPage.filters);
+    const isBuiltin = (DEFAULT_CATEGORY_IDS as readonly string[]).includes(id);
+    const categoryEdits = { ...overrides.categoryEdits };
+    delete categoryEdits[id];
+    const trashCategoryProducts = { ...overrides.trashCategoryProducts };
+    delete trashCategoryProducts[id];
+    // Products were already reassigned when the category was trashed — they stay
+    // in their fallback category.
+    commit(
+      {
+        ...overrides,
+        categories: overrides.categories.filter((c) => c.id !== id),
+        categoryEdits,
+        deletedCategories: overrides.deletedCategories.filter((c) => c !== id),
+        purgedCategories: isBuiltin
+          ? [...overrides.purgedCategories, id]
+          : overrides.purgedCategories,
+        trashCategoryProducts,
+      },
+      "Category permanently deleted",
+      `${name} is gone for good.`,
+    );
+    setPurgeCategoryId(null);
   };
 
   const saveRenameCategory = () => {
