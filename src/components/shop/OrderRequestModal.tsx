@@ -49,6 +49,7 @@ export function OrderRequestModal({
 }) {
   const { t, locale } = useLanguage();
   const isMobile = useIsMobile();
+  const cnyRate = useCnyRate();
   const f = t.shopPage.orderForm;
 
   const [mounted, setMounted] = useState(false);
@@ -249,7 +250,7 @@ export function OrderRequestModal({
                   <span className="inline-flex flex-wrap items-baseline justify-end gap-x-2 text-base font-semibold text-primary">
                     {formatNpr(total)}
                     {locale === "zh" ? (
-                      <span className="text-xs font-normal text-muted-foreground">{formatCny(total)}</span>
+                      <span className="text-xs font-normal text-muted-foreground">{formatCny(total, cnyRate)}</span>
                     ) : null}
                   </span>
                 </div>
