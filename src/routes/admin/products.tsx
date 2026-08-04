@@ -472,37 +472,30 @@ function AdminProductsPage() {
     const remaining = effectiveCategories(overrides, en.shopPage.filters).filter(
       (c) => c.id !== deleteCategoryId,
     );
-    const fallback = remaining[0];
-    if (!fallback) {
+    if (remaining.length === 0) {
       toast.error("You can't delete the last category.");
       setDeleteCategoryId(null);
       return;
     }
-    // Every product currently in this category moves to the fallback — including
-    // built-ins using their default category — and is remembered so restoring the
-    // category brings its products back.
+    // Every live product in this category goes to the trash together with it
+    // (products already individually trashed stay as they are) and is
+    // remembered so restoring the category brings its products back.
     const movedIds: string[] = [];
-    const edits = { ...overrides.edits };
     for (const p of shopProducts) {
       if (overrides.deleted.includes(p.id) || overrides.purged.includes(p.id)) continue;
-      const effCategory = edits[p.id]?.category ?? p.category;
-      if (effCategory === deleteCategoryId) {
-        edits[p.id] = { ...(edits[p.id] ?? {}), category: fallback.id };
-        movedIds.push(p.id);
-      }
+      const effCategory = overrides.edits[p.id]?.category ?? p.category;
+      if (effCategory === deleteCategoryId) movedIds.push(p.id);
     }
-    const added = overrides.added.map((c) => {
-      if (c.category !== deleteCategoryId || overrides.deleted.includes(c.id)) return c;
+    for (const c of overrides.added) {
+      if (c.category !== deleteCategoryId || overrides.deleted.includes(c.id)) continue;
       movedIds.push(c.id);
-      return { ...c, category: fallback.id };
-    });
+    }
     // The category itself (built-in or custom) goes to the trash — its data and
     // any rename stay intact so it can be restored exactly as it was.
     commit(
       {
         ...overrides,
-        edits,
-        added,
+        deleted: [...overrides.deleted, ...movedIds],
         deletedCategories: [...overrides.deletedCategories, deleteCategoryId],
         trashCategoryProducts:
           movedIds.length > 0
@@ -511,7 +504,7 @@ function AdminProductsPage() {
       },
       "Category moved to trash",
       movedIds.length > 0
-        ? `Its products were moved to “${fallback.nameEn}” — restoring brings them back.`
+        ? `Its ${movedIds.length} product${movedIds.length === 1 ? "" : "s"} went with it — restoring brings everything back.`
         : "Restore it — or delete it permanently — from the trash below.",
     );
     setDeleteCategoryId(null);
@@ -520,19 +513,13 @@ function AdminProductsPage() {
   const restoreCategory = (id: string) => {
     const name = categoryLabel(id, overrides, "en", en.shopPage.filters);
     const movedSet = new Set(overrides.trashCategoryProducts[id] ?? []);
-    const builtinIds = new Set(shopProducts.map((p) => p.id));
-    const edits = { ...overrides.edits };
-    for (const pid of movedSet) {
-      if (builtinIds.has(pid)) edits[pid] = { ...(edits[pid] ?? {}), category: id };
-    }
-    const added = overrides.added.map((c) => (movedSet.has(c.id) ? { ...c, category: id } : c));
     const trashCategoryProducts = { ...overrides.trashCategoryProducts };
     delete trashCategoryProducts[id];
     commit(
       {
         ...overrides,
-        edits,
-        added,
+        // Products trashed together with the category come back with it.
+        deleted: overrides.deleted.filter((pid) => !movedSet.has(pid)),
         deletedCategories: overrides.deletedCategories.filter((c) => c !== id),
         trashCategoryProducts,
       },
@@ -549,14 +536,22 @@ function AdminProductsPage() {
     const categoryEdits = { ...overrides.categoryEdits };
     delete categoryEdits[id];
     const trashCategoryProducts = { ...overrides.trashCategoryProducts };
+    // Products trashed together with the category are permanently deleted too:
+    // custom products are dropped entirely; built-ins are remembered as purged
+    // so they never reappear. Only products actually in the trash are touched.
+    const productIds = (trashCategoryProducts[id] ?? []).filter((pid) =>
+      overrides.deleted.includes(pid),
+    );
     delete trashCategoryProducts[id];
-    // Products were already reassigned when the category was trashed — they stay
-    // in their fallback category.
+    const builtinIds = new Set(shopProducts.map((p) => p.id));
     commit(
       {
         ...overrides,
         categories: overrides.categories.filter((c) => c.id !== id),
         categoryEdits,
+        added: overrides.added.filter((c) => !productIds.includes(c.id)),
+        deleted: overrides.deleted.filter((pid) => !productIds.includes(pid)),
+        purged: [...overrides.purged, ...productIds.filter((pid) => builtinIds.has(pid))],
         deletedCategories: overrides.deletedCategories.filter((c) => c !== id),
         purgedCategories: isBuiltin
           ? [...overrides.purgedCategories, id]
@@ -564,7 +559,9 @@ function AdminProductsPage() {
         trashCategoryProducts,
       },
       "Category permanently deleted",
-      `${name} is gone for good.`,
+      productIds.length > 0
+        ? `${name} and its ${productIds.length} product${productIds.length === 1 ? "" : "s"} are gone for good.`
+        : `${name} is gone for good.`,
     );
     setPurgeCategoryId(null);
   };
@@ -594,26 +591,28 @@ function AdminProductsPage() {
     setRenameCategory(null);
   };
 
-  /** Where products go when the category pending deletion is removed. */
-  const deleteCategoryFallback = deleteCategoryId
-    ? effectiveCategories(overrides, en.shopPage.filters).find((c) => c.id !== deleteCategoryId)
-    : undefined;
+  /** How many live products the category pending deletion takes to the trash with it. */
+  const deleteCategoryProductCount = deleteCategoryId
+    ? rows.filter((r) => r.category === deleteCategoryId).length
+    : 0;
 
   /* ---------------- Trash ---------------- */
 
-  /** Trashed products (built-in and custom) awaiting restore or permanent deletion. */
-  const trashProducts = useMemo(
-    () =>
-      overrides.deleted.map((id) => {
+  /** Trashed products (built-in and custom) awaiting restore or permanent deletion.
+   *  Products trashed together with a category are managed via the category row. */
+  const trashProducts = useMemo(() => {
+    const withCategory = new Set(Object.values(overrides.trashCategoryProducts).flat());
+    return overrides.deleted
+      .filter((id) => !withCategory.has(id))
+      .map((id) => {
         const custom = overrides.added.find((c) => c.id === id);
         return {
           id,
           name: custom?.nameEn ?? productNamesEn.get(id) ?? id,
           image: custom?.image ?? shopImages[id],
         };
-      }),
-    [overrides],
-  );
+      });
+  }, [overrides]);
 
   /** Trashed categories (built-in and custom) awaiting restore or permanent deletion. */
   const trashCategories = useMemo(
@@ -911,8 +910,8 @@ function AdminProductsPage() {
                         <span className="block truncate text-sm">{c.name}</span>
                         {c.movedCount > 0 ? (
                           <span className="block text-xs text-muted-foreground">
-                            {c.movedCount} product{c.movedCount === 1 ? "" : "s"} will move back on
-                            restore
+                            {c.movedCount} product{c.movedCount === 1 ? "" : "s"} deleted with it —
+                            restored together
                           </span>
                         ) : null}
                       </span>
@@ -1042,9 +1041,9 @@ function AdminProductsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this category?</AlertDialogTitle>
             <AlertDialogDescription>
-              Products in this category will be moved to “{deleteCategoryFallback?.nameEn}”. The
-              category itself goes to the trash — restore it anytime (its products move back) or
-              delete it permanently.
+              {deleteCategoryProductCount > 0
+                ? `This category and its ${deleteCategoryProductCount} product${deleteCategoryProductCount === 1 ? "" : "s"} will be moved to the trash together — restore the category anytime to bring everything back, or delete it permanently from the trash.`
+                : "The category will be kept in the trash — restore it anytime or delete it permanently from there."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1062,7 +1061,8 @@ function AdminProductsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this category permanently?</AlertDialogTitle>
             <AlertDialogDescription>
-              This cannot be undone. Its products stay in the category they were moved to.
+              This cannot be undone — the category and every product trashed with it will never
+              appear in the shop again.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
