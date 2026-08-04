@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { MoreVertical, Pencil, Percent, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
+import { MoreVertical, Pencil, Percent, Plus, RotateCcw, Search, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -47,19 +47,24 @@ import {
 import { en, zh } from "@/i18n/dictionaries";
 import {
   applyEdit,
+  categoryLabel,
   cleanEdit,
   clearCatalogOverrides,
   emptyCatalogOverrides,
   isCatalogPristine,
+  makeCategoryId,
   makeProductId,
   readCatalogOverrides,
   writeCatalogOverrides,
   type CatalogOverrides,
+  type CustomCategory,
   type CustomProduct,
   type ProductEdit,
 } from "@/lib/catalog-overrides";
 import {
+  DEFAULT_CATEGORY_IDS,
   formatNpr,
+  shopImages,
   shopProducts,
   type ShopCategory,
   type StockStatus,
@@ -103,6 +108,9 @@ function AdminProductsPage() {
   const [editor, setEditor] = useState<EditorTarget | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [resetOpen, setResetOpen] = useState(false);
+  const [catNameEn, setCatNameEn] = useState("");
+  const [catNameZh, setCatNameZh] = useState("");
+  const [deleteCategoryId, setDeleteCategoryId] = useState<string | null>(null);
 
   // Load saved overrides once on mount (localStorage is client-only).
   useEffect(() => {
