@@ -265,14 +265,43 @@ function sanitize(raw: unknown): CatalogOverrides {
       categoryEdits[id] = { ...(nameEn ? { nameEn } : {}), ...(nameZh ? { nameZh } : {}) };
     }
   }
+  const customCategoryIds = new Set(categories.map((c) => c.id));
   const rawDeletedCategories = obj["deletedCategories"];
   const deletedCategories = Array.isArray(rawDeletedCategories)
     ? rawDeletedCategories.filter(
         (id): id is string =>
+          typeof id === "string" &&
+          ((DEFAULT_CATEGORY_IDS as readonly string[]).includes(id) || customCategoryIds.has(id)),
+      )
+    : [];
+  const rawPurgedCategories = obj["purgedCategories"];
+  const purgedCategories = Array.isArray(rawPurgedCategories)
+    ? rawPurgedCategories.filter(
+        (id): id is string =>
           typeof id === "string" && (DEFAULT_CATEGORY_IDS as readonly string[]).includes(id),
       )
     : [];
-  return { edits, added, hidden, deleted, categories, categoryEdits, deletedCategories };
+  const rawTrashMap = obj["trashCategoryProducts"];
+  const trashCategoryProducts: Record<string, string[]> = {};
+  if (rawTrashMap && typeof rawTrashMap === "object") {
+    for (const [catId, value] of Object.entries(rawTrashMap as Record<string, unknown>)) {
+      if (!deletedCategories.includes(catId) || !Array.isArray(value)) continue;
+      const ids = value.filter((id): id is string => typeof id === "string" && knownIds.has(id));
+      if (ids.length > 0) trashCategoryProducts[catId] = ids;
+    }
+  }
+  return {
+    edits,
+    added,
+    hidden,
+    deleted,
+    purged,
+    categories,
+    categoryEdits,
+    deletedCategories,
+    purgedCategories,
+    trashCategoryProducts,
+  };
 }
 
 const shopImagesIds: Record<string, true> = Object.fromEntries(shopProducts.map((p) => [p.id, true]));
@@ -301,9 +330,12 @@ function migrateLegacyDiscounts(): CatalogOverrides | null {
       added: [],
       hidden: [],
       deleted: [],
+      purged: [],
       categories: [],
       categoryEdits: {},
       deletedCategories: [],
+      purgedCategories: [],
+      trashCategoryProducts: {},
     };
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
     window.localStorage.removeItem(LEGACY_DISCOUNT_KEY);
@@ -343,9 +375,12 @@ export function isCatalogPristine(overrides: CatalogOverrides): boolean {
     overrides.added.length === 0 &&
     overrides.hidden.length === 0 &&
     overrides.deleted.length === 0 &&
+    overrides.purged.length === 0 &&
     overrides.categories.length === 0 &&
     Object.keys(overrides.categoryEdits).length === 0 &&
-    overrides.deletedCategories.length === 0
+    overrides.deletedCategories.length === 0 &&
+    overrides.purgedCategories.length === 0 &&
+    Object.keys(overrides.trashCategoryProducts).length === 0
   );
 }
 
@@ -386,13 +421,18 @@ function toShopProduct(c: CustomProduct): ShopProduct {
   };
 }
 
-/** The full effective catalog: built-ins (minus hidden/deleted, with edits) + custom. */
+/** The full effective catalog: built-ins (minus hidden/trashed/purged, with edits) + custom. */
 export function effectiveProducts(overrides: CatalogOverrides): ShopProduct[] {
   const base = shopProducts
-    .filter((p) => !overrides.hidden.includes(p.id) && !overrides.deleted.includes(p.id))
+    .filter(
+      (p) =>
+        !overrides.hidden.includes(p.id) &&
+        !overrides.deleted.includes(p.id) &&
+        !overrides.purged.includes(p.id),
+    )
     .map((p) => applyEdit(p, overrides.edits[p.id]));
   const custom = overrides.added
-    .filter((c) => !overrides.hidden.includes(c.id))
+    .filter((c) => !overrides.hidden.includes(c.id) && !overrides.deleted.includes(c.id))
     .map(toShopProduct);
   return [...base, ...custom];
 }
@@ -506,16 +546,17 @@ export interface EffectiveCategory {
 }
 
 /**
- * Every active category: built-ins (minus deleted, with renames applied)
- * followed by studio-created ones. `dictLabels` provides the localized
- * fallback names for built-ins.
+ * Every active category: built-ins (minus trashed/purged, with renames applied)
+ * followed by studio-created ones (minus trashed). `dictLabels` provides the
+ * localized fallback names for built-ins.
  */
 export function effectiveCategories(
   overrides: CatalogOverrides,
   dictLabels: Record<string, string>,
 ): EffectiveCategory[] {
   const builtins = DEFAULT_CATEGORY_IDS.filter(
-    (id) => !overrides.deletedCategories.includes(id),
+    (id) =>
+      !overrides.deletedCategories.includes(id) && !overrides.purgedCategories.includes(id),
   ).map((id) => {
     const edit = overrides.categoryEdits[id];
     return {
@@ -527,12 +568,14 @@ export function effectiveCategories(
   });
   return [
     ...builtins,
-    ...overrides.categories.map((c) => ({
-      id: c.id,
-      nameEn: c.nameEn,
-      nameZh: c.nameZh,
-      builtin: false,
-    })),
+    ...overrides.categories
+      .filter((c) => !overrides.deletedCategories.includes(c.id))
+      .map((c) => ({
+        id: c.id,
+        nameEn: c.nameEn,
+        nameZh: c.nameZh,
+        builtin: false,
+      })),
   ];
 }
 
