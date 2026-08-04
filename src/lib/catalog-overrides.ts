@@ -138,28 +138,30 @@ export function cleanEdit(edit: ProductEdit): ProductEdit | undefined {
 function cleanCustomProduct(raw: unknown): CustomProduct | undefined {
   if (!raw || typeof raw !== "object") return undefined;
   const c = raw as Record<string, unknown>;
-  const id = cleanText(c.id);
-  const nameEn = cleanText(c.nameEn);
-  const priceNpr = cleanPrice(c.priceNpr);
-  const image = cleanImage(c.image);
+  const id = cleanText(c["id"]);
+  const nameEn = cleanText(c["nameEn"]);
+  const priceNpr = cleanPrice(c["priceNpr"]);
+  const image = cleanImage(c["image"]);
   if (!id || !nameEn || priceNpr === undefined || !image) return undefined;
-  const category = CATEGORIES.includes(c.category as ShopCategory)
-    ? (c.category as ShopCategory)
+  const category = CATEGORIES.includes(c["category"] as ShopCategory)
+    ? (c["category"] as ShopCategory)
     : "cones";
-  const stock = STOCK_STATUSES.includes(c.stock as StockStatus) ? (c.stock as StockStatus) : "in";
-  const discount = cleanPercent(c.discount);
+  const stock = STOCK_STATUSES.includes(c["stock"] as StockStatus)
+    ? (c["stock"] as StockStatus)
+    : "in";
+  const discount = cleanPercent(c["discount"]);
   return {
     id,
     image,
     category,
     priceNpr,
     stock,
-    featured: c.featured === true,
+    featured: c["featured"] === true,
     ...(discount !== undefined ? { discount } : {}),
     nameEn,
-    nameZh: cleanText(c.nameZh) ?? "",
-    bodyEn: cleanText(c.bodyEn) ?? "",
-    bodyZh: cleanText(c.bodyZh) ?? "",
+    nameZh: cleanText(c["nameZh"]) ?? "",
+    bodyEn: cleanText(c["bodyEn"]) ?? "",
+    bodyZh: cleanText(c["bodyZh"]) ?? "",
   };
 }
 
@@ -167,17 +169,20 @@ function sanitize(raw: unknown): CatalogOverrides {
   if (!raw || typeof raw !== "object") return emptyCatalogOverrides;
   const obj = raw as Record<string, unknown>;
   const edits: Record<string, ProductEdit> = {};
-  if (obj.edits && typeof obj.edits === "object") {
-    for (const [id, edit] of Object.entries(obj.edits as Record<string, unknown>)) {
+  const rawEdits = obj["edits"];
+  if (rawEdits && typeof rawEdits === "object") {
+    for (const [id, edit] of Object.entries(rawEdits as Record<string, unknown>)) {
       const cleaned = cleanEdit((edit ?? {}) as ProductEdit);
       if (cleaned) edits[id] = cleaned;
     }
   }
-  const added = Array.isArray(obj.added)
-    ? obj.added.map(cleanCustomProduct).filter((c): c is CustomProduct => Boolean(c))
+  const rawAdded = obj["added"];
+  const added = Array.isArray(rawAdded)
+    ? rawAdded.map(cleanCustomProduct).filter((c): c is CustomProduct => Boolean(c))
     : [];
-  const hidden = Array.isArray(obj.hidden)
-    ? obj.hidden.filter((id): id is string => typeof id === "string" && id in shopImagesIds)
+  const rawHidden = obj["hidden"];
+  const hidden = Array.isArray(rawHidden)
+    ? rawHidden.filter((id): id is string => typeof id === "string" && id in shopImagesIds)
     : [];
   return { edits, added, hidden };
 }
