@@ -137,7 +137,7 @@ function CustomDesignPage() {
         <div className="mt-8 grid gap-8 lg:grid-cols-[1.4fr_1fr]">
           <div className="flex flex-col rounded-2xl border border-border bg-card">
             <div className="flex-1 p-6 sm:p-8">
-              <div className="min-h-[22rem] sm:min-h-[26rem]">
+              <div className="min-h-[16rem] sm:min-h-[18rem]">
                 {step === 0 && (
                   <div>
                     <h2 className="text-xl font-semibold">{b.style.title}</h2>
