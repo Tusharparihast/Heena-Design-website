@@ -28,6 +28,7 @@ export function Lightbox({
   const imageRef = useRef<HTMLImageElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
   const dragStart = useRef({ x: 0, y: 0, panX: 0, panY: 0, moved: false });
+  const isDragging = useRef(false);
 
   const resetPan = useCallback(() => setPan({ x: 0, y: 0 }), []);
 
