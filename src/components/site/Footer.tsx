@@ -1,4 +1,4 @@
-import type { ComponentType } from "react";
+import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { Clock, Facebook, Instagram, Mail, MapPin, Phone } from "lucide-react";
 import { toast } from "sonner";
@@ -16,6 +16,54 @@ function Motif({ className }: { className?: string }) {
   );
 }
 
+function ReachButton({
+  href,
+  onClick,
+  label,
+  filled,
+  children,
+}: {
+  href?: string;
+  onClick?: () => void;
+  label: string;
+  filled?: string;
+  children: ReactNode;
+}) {
+  const base =
+    "group flex flex-col items-center gap-2 rounded-xl p-3 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
+  const bubble = filled
+    ? "grid h-12 w-12 place-items-center rounded-full text-white shadow-sm transition-transform group-hover:scale-110 group-hover:shadow-md"
+    : "grid h-12 w-12 place-items-center rounded-full border border-border bg-background text-muted-foreground transition-all group-hover:border-foreground/40 group-hover:bg-accent/50 group-hover:text-foreground";
+
+  return onClick ? (
+    <button type="button" onClick={onClick} aria-label={label} title={label} className={`${base} cursor-pointer`}>
+      <span className={bubble} style={filled ? { backgroundColor: filled } : undefined}>
+        {children}
+      </span>
+      <span className="text-[10px] font-medium tracking-wide text-muted-foreground transition-colors group-hover:text-foreground">
+        {label}
+      </span>
+    </button>
+  ) : (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      aria-label={label}
+      title={label}
+      className={base}
+    >
+      <span className={bubble} style={filled ? { backgroundColor: filled } : undefined}>
+        {children}
+      </span>
+      <span className="text-[10px] font-medium tracking-wide text-muted-foreground transition-colors group-hover:text-foreground">
+        {label}
+      </span>
+    </a>
+  );
+}
+
+
 export function Footer() {
   const { t } = useLanguage();
 
@@ -28,28 +76,6 @@ export function Footer() {
     }
   };
 
-  const reachLinks: Array<{
-    icon: ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
-    label: string;
-    href?: string;
-    onClick?: () => void;
-    /** Brand-filled bubble (WeChat / WhatsApp) vs. quiet bordered bubble. */
-    filled?: string;
-  }> = [
-    { icon: WeChatIcon, label: t.contact.wechat, onClick: copyWechatId, filled: "#07C160" },
-    {
-      icon: WhatsAppIcon,
-      label: t.contact.whatsapp,
-      href: `https://wa.me/${site.whatsapp.replace(/[^0-9]/g, "")}`,
-      filled: "#25D366",
-    },
-    { icon: Phone, label: t.contact.phone, href: `tel:${site.phone}` },
-    { icon: Instagram, label: t.contact.instagram, href: site.instagram },
-    { icon: Facebook, label: t.contact.facebook, href: site.facebook },
-    { icon: Mail, label: t.contact.email, href: `mailto:${site.email}` },
-    { icon: MapPin, label: site.city, href: site.mapUrl },
-  ];
-
   const exploreLinks = [
     { to: "/gallery", label: t.nav.gallery },
     { to: "/shop", label: t.nav.shop },
@@ -58,6 +84,7 @@ export function Footer() {
     { to: "/custom-design", label: t.nav.custom },
     { to: "/contact", label: t.nav.contact },
   ] as const;
+
 
   return (
     <footer className="relative overflow-hidden border-t border-border bg-secondary/40">
@@ -97,48 +124,38 @@ export function Footer() {
             <div className="mt-8 h-px w-12 bg-foreground/30" aria-hidden />
           </div>
 
-          {/* Reach us */}
+          {/* Reach us — labeled icon buttons, clearly clickable */}
           <div className="order-3">
             <h3 className="mb-6 border-b border-border pb-2 text-xs font-light tracking-[0.2em] uppercase">
               {t.footer.reach}
             </h3>
-            <ul className="flex flex-wrap gap-3">
-              {reachLinks.map((c) => {
-                const Icon = c.icon;
-                const cls = c.filled
-                  ? "flex h-10 w-10 items-center justify-center rounded-full text-white shadow-sm transition-transform hover:scale-110"
-                  : "flex h-10 w-10 items-center justify-center rounded-full border border-border text-muted-foreground transition-all hover:border-foreground/40 hover:bg-foreground/5 hover:text-foreground";
-                const style = c.filled ? { backgroundColor: c.filled } : undefined;
-                return (
-                  <li key={c.label}>
-                    {c.onClick ? (
-                      <button
-                        type="button"
-                        onClick={c.onClick}
-                        aria-label={c.label}
-                        title={c.label}
-                        className={cls}
-                        style={style}
-                      >
-                        <Icon className="h-5 w-5" aria-hidden />
-                      </button>
-                    ) : (
-                      <a
-                        href={c.href}
-                        target="_blank"
-                        rel="noreferrer"
-                        aria-label={c.label}
-                        title={c.label}
-                        className={cls}
-                        style={style}
-                      >
-                        <Icon className="h-5 w-5" aria-hidden />
-                      </a>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
+            <div className="flex flex-wrap gap-1">
+              <ReachButton label={t.contact.wechat} onClick={copyWechatId} filled="#07C160">
+                <WeChatIcon className="h-5 w-5" fill="#ffffff" aria-hidden />
+              </ReachButton>
+              <ReachButton
+                label={t.contact.whatsapp}
+                href={`https://wa.me/${site.whatsapp.replace(/[^0-9]/g, "")}`}
+                filled="#25D366"
+              >
+                <WhatsAppIcon className="h-5 w-5" fill="#ffffff" aria-hidden />
+              </ReachButton>
+              <ReachButton label={t.contact.phone} href={`tel:${site.phone}`}>
+                <Phone className="h-5 w-5" aria-hidden />
+              </ReachButton>
+              <ReachButton label={t.contact.instagram} href={site.instagram}>
+                <Instagram className="h-5 w-5" aria-hidden />
+              </ReachButton>
+              <ReachButton label={t.contact.facebook} href={site.facebook}>
+                <Facebook className="h-5 w-5" aria-hidden />
+              </ReachButton>
+              <ReachButton label={t.contact.email} href={`mailto:${site.email}`}>
+                <Mail className="h-5 w-5" aria-hidden />
+              </ReachButton>
+              <ReachButton label={site.city} href={site.mapUrl}>
+                <MapPin className="h-5 w-5" aria-hidden />
+              </ReachButton>
+            </div>
             <p className="mt-6 text-xs tracking-wider text-muted-foreground uppercase">{site.city}</p>
           </div>
         </div>
