@@ -76,39 +76,40 @@ export function Lightbox({
         </div>
       </div>
 
-      <div className="relative flex flex-1 items-center justify-center overflow-auto px-2 pb-4">
+      <div className="relative flex flex-1 items-center justify-center overflow-hidden px-2 pb-4">
         <IconButton
           label={labels.prev}
           onClick={onPrev}
-          className="absolute left-2 z-10 sm:left-4"
+          className="absolute left-2 z-20 sm:left-4"
         >
           <ChevronLeft className="h-5 w-5" />
         </IconButton>
-        <img
-          src={item.src}
-          alt={label}
-          width={item.width}
-          height={item.height}
-          draggable={false}
-          onContextMenu={(event) => event.preventDefault()}
-          onClick={(event) => {
-            event.stopPropagation();
-            setZoomed((v) => !v);
-          }}
-          className={
-            zoomed
-              ? "max-w-none cursor-zoom-out rounded-lg"
-              : "max-h-[80vh] w-auto max-w-[92vw] cursor-zoom-in rounded-lg object-contain"
-          }
-          style={zoomed ? { width: "min(1600px, 190vw)" } : undefined}
-        />
-        <span className="pointer-events-none absolute bottom-6 rounded-full bg-background/70 px-3 py-1 text-[11px] text-foreground/70">
-          {site.shortName}
-        </span>
+
+        <div className="relative flex max-h-full max-w-full items-center justify-center overflow-auto">
+          <img
+            src={item.src}
+            alt={label}
+            width={item.width}
+            height={item.height}
+            draggable={false}
+            onContextMenu={(event) => event.preventDefault()}
+            onClick={(event) => {
+              event.stopPropagation();
+              setZoomed((v) => !v);
+            }}
+            className={`max-h-[80vh] w-auto max-w-[92vw] rounded-lg object-contain transition-transform duration-300 ease-out will-change-transform ${
+              zoomed ? "scale-[1.6] cursor-zoom-out" : "scale-100 cursor-zoom-in"
+            }`}
+          />
+          <span className="pointer-events-none absolute bottom-4 rounded-full bg-background/70 px-3 py-1 text-[11px] text-foreground/70">
+            {site.shortName}
+          </span>
+        </div>
+
         <IconButton
           label={labels.next}
           onClick={onNext}
-          className="absolute right-2 z-10 sm:right-4"
+          className="absolute right-2 z-20 sm:right-4"
         >
           <ChevronRight className="h-5 w-5" />
         </IconButton>
