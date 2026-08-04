@@ -58,7 +58,7 @@ export function Hero() {
           </p>
           <div className="fade-up mt-8 flex flex-wrap gap-3" style={{ animationDelay: "0.85s" }}>
             <Link
-              to="/contact"
+              to="/appointment"
               className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
               <MessageCircle className="h-4 w-4" aria-hidden />

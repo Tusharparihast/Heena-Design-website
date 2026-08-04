@@ -26,7 +26,7 @@ export const zh: Dict = {
     title2: "现代创意",
     title3: "学习正宗海娜彩绘",
     body: "一间家庭工作室，提供婚礼、节日与日常海娜彩绘，也手把手教您真正的技法。",
-    cta: "预约咨询",
+    cta: "预约时间",
     secondary: "查看作品",
   },
   about: {

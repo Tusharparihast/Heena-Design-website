@@ -27,7 +27,7 @@ export const en = {
     title2: "Modern Creativity",
     title3: "Learn Authentic Mehndi",
     body: "A home studio for bridal, festival and everyday henna — and a place to learn the craft properly, hand to hand.",
-    cta: "Book a consultation",
+    cta: "Book an appointment",
     secondary: "See our work",
   },
   about: {
