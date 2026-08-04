@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -148,21 +149,24 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  // Admin routes render their own sidebar/topbar chrome — hide public site chrome there.
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isAdmin = pathname.startsWith("/admin");
 
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
-        <MehndiBackdrop />
-        <CursorMehndi />
+        {!isAdmin && <MehndiBackdrop />}
+        {!isAdmin && <CursorMehndi />}
         <div className="flex min-h-screen flex-col">
-          <Navbar />
+          {!isAdmin && <Navbar />}
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <div className="flex-1">
             <Outlet />
           </div>
-          <Footer />
+          {!isAdmin && <Footer />}
         </div>
-        <FloatingWeChat />
+        {!isAdmin && <FloatingWeChat />}
         <Toaster position="top-center" richColors />
       </LanguageProvider>
     </QueryClientProvider>
