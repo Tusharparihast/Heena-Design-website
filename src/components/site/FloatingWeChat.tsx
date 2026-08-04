@@ -65,7 +65,7 @@ export function FloatingWeChat() {
         } ${open ? "" : "invisible"}`}
       >
         <div className="flex items-center gap-3 border-b border-border p-4">
-          <span className="grid h-10 w-10 place-items-center rounded-full bg-wechat/15">
+          <span className="grid h-10 w-10 place-items-center rounded-full bg-wechat/15 text-wechat">
             <WeChatIcon className="h-6 w-6" />
           </span>
           <div className="min-w-0 flex-1">
@@ -108,7 +108,7 @@ export function FloatingWeChat() {
             rel="noreferrer"
             className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm transition-colors hover:bg-accent/40"
           >
-            <WhatsAppIcon className="h-5 w-5" />
+            <WhatsAppIcon className="h-5 w-5" fill="#25D366" />
             {t.wechatWidget.whatsapp}
           </a>
           <a
