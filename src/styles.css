@@ -292,6 +292,24 @@
   animation: wechat-ping 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
+/* Directional arrows between process steps */
+@keyframes arrow-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: translateX(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(6px);
+  }
+}
+
+@utility arrow-pulse {
+  animation: arrow-pulse 1.6s ease-in-out infinite;
+}
+
+
 
 @media (prefers-reduced-motion: reduce) {
   *,
