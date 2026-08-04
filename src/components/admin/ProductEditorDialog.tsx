@@ -71,6 +71,8 @@ const stockOptions: { value: StockStatus; label: string }[] = [
   { value: "out", label: "Out of stock" },
 ];
 
+type FormErrors = { name?: string; price?: string; discount?: string; image?: string };
+
 /** Read an image file and downscale it so localStorage stays small. */
 async function fileToDataUrl(file: File): Promise<string> {
   const raw = await new Promise<string>((resolve, reject) => {
@@ -153,7 +155,7 @@ function ProductEditorForm({
   const [stock, setStock] = useState<StockStatus>(initial.stock);
   const [discount, setDiscount] = useState(initial.discount ? String(initial.discount) : "");
   const [featured, setFeatured] = useState(initial.featured);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const pickImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
