@@ -1,16 +1,18 @@
 import { Link } from "@tanstack/react-router";
 import { MessageCircle } from "lucide-react";
 import { useEffect, useState } from "react";
-import heroHand from "@/assets/hero-hand.jpg";
-import heroVideo from "@/assets/hero-mehndi.mp4";
 import { MehndiPattern } from "@/components/site/MehndiPattern";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { useHeroMedia } from "@/lib/use-homepage-media";
 import { site } from "@/lib/site";
+
 
 export function Hero() {
   const { t } = useLanguage();
+  const { videoUrl, posterUrl, imageUrl, imageMode } = useHeroMedia();
   // Only fetch the clip on capable connections — poster image is the fallback.
   const [playVideo, setPlayVideo] = useState(false);
+  const showVideo = playVideo && !imageMode;
 
   useEffect(() => {
     const conn = (
@@ -22,6 +24,7 @@ export function Hero() {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (!slow && !reduced) setPlayVideo(true);
   }, []);
+
 
 
   return (
@@ -81,10 +84,10 @@ export function Hero() {
           <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center text-primary/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]">
             <MehndiPattern className="max-h-[520px]" />
           </div>
-          {playVideo ? (
+          {showVideo ? (
             <video
-              src={heroVideo}
-              poster={heroHand}
+              src={videoUrl}
+              poster={posterUrl}
               width={1200}
               height={1400}
               autoPlay
@@ -98,7 +101,7 @@ export function Hero() {
             />
           ) : (
             <img
-              src={heroHand}
+              src={imageUrl}
               width={1200}
               height={1400}
               alt="Hand decorated with an intricate traditional bridal mehndi design"
@@ -106,8 +109,8 @@ export function Hero() {
               style={{ boxShadow: "var(--shadow-soft)" }}
             />
           )}
-
         </div>
+
       </div>
     </section>
   );
