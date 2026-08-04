@@ -161,18 +161,18 @@ function AdminProductsPage() {
     const customRows: Row[] = overrides.added
       .filter((c) => !overrides.deleted.includes(c.id))
       .map((c) => ({
-      id: c.id,
-      custom: true,
-      image: c.image,
-      name: c.nameEn,
-      category: c.category,
-      priceNpr: c.priceNpr,
-      stock: c.stock,
-      featured: c.featured,
-      discount: c.discount,
-      defaultDiscount: undefined,
-      hidden: overrides.hidden.includes(c.id),
-    }));
+        id: c.id,
+        custom: true,
+        image: c.image,
+        name: c.nameEn,
+        category: c.category,
+        priceNpr: c.priceNpr,
+        stock: c.stock,
+        featured: c.featured,
+        discount: c.discount,
+        defaultDiscount: undefined,
+        hidden: overrides.hidden.includes(c.id),
+      }));
     return [...baseRows, ...customRows];
   }, [overrides]);
 
@@ -386,43 +386,55 @@ function AdminProductsPage() {
   };
 
 
+  /** Product display name for toasts/dialogs — works for built-in and custom. */
+  const productName = (id: string) =>
+    overrides.added.find((c) => c.id === id)?.nameEn ?? productNamesEn.get(id) ?? id;
+
   const confirmDelete = () => {
     if (!deleteId) return;
-    const custom = overrides.added.find((c) => c.id === deleteId);
-    if (custom) {
-      // Custom products are removed permanently.
-      commit(
-        {
-          ...overrides,
-          added: overrides.added.filter((c) => c.id !== deleteId),
-          hidden: overrides.hidden.filter((id) => id !== deleteId),
-        },
-        "Product deleted",
-        `${custom.nameEn} no longer appears in the shop.`,
-      );
-    } else {
-      // Built-in products move to the restorable "Deleted products" list.
-      const name = productNamesEn.get(deleteId) ?? deleteId;
-      commit(
-        {
-          ...overrides,
-          deleted: [...overrides.deleted, deleteId],
-          hidden: overrides.hidden.filter((id) => id !== deleteId),
-        },
-        "Product deleted",
-        `${name} was removed from the shop. You can restore it below.`,
-      );
-    }
+    const name = productName(deleteId);
+    // Built-in and custom products alike move to the trash (restorable).
+    commit(
+      {
+        ...overrides,
+        deleted: [...overrides.deleted, deleteId],
+        hidden: overrides.hidden.filter((id) => id !== deleteId),
+      },
+      "Product moved to trash",
+      `${name} was removed from the shop. Restore it — or delete it permanently — from the trash below.`,
+    );
     setDeleteId(null);
   };
 
   const restoreProduct = (id: string) => {
-    const name = productNamesEn.get(id) ?? id;
+    const name = productName(id);
     commit(
       { ...overrides, deleted: overrides.deleted.filter((x) => x !== id) },
       "Product restored",
       `${name} is back in the shop.`,
     );
+  };
+
+  const confirmPurgeProduct = () => {
+    if (!purgeId) return;
+    const name = productName(purgeId);
+    const isCustom = overrides.added.some((c) => c.id === purgeId);
+    const edits = { ...overrides.edits };
+    delete edits[purgeId];
+    commit(
+      {
+        ...overrides,
+        // Custom products are dropped entirely; built-ins are remembered as purged
+        // so they never reappear.
+        added: overrides.added.filter((c) => c.id !== purgeId),
+        edits,
+        deleted: overrides.deleted.filter((x) => x !== purgeId),
+        purged: isCustom ? overrides.purged : [...overrides.purged, purgeId],
+      },
+      "Product permanently deleted",
+      `${name} is gone for good.`,
+    );
+    setPurgeId(null);
   };
 
   /* ---------------- Categories ---------------- */
