@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
-import { Clock, Facebook, Instagram, Mail, MapPin, Phone } from "lucide-react";
+import { Clock, Copy, Facebook, Instagram, Mail, MapPin, Phone } from "lucide-react";
+import { toast } from "sonner";
 import { WeChatIcon, WhatsAppIcon } from "@/components/site/BrandIcons";
 import { Section, SectionHeading } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
@@ -8,13 +9,30 @@ import { site } from "@/lib/site";
 export function ContactSection() {
   const { t } = useLanguage();
 
+  const copyWechatId = async () => {
+    try {
+      await navigator.clipboard.writeText(site.wechatId);
+      toast.success(t.contact.copied);
+    } catch {
+      toast.error(site.wechatId);
+    }
+  };
+
   const channels: Array<{
     icon: ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
     label: string;
     value: string;
     href?: string;
+    onClick?: () => void;
+    hint?: string;
   }> = [
-    { icon: WeChatIcon, label: t.contact.wechat, value: site.wechatId },
+    {
+      icon: WeChatIcon,
+      label: t.contact.wechat,
+      value: site.wechatId,
+      onClick: copyWechatId,
+      hint: t.contact.copyWechat,
+    },
     {
       icon: WhatsAppIcon,
       label: t.contact.whatsapp,
