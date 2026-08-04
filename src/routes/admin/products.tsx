@@ -49,9 +49,7 @@ import {
   applyEdit,
   categoryLabel,
   cleanEdit,
-  clearCatalogOverrides,
   emptyCatalogOverrides,
-  isCatalogPristine,
   makeCategoryId,
   makeProductId,
   readCatalogOverrides,
@@ -96,8 +94,6 @@ interface Row {
   discount?: number | undefined;
   defaultDiscount?: number | undefined;
   hidden: boolean;
-  /** Whether the base product has any overrides (shows the reset action). */
-  hasEdit: boolean;
 }
 
 function AdminProductsPage() {
@@ -107,7 +103,7 @@ function AdminProductsPage() {
   const [discountDrafts, setDiscountDrafts] = useState<Record<string, string>>({});
   const [editor, setEditor] = useState<EditorTarget | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [resetOpen, setResetOpen] = useState(false);
+  
   const [catNameEn, setCatNameEn] = useState("");
   const [catNameZh, setCatNameZh] = useState("");
   const [deleteCategoryId, setDeleteCategoryId] = useState<string | null>(null);
@@ -144,7 +140,6 @@ function AdminProductsPage() {
           discount: eff.discount,
           defaultDiscount: p.discount,
           hidden: overrides.hidden.includes(p.id),
-          hasEdit: Boolean(edit),
         };
       });
     const customRows: Row[] = overrides.added.map((c) => ({
@@ -159,7 +154,6 @@ function AdminProductsPage() {
       discount: c.discount,
       defaultDiscount: undefined,
       hidden: overrides.hidden.includes(c.id),
-      hasEdit: false,
     }));
     return [...baseRows, ...customRows];
   }, [overrides]);
@@ -256,7 +250,6 @@ function AdminProductsPage() {
         category: "cones",
         stock: "in",
         featured: false,
-        hasEdit: false,
       };
     }
     if (editor.kind === "custom") {
@@ -275,7 +268,6 @@ function AdminProductsPage() {
         stock: c.stock,
         discount: c.discount,
         featured: c.featured,
-        hasEdit: false,
       };
     }
     const base = shopProducts.find((p) => p.id === editor.id);
@@ -300,7 +292,6 @@ function AdminProductsPage() {
             ? undefined
             : (edit.discount ?? base.discount),
       featured: edit?.featured ?? Boolean(base.featured),
-      hasEdit: Boolean(edit),
     };
   }, [editor, overrides]);
 
@@ -375,27 +366,6 @@ function AdminProductsPage() {
     setEditor(null);
   };
 
-  const handleResetEdit = () => {
-    if (!editor || editor.kind !== "base") return;
-    const edits = { ...overrides.edits };
-    delete edits[editor.id];
-    commit(
-      { ...overrides, edits },
-      "Overrides cleared",
-      "This product is back to its default details.",
-    );
-    setEditor(null);
-  };
-
-  const resetRow = (id: string) => {
-    const edits = { ...overrides.edits };
-    delete edits[id];
-    commit(
-      { ...overrides, edits },
-      "Overrides cleared",
-      "This product is back to its default details.",
-    );
-  };
 
   const confirmDelete = () => {
     if (!deleteId) return;
@@ -438,9 +408,10 @@ function AdminProductsPage() {
 
   /* ---------------- Categories ---------------- */
 
-  const addCategory = () => {
-    const nameEn = catNameEn.trim();
-    if (!nameEn) return;
+  /** Creates a custom category and returns its id (used by the card below and the editor dialog). */
+  const createCategory = (nameEnRaw: string, nameZhRaw: string): string | null => {
+    const nameEn = nameEnRaw.trim();
+    if (!nameEn) return null;
     const taken = new Set<string>([
       ...DEFAULT_CATEGORY_IDS,
       ...overrides.categories.map((c) => c.id),
@@ -448,15 +419,21 @@ function AdminProductsPage() {
     const category: CustomCategory = {
       id: makeCategoryId(nameEn, taken),
       nameEn,
-      nameZh: catNameZh.trim(),
+      nameZh: nameZhRaw.trim(),
     };
     commit(
       { ...overrides, categories: [...overrides.categories, category] },
       "Category added",
       `${nameEn} is now available when editing products.`,
     );
-    setCatNameEn("");
-    setCatNameZh("");
+    return category.id;
+  };
+
+  const addCategory = () => {
+    if (createCategory(catNameEn, catNameZh)) {
+      setCatNameEn("");
+      setCatNameZh("");
+    }
   };
 
   const confirmDeleteCategory = () => {
@@ -486,17 +463,6 @@ function AdminProductsPage() {
     setDeleteCategoryId(null);
   };
 
-  const resetAll = () => {
-    clearCatalogOverrides();
-    setOverrides(emptyCatalogOverrides);
-    setDiscountDrafts({});
-    setResetOpen(false);
-    toast.success("All customizations reset", {
-      description: "The shop is back to the default catalog.",
-    });
-  };
-
-  const pristine = isCatalogPristine(overrides);
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -509,15 +475,6 @@ function AdminProductsPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setResetOpen(true)}
-            disabled={!loaded || pristine}
-          >
-            <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-            Reset all
-          </Button>
           <Button size="sm" onClick={() => setEditor({ kind: "new" })} disabled={!loaded}>
             <Plus className="mr-1.5 h-3.5 w-3.5" />
             Add product
@@ -664,12 +621,6 @@ function AdminProductsPage() {
                           <Pencil className="mr-2 h-4 w-4" />
                           Edit details
                         </DropdownMenuItem>
-                        {!row.custom && row.hasEdit ? (
-                          <DropdownMenuItem onClick={() => resetRow(row.id)}>
-                            <RotateCcw className="mr-2 h-4 w-4" />
-                            Reset to defaults
-                          </DropdownMenuItem>
-                        ) : null}
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
                           onClick={() => setDeleteId(row.id)}
@@ -819,7 +770,7 @@ function AdminProductsPage() {
           if (!open) setEditor(null);
         }}
         onSave={handleSave}
-        onResetEdit={handleResetEdit}
+        onAddCategory={createCategory}
       />
 
       <AlertDialog open={deleteId !== null} onOpenChange={(open) => !open && setDeleteId(null)}>
@@ -858,21 +809,6 @@ function AdminProductsPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={resetOpen} onOpenChange={setResetOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Reset all customizations?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Every edited field, hidden product and added product will be cleared. The shop
-              returns to the default catalog.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={resetAll}>Reset everything</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
