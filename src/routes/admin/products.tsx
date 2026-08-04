@@ -134,6 +134,7 @@ function AdminProductsPage() {
         discount: eff.discount,
         defaultDiscount: p.discount,
         hidden: overrides.hidden.includes(p.id),
+        hasEdit: Boolean(edit),
       };
     });
     const customRows: Row[] = overrides.added.map((c) => ({
@@ -148,6 +149,7 @@ function AdminProductsPage() {
       discount: c.discount,
       defaultDiscount: undefined,
       hidden: false,
+      hasEdit: false,
     }));
     return [...baseRows, ...customRows];
   }, [overrides]);
