@@ -1,16 +1,18 @@
 import { Link } from "@tanstack/react-router";
 import { MessageCircle } from "lucide-react";
 import { useEffect, useState } from "react";
-import heroHand from "@/assets/hero-hand.jpg";
-import heroVideo from "@/assets/hero-mehndi.mp4";
 import { MehndiPattern } from "@/components/site/MehndiPattern";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { useHeroMedia } from "@/lib/use-homepage-media";
 import { site } from "@/lib/site";
+
 
 export function Hero() {
   const { t } = useLanguage();
+  const { videoUrl, posterUrl, imageUrl, imageMode } = useHeroMedia();
   // Only fetch the clip on capable connections — poster image is the fallback.
   const [playVideo, setPlayVideo] = useState(false);
+  const showVideo = playVideo && !imageMode;
 
   useEffect(() => {
     const conn = (
@@ -22,6 +24,7 @@ export function Hero() {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (!slow && !reduced) setPlayVideo(true);
   }, []);
+
 
 
   return (
