@@ -22,7 +22,7 @@ export const en = {
     placeholder: "Placeholder — final content to be confirmed",
   },
   hero: {
-    eyebrow: "Maitidevi · Kathmandu",
+    eyebrow: "\n",
     title1: "Traditional Art",
     title2: "Modern Creativity",
     title3: "Learn Authentic Mehndi",

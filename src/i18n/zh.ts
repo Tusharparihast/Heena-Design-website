@@ -21,7 +21,7 @@ export const zh: Dict = {
     placeholder: "占位内容 — 最终信息待确认",
   },
   hero: {
-    eyebrow: "加德满都 · 马伊蒂德维",
+    eyebrow: "\n",
     title1: "传统技艺",
     title2: "现代创意",
     title3: "学习正宗海娜彩绘",
