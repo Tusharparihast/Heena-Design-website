@@ -23,10 +23,19 @@ export type HomepageVideoOverrides = Partial<Dict["video"]> & {
   posterUrl?: string | undefined;
 };
 
+export type HomepageWhyItemOverride = { title?: string | undefined; body?: string | undefined };
+
+export type HomepageWhyOverrides = {
+  label?: string | undefined;
+  title?: string | undefined;
+  items?: HomepageWhyItemOverride[];
+};
+
 export type HomepageSectionOverrides = {
   hero?: HomepageHeroOverrides;
   about?: HomepageAboutOverrides;
   video?: HomepageVideoOverrides;
+  why?: HomepageWhyOverrides;
 };
 
 export type HomepageOverrides = Record<Locale, HomepageSectionOverrides>;
@@ -70,6 +79,22 @@ function mergeSection<T extends Record<string, string>>(
   return result;
 }
 
+function mergeWhySection(
+  base: Dict["why"],
+  override: HomepageWhyOverrides,
+): Dict["why"] {
+  const result = { ...base };
+  if (override.label !== undefined) result.label = override.label;
+  if (override.title !== undefined) result.title = override.title;
+  if (override.items) {
+    result.items = override.items.map((item, i) => ({
+      title: item.title ?? base.items[i]?.title ?? "",
+      body: item.body ?? base.items[i]?.body ?? "",
+    }));
+  }
+  return result;
+}
+
 /** Apply homepage text overrides to a base dictionary. */
 export function mergeHomepageDictionary(
   dict: Dict,
@@ -88,6 +113,9 @@ export function mergeHomepageDictionary(
   if (overrides.video) {
     const { videoUrl: _, posterUrl: __, ...videoText } = overrides.video;
     next.video = mergeSection(dict.video, videoText);
+  }
+  if (overrides.why) {
+    next.why = mergeWhySection(dict.why, overrides.why);
   }
   return next;
 }
