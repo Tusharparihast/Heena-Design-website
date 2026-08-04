@@ -163,7 +163,7 @@ function RootComponent() {
           <Footer />
         </div>
         <FloatingWeChat />
-        <Toaster position="bottom-center" richColors />
+        <Toaster position="top-center" richColors />
       </LanguageProvider>
     </QueryClientProvider>
   );
