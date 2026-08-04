@@ -76,17 +76,21 @@ function BeforeAfter({ before, after, beforeLabel, afterLabel }: { before: strin
       ref={frameRef}
       className="relative mt-5 select-none overflow-hidden rounded-xl border border-border bg-secondary/40 touch-none"
       onPointerDown={(e) => {
+        e.stopPropagation();
         dragging.current = true;
         e.currentTarget.setPointerCapture(e.pointerId);
         setFromClientX(e.clientX);
       }}
       onPointerMove={(e) => {
+        e.stopPropagation();
         if (dragging.current) setFromClientX(e.clientX);
       }}
-      onPointerUp={() => {
+      onPointerUp={(e) => {
+        e.stopPropagation();
         dragging.current = false;
       }}
-      onPointerCancel={() => {
+      onPointerCancel={(e) => {
+        e.stopPropagation();
         dragging.current = false;
       }}
     >
