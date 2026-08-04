@@ -1,6 +1,7 @@
 import { Percent } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { formatCny, formatNpr, unitPriceNpr, type ShopProduct } from "@/lib/shop";
+import { useCnyRate } from "@/lib/use-cny-rate";
 import { cn } from "@/lib/utils";
 
 /**
@@ -39,10 +40,12 @@ export function ShopPrice({
   className?: string;
 }) {
   const { locale } = useLanguage();
+  // Live daily NPR→CNY rate (falls back to the static rate until loaded).
+  const cnyRate = useCnyRate();
   // Chinese visitors also see an approximate CNY equivalent of the NPR price.
   const cnyHint =
     locale === "zh" ? (
-      <span className="text-xs font-normal text-muted-foreground">{formatCny(unitPriceNpr(product))}</span>
+      <span className="text-xs font-normal text-muted-foreground">{formatCny(unitPriceNpr(product), cnyRate)}</span>
     ) : null;
 
   if (!product.discount)

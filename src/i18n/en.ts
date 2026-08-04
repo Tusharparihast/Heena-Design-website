@@ -471,7 +471,7 @@ export const en = {
       cta: "Message to order",
       secondary: "Ask a question",
     },
-    note: "Prices are indicative and confirmed when you order. Cones are rolled fresh, so stock changes daily.",
+    note: "Prices are indicative and confirmed when you order. Cones are rolled fresh, so stock changes daily. ¥ figures use the daily market exchange rate; payment is settled in NPR.",
     filters: {
       all: "All",
       cones: "Fresh cones",

@@ -6,6 +6,7 @@ import { useLanguage } from "@/i18n/LanguageProvider";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MAX_ORDER_QTY, formatCny, formatNpr, shopImages, shopProducts, unitPriceNpr } from "@/lib/shop";
 import { useDiscountOverrides, withResolvedDiscount } from "@/lib/shop-overrides";
+import { useCnyRate } from "@/lib/use-cny-rate";
 import { cn } from "@/lib/utils";
 import { ShopPrice } from "./DiscountBadge";
 import { QuantityStepper } from "./QuantityStepper";
@@ -48,6 +49,7 @@ export function OrderRequestModal({
 }) {
   const { t, locale } = useLanguage();
   const isMobile = useIsMobile();
+  const cnyRate = useCnyRate();
   const f = t.shopPage.orderForm;
 
   const [mounted, setMounted] = useState(false);
@@ -248,7 +250,7 @@ export function OrderRequestModal({
                   <span className="inline-flex flex-wrap items-baseline justify-end gap-x-2 text-base font-semibold text-primary">
                     {formatNpr(total)}
                     {locale === "zh" ? (
-                      <span className="text-xs font-normal text-muted-foreground">{formatCny(total)}</span>
+                      <span className="text-xs font-normal text-muted-foreground">{formatCny(total, cnyRate)}</span>
                     ) : null}
                   </span>
                 </div>
