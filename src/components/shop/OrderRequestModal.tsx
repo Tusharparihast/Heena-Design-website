@@ -136,7 +136,14 @@ export function OrderRequestModal({
     setErrors({});
     setStatus("sending");
     // No backend yet — the request is prepared for a future server function.
-    window.setTimeout(() => setStatus("done"), 900);
+    window.setTimeout(() => {
+      setStatus("done");
+      toast.success(f.toast?.title ?? "Order submitted", {
+        description: f.toast?.description ?? "We will contact you shortly to confirm your order.",
+        duration: 5000,
+      });
+    }, 900);
+
   };
 
   return (
