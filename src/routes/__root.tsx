@@ -17,6 +17,7 @@ import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
 import { MehndiBackdrop } from "@/components/site/MehndiBackdrop";
 import { CursorMehndi } from "@/components/site/CursorMehndi";
+import { FloatingWeChat } from "@/components/site/FloatingWeChat";
 import { site } from "@/lib/site";
 
 function NotFoundComponent() {
@@ -161,6 +162,7 @@ function RootComponent() {
           </div>
           <Footer />
         </div>
+        <FloatingWeChat />
         <Toaster position="bottom-center" richColors />
       </LanguageProvider>
     </QueryClientProvider>
