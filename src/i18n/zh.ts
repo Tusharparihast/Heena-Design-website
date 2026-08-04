@@ -213,6 +213,8 @@ export const zh: Dict = {
     hours: "营业时间",
     location: "地址",
     directions: "查看路线",
+    copyWechat: "点击复制微信号",
+    copied: "微信号已复制",
   },
   coursesPage: {
     hero: {

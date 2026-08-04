@@ -250,6 +250,8 @@ export const en = {
     hours: "Studio hours",
     location: "Location",
     directions: "Get directions",
+    copyWechat: "Tap to copy WeChat ID",
+    copied: "WeChat ID copied to clipboard",
   },
   coursesPage: {
     hero: {

@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
-import { Clock, Facebook, Instagram, Mail, MapPin, Phone } from "lucide-react";
+import { Clock, Copy, Facebook, Instagram, Mail, MapPin, Phone } from "lucide-react";
+import { toast } from "sonner";
 import { WeChatIcon, WhatsAppIcon } from "@/components/site/BrandIcons";
 import { Section, SectionHeading } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
@@ -8,13 +9,30 @@ import { site } from "@/lib/site";
 export function ContactSection() {
   const { t } = useLanguage();
 
+  const copyWechatId = async () => {
+    try {
+      await navigator.clipboard.writeText(site.wechatId);
+      toast.success(t.contact.copied);
+    } catch {
+      toast.error(site.wechatId);
+    }
+  };
+
   const channels: Array<{
     icon: ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
     label: string;
     value: string;
     href?: string;
+    onClick?: () => void;
+    hint?: string;
   }> = [
-    { icon: WeChatIcon, label: t.contact.wechat, value: site.wechatId },
+    {
+      icon: WeChatIcon,
+      label: t.contact.wechat,
+      value: site.wechatId,
+      onClick: copyWechatId,
+      hint: t.contact.copyWechat,
+    },
     {
       icon: WhatsAppIcon,
       label: t.contact.whatsapp,
@@ -41,20 +59,34 @@ export function ContactSection() {
                 <span>
                   <span className="block text-sm font-medium">{c.label}</span>
                   <span className="block text-sm text-muted-foreground">{c.value}</span>
+                  {c.hint ? (
+                    <span className="mt-1 flex items-center gap-1 text-xs text-primary">
+                      <Copy className="h-3 w-3" aria-hidden />
+                      {c.hint}
+                    </span>
+                  ) : null}
                 </span>
               </span>
             );
             return (
               <li
                 key={c.label}
-                className="rounded-xl border border-border bg-background p-4 transition-colors hover:bg-accent/40"
+                className="rounded-xl border border-border bg-background transition-colors hover:bg-accent/40"
               >
-                {c.href ? (
-                  <a href={c.href} target="_blank" rel="noreferrer">
+                {c.onClick ? (
+                  <button
+                    type="button"
+                    onClick={c.onClick}
+                    className="block w-full cursor-pointer p-4 text-left"
+                  >
+                    {inner}
+                  </button>
+                ) : c.href ? (
+                  <a href={c.href} target="_blank" rel="noreferrer" className="block p-4">
                     {inner}
                   </a>
                 ) : (
-                  inner
+                  <div className="p-4">{inner}</div>
                 )}
               </li>
             );
