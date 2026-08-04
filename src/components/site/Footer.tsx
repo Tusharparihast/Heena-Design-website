@@ -1,9 +1,41 @@
+import type { ComponentType } from "react";
 import { Link } from "@tanstack/react-router";
+import { Clock, Facebook, Instagram, Mail, MapPin, Phone } from "lucide-react";
+import { toast } from "sonner";
+import { WeChatIcon, WhatsAppIcon } from "@/components/site/BrandIcons";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { site } from "@/lib/site";
 
 export function Footer() {
   const { t } = useLanguage();
+
+  const copyWechatId = async () => {
+    try {
+      await navigator.clipboard.writeText(site.wechatId);
+      toast.success(t.contact.copied);
+    } catch {
+      toast.error(site.wechatId);
+    }
+  };
+
+  const reachLinks: Array<{
+    icon: ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
+    label: string;
+    href?: string;
+    onClick?: () => void;
+  }> = [
+    { icon: WeChatIcon, label: t.contact.wechat, onClick: copyWechatId },
+    {
+      icon: WhatsAppIcon,
+      label: t.contact.whatsapp,
+      href: `https://wa.me/${site.whatsapp.replace(/[^0-9]/g, "")}`,
+    },
+    { icon: Phone, label: t.contact.phone, href: `tel:${site.phone}` },
+    { icon: Instagram, label: t.contact.instagram, href: site.instagram },
+    { icon: Facebook, label: t.contact.facebook, href: site.facebook },
+    { icon: Mail, label: t.contact.email, href: `mailto:${site.email}` },
+    { icon: MapPin, label: site.city, href: site.mapUrl },
+  ];
 
   return (
     <footer className="border-t border-border bg-secondary/40">
