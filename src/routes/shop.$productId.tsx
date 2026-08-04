@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, Check, MapPin, QrCode, ShoppingBag } from "lucide-react";
 import { Section } from "@/components/site/Section";
+import { DiscountBadge, ShopPrice } from "@/components/shop/DiscountBadge";
 import { OrderRequestModal } from "@/components/shop/OrderRequestModal";
 import { QuantityStepper } from "@/components/shop/QuantityStepper";
 import { StockBadge } from "@/components/shop/StockBadge";
@@ -85,6 +86,7 @@ function ProductPage() {
                   {s.featured}
                 </span>
               ) : null}
+              <DiscountBadge percent={product.discount} className="absolute top-3 right-3" />
             </div>
             {images.length > 1 ? (
               <div className="mt-3 flex gap-3">
@@ -112,7 +114,7 @@ function ProductPage() {
             <h1 className="mt-3 text-3xl font-semibold sm:text-4xl">{copy.name}</h1>
 
             <div className="mt-4 flex flex-wrap items-center gap-3">
-              <span className="text-xl font-semibold text-primary">{copy.price}</span>
+              <ShopPrice product={product} price={copy.price} className="text-xl font-semibold text-primary" />
               <StockBadge status={product.stock} />
             </div>
 
@@ -210,13 +212,14 @@ function ProductPage() {
                         decoding="async"
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                       />
+                      <DiscountBadge percent={p.discount} className="absolute top-3 right-3" />
                     </div>
                     <div className="flex flex-1 flex-col p-5">
                       <h3 className="text-base font-semibold transition-colors group-hover:text-primary">
                         {p.copy!.name}
                       </h3>
                       <div className="mt-3 flex items-center justify-between gap-2">
-                        <span className="text-sm font-semibold text-primary">{p.copy!.price}</span>
+                        <ShopPrice product={p} price={p.copy!.price} className="text-sm font-semibold text-primary" />
                         <StockBadge status={p.stock} />
                       </div>
                     </div>

@@ -422,6 +422,7 @@ export const zh: Dict = {
       practice: "练习工具",
     },
     featured: "热门",
+    sale: "特价中",
     orderNow: "立即下单",
     details: "查看详情",
     quantity: "数量",

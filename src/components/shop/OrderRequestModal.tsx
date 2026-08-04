@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Clock, QrCode, Send, X } from "lucide-react";
 import { z } from "zod";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { MAX_ORDER_QTY, formatNpr, shopImages, shopProducts } from "@/lib/shop";
+import { MAX_ORDER_QTY, formatNpr, shopImages, shopProducts, unitPriceNpr } from "@/lib/shop";
 import { cn } from "@/lib/utils";
+import { ShopPrice } from "./DiscountBadge";
 import { QuantityStepper } from "./QuantityStepper";
 
 type ContactMethod = "wechat" | "whatsapp" | "phone" | "email";
@@ -110,7 +111,7 @@ export function OrderRequestModal({
 
   if (!product || !copy) return null;
 
-  const total = product.priceNpr * qty;
+  const total = unitPriceNpr(product) * qty;
 
   const set = (key: keyof Fields) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setFields((prev) => ({ ...prev, [key]: e.target.value }));
@@ -212,7 +213,9 @@ export function OrderRequestModal({
                       {f.productLabel}
                     </p>
                     <p className="truncate text-sm font-semibold">{copy.name}</p>
-                    <p className="text-xs text-muted-foreground">{copy.price}</p>
+                    <p className="text-xs text-muted-foreground">
+                      <ShopPrice product={product} price={copy.price} className="font-semibold text-primary" />
+                    </p>
                   </div>
                   <QuantityStepper small value={qty} onChange={setQty} max={MAX_ORDER_QTY} label={t.shopPage.quantity} />
                 </div>

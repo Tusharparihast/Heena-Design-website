@@ -25,15 +25,17 @@ export type ShopProduct = {
   priceNpr: number;
   stock: StockStatus;
   featured?: boolean;
+  /** Percentage discount (1–99), managed by the studio. Omit for full price. */
+  discount?: number;
 };
 
 export const MAX_ORDER_QTY = 20;
 
 export const shopProducts: ShopProduct[] = [
   { id: "henna-cone", image: hennaCone, gallery: [hennaCone], category: "cones", priceNpr: 150, stock: "in", featured: true },
-  { id: "cone-pack", image: hennaCone, gallery: [hennaCone], category: "cones", priceNpr: 650, stock: "in" },
+  { id: "cone-pack", image: hennaCone, gallery: [hennaCone], category: "cones", priceNpr: 650, stock: "in", discount: 15 },
   { id: "bridal-kit", image: bridalKit, gallery: [bridalKit], category: "kits", priceNpr: 2500, stock: "in", featured: true },
-  { id: "starter-kit", image: bridalKit, gallery: [bridalKit], category: "kits", priceNpr: 1800, stock: "in" },
+  { id: "starter-kit", image: bridalKit, gallery: [bridalKit], category: "kits", priceNpr: 1800, stock: "in", discount: 10 },
   { id: "aftercare-oil", image: aftercareOil, gallery: [aftercareOil], category: "care", priceNpr: 400, stock: "in" },
   { id: "practice-book", image: practiceBook, gallery: [practiceBook], category: "practice", priceNpr: 700, stock: "in" },
   { id: "practice-hand", image: practiceHand, gallery: [practiceHand], category: "practice", priceNpr: 1200, stock: "low" },
@@ -46,6 +48,11 @@ export const shopImages: Record<string, string> = Object.fromEntries(
 
 export function formatNpr(amount: number) {
   return `Rs. ${amount.toLocaleString("en-US")}`;
+}
+
+/** Effective unit price after the studio discount. */
+export function unitPriceNpr(p: ShopProduct) {
+  return p.discount ? Math.round((p.priceNpr * (100 - p.discount)) / 100) : p.priceNpr;
 }
 
 export function relatedProducts(id: string, limit = 3): ShopProduct[] {

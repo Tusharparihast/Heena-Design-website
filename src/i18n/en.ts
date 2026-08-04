@@ -480,6 +480,7 @@ export const en = {
       practice: "Practice tools",
     },
     featured: "Popular",
+    sale: "On sale",
     orderNow: "Order now",
     details: "View details",
     quantity: "Quantity",
