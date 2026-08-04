@@ -42,7 +42,7 @@ export interface ProductEdit {
   category?: ShopCategory;
   featured?: boolean;
   /** Uploaded photo as a (compressed) data URL. */
-  image?: string;
+  image?: string | undefined;
 }
 
 /** A fully custom product added from the admin dashboard. */
@@ -53,7 +53,7 @@ export interface CustomProduct {
   priceNpr: number;
   stock: StockStatus;
   featured: boolean;
-  discount?: number;
+  discount?: number | undefined;
   nameEn: string;
   nameZh: string;
   bodyEn: string;
