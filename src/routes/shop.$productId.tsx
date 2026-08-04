@@ -9,6 +9,7 @@ import { StockBadge } from "@/components/shop/StockBadge";
 import { en } from "@/i18n/dictionaries";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { MAX_ORDER_QTY, relatedProducts, shopImages, shopProducts } from "@/lib/shop";
+import { useDiscountOverrides, withResolvedDiscount } from "@/lib/shop-overrides";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/shop/$productId")({
@@ -38,9 +39,11 @@ function ProductPage() {
   const s = t.shopPage;
   const d = s.detailsPage;
 
-  const product = shopProducts.find((p) => p.id === productId);
+  const overrides = useDiscountOverrides();
+  const baseProduct = shopProducts.find((p) => p.id === productId);
   const copy = s.items.find((i) => i.id === productId);
-  if (!product || !copy) throw notFound();
+  if (!baseProduct || !copy) throw notFound();
+  const product = withResolvedDiscount(baseProduct, overrides);
 
   const [imgIdx, setImgIdx] = useState(0);
   const [qty, setQty] = useState(1);
@@ -56,7 +59,7 @@ function ProductPage() {
   const images = product.gallery.length > 0 ? product.gallery : [product.image];
   const out = product.stock === "out";
   const related = relatedProducts(product.id, 3)
-    .map((p) => ({ ...p, copy: s.items.find((i) => i.id === p.id) }))
+    .map((p) => ({ ...withResolvedDiscount(p, overrides), copy: s.items.find((i) => i.id === p.id) }))
     .filter((p) => Boolean(p.copy));
 
   return (

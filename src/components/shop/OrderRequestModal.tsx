@@ -3,6 +3,7 @@ import { CheckCircle2, Clock, QrCode, Send, X } from "lucide-react";
 import { z } from "zod";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { MAX_ORDER_QTY, formatNpr, shopImages, shopProducts, unitPriceNpr } from "@/lib/shop";
+import { useDiscountOverrides, withResolvedDiscount } from "@/lib/shop-overrides";
 import { cn } from "@/lib/utils";
 import { ShopPrice } from "./DiscountBadge";
 import { QuantityStepper } from "./QuantityStepper";
@@ -52,7 +53,9 @@ export function OrderRequestModal({
   const [errors, setErrors] = useState<Partial<Record<keyof Fields, string>>>({});
   const [status, setStatus] = useState<Status>("idle");
 
-  const product = shopProducts.find((p) => p.id === productId) ?? null;
+  const overrides = useDiscountOverrides();
+  const baseProduct = shopProducts.find((p) => p.id === productId) ?? null;
+  const product = baseProduct ? withResolvedDiscount(baseProduct, overrides) : null;
   const copy = t.shopPage.items.find((i) => i.id === productId) ?? null;
 
   // Reset everything whenever a product opens the drawer.
