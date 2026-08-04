@@ -5,37 +5,38 @@ const STORAGE_KEY = "nagma.homepage";
 
 export type HomepageHeroMedia = {
   /** External URL or local path to the hero video (e.g. /assets/hero.mp4). */
-  videoUrl?: string;
+  videoUrl?: string | undefined;
   /** Poster shown before the hero video plays. Can be a base64 data URL or path. */
-  posterUrl?: string;
+  posterUrl?: string | undefined;
   /** Static image used when imageMode is true. Can be a base64 data URL or path. */
-  imageUrl?: string;
+  imageUrl?: string | undefined;
   /** Show a static image instead of the video. */
   imageMode?: boolean;
 };
 
 export type HomepageHeroOverrides = {
-  eyebrow?: string;
-  title1?: string;
-  title2?: string;
-  title3?: string;
-  body?: string;
-  cta?: string;
-  secondary?: string;
+  eyebrow?: string | undefined;
+  title1?: string | undefined;
+  title2?: string | undefined;
+  title3?: string | undefined;
+  body?: string | undefined;
+  cta?: string | undefined;
+  secondary?: string | undefined;
   media?: HomepageHeroMedia;
 };
 
 export type HomepageAboutOverrides = {
-  label?: string;
-  title?: string;
-  body1?: string;
-  body2?: string;
-  stat1?: string;
-  stat2?: string;
-  stat3?: string;
+  label?: string | undefined;
+  title?: string | undefined;
+  body1?: string | undefined;
+  body2?: string | undefined;
+  stat1?: string | undefined;
+  stat2?: string | undefined;
+  stat3?: string | undefined;
   /** About image override. Can be a base64 data URL or path. */
-  imageUrl?: string;
+  imageUrl?: string | undefined;
 };
+
 
 export type HomepageVideoOverrides = {
   label?: string;
