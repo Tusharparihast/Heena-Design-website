@@ -6,6 +6,7 @@ import { useLanguage } from "@/i18n/LanguageProvider";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MAX_ORDER_QTY, formatCny, formatNpr, shopImages, shopProducts, unitPriceNpr } from "@/lib/shop";
 import { useDiscountOverrides, withResolvedDiscount } from "@/lib/shop-overrides";
+import { useCnyRate } from "@/lib/use-cny-rate";
 import { cn } from "@/lib/utils";
 import { ShopPrice } from "./DiscountBadge";
 import { QuantityStepper } from "./QuantityStepper";

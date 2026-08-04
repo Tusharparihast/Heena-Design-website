@@ -20,7 +20,7 @@ export async function fetchNprPerCny(): Promise<number> {
     const res = await fetch(API_URL, { signal: AbortSignal.timeout(5000) });
     if (!res.ok) throw new Error(`FX API responded ${res.status}`);
     const json = (await res.json()) as { result?: string; rates?: Record<string, number> };
-    const cnyPerNpr = json.rates?.CNY;
+    const cnyPerNpr = json.rates?.["CNY"];
     if (json.result !== "success" || typeof cnyPerNpr !== "number" || cnyPerNpr <= 0) {
       throw new Error("FX API payload missing CNY rate");
     }

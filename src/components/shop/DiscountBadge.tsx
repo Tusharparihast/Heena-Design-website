@@ -40,10 +40,12 @@ export function ShopPrice({
   className?: string;
 }) {
   const { locale } = useLanguage();
+  // Live daily NPR→CNY rate (falls back to the static rate until loaded).
+  const cnyRate = useCnyRate();
   // Chinese visitors also see an approximate CNY equivalent of the NPR price.
   const cnyHint =
     locale === "zh" ? (
-      <span className="text-xs font-normal text-muted-foreground">{formatCny(unitPriceNpr(product))}</span>
+      <span className="text-xs font-normal text-muted-foreground">{formatCny(unitPriceNpr(product), cnyRate)}</span>
     ) : null;
 
   if (!product.discount)
