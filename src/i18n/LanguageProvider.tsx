@@ -1,26 +1,36 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { dictionaries, en, type Locale } from "./dictionaries";
-
-type Dict = typeof en;
+import { dictionaries, type Locale } from "./dictionaries";
+import type { Dict } from "./en";
+import {
+  emptyHomepageOverrides,
+  mergeHomepageDictionary,
+  readHomepageOverrides,
+  writeHomepageOverrides,
+  type HomepageOverrides,
+} from "@/lib/homepage-overrides";
 
 type LanguageContextValue = {
   locale: Locale;
   setLocale: (locale: Locale) => void;
   toggleLocale: () => void;
   t: Dict;
+  homeOverrides: HomepageOverrides;
+  setHomepageOverrides: (next: HomepageOverrides) => void;
 };
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
-const STORAGE_KEY = "mehndi.locale";
+const LOCALE_KEY = "mehndi.locale";
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   // Always start with "en" so SSR and the first client render match.
   const [locale, setLocaleState] = useState<Locale>("en");
+  const [homeOverrides, setHomeOverridesState] = useState<HomepageOverrides>(emptyHomepageOverrides);
 
   useEffect(() => {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
+    const stored = window.localStorage.getItem(LOCALE_KEY);
     if (stored === "en" || stored === "zh") setLocaleState(stored);
+    setHomeOverridesState(readHomepageOverrides());
   }, []);
 
   useEffect(() => {
@@ -29,17 +39,29 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);
-    window.localStorage.setItem(STORAGE_KEY, next);
+    window.localStorage.setItem(LOCALE_KEY, next);
   }, []);
+
+  const setHomepageOverrides = useCallback((next: HomepageOverrides) => {
+    setHomeOverridesState(next);
+    writeHomepageOverrides(next);
+  }, []);
+
+  const t = useMemo(
+    () => mergeHomepageDictionary(dictionaries[locale], homeOverrides[locale]),
+    [locale, homeOverrides],
+  );
 
   const value = useMemo<LanguageContextValue>(
     () => ({
       locale,
       setLocale,
       toggleLocale: () => setLocale(locale === "en" ? "zh" : "en"),
-      t: dictionaries[locale],
+      t,
+      homeOverrides,
+      setHomepageOverrides,
     }),
-    [locale, setLocale],
+    [locale, setLocale, t, homeOverrides, setHomepageOverrides],
   );
 
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
