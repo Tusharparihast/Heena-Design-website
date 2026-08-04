@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import {
+  DEFAULT_CATEGORY_IDS,
   formatNpr,
   shopProducts,
   type ShopCategory,
@@ -26,7 +27,6 @@ const STORAGE_KEY = "nd-shop-catalog-overrides";
 const LEGACY_DISCOUNT_KEY = "nd-shop-discount-overrides";
 const CHANGE_EVENT = "nd:shop-catalog-overrides";
 
-const CATEGORIES: ShopCategory[] = ["cones", "kits", "care", "practice"];
 const STOCK_STATUSES: StockStatus[] = ["in", "low", "out"];
 
 /** Editable fields for a built-in product. Missing keys keep the defaults. */
