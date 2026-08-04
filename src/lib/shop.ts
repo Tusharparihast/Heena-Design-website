@@ -12,7 +12,11 @@ import practiceBook from "@/assets/shop/practice-book.jpg";
 import practiceHand from "@/assets/shop/practice-hand.jpg";
 import stencils from "@/assets/shop/stencils.jpg";
 
-export type ShopCategory = "cones" | "kits" | "care" | "practice";
+/** Built-in category ids. The studio can add its own categories in the admin dashboard. */
+export const DEFAULT_CATEGORY_IDS = ["cones", "kits", "care", "practice"] as const;
+export type DefaultCategoryId = (typeof DEFAULT_CATEGORY_IDS)[number];
+/** A product category id — one of the built-ins above or a custom id created in the admin dashboard. */
+export type ShopCategory = string;
 export type StockStatus = "in" | "low" | "out";
 
 export type ShopProduct = {
