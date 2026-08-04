@@ -93,9 +93,9 @@ export interface CatalogOverrides {
   /** Ids of built-in categories permanently deleted from the trash. */
   purgedCategories: string[];
   /**
-   * Product ids reassigned to a fallback category when a category was
-   * trashed, keyed by the trashed category id — restoring the category
-   * moves them back.
+   * Product ids moved to the trash together with a category, keyed by the
+   * trashed category id — restoring the category restores them too, and
+   * permanently deleting the category deletes them permanently.
    */
   trashCategoryProducts: Record<string, string[]>;
 }
