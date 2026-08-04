@@ -439,5 +439,6 @@ export const zh: Dict = {
     explore: "浏览",
     reach: "联系",
     rights: "版权所有。",
+    motto: "尼泊尔工艺 · 世界海娜",
   },
 };

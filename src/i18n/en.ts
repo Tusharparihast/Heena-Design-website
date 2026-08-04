@@ -505,6 +505,7 @@ export const en = {
     explore: "Explore",
     reach: "Reach us",
     rights: "All rights reserved.",
+    motto: "Nepali artistry · Global mehndi",
   },
 };
 
