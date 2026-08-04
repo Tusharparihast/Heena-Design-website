@@ -39,6 +39,7 @@ function CustomDesignPage() {
   const [date, setDate] = useState("");
   const [people, setPeople] = useState("1");
   const [placement, setPlacement] = useState<string>(b.details.placementOptions[0] ?? "");
+  const [budget, setBudget] = useState<string>(b.details.budgetOptions[0] ?? "");
   const [notes, setNotes] = useState("");
   const [copied, setCopied] = useState(false);
 
@@ -52,6 +53,7 @@ function CustomDesignPage() {
       `${b.style.title} ${styleName}`,
       `${b.occasion.title}: ${occasion}`,
       `${b.details.placement}: ${placement}`,
+      `${b.details.budget}: ${budget}`,
       `${b.details.people}: ${people}`,
       date ? `${b.details.date}: ${date}` : null,
       name ? `${b.details.name}: ${name}` : null,
@@ -60,7 +62,7 @@ function CustomDesignPage() {
     ]
       .filter(Boolean)
       .join("\n");
-  }, [b, style, occasion, placement, people, date, name, notes, files.length]);
+  }, [b, style, occasion, placement, budget, people, date, name, notes, files.length]);
 
   function addFiles(list: FileList | null) {
     if (!list) return;
@@ -257,6 +259,19 @@ function CustomDesignPage() {
                       ))}
                     </select>
                   </Field>
+                  <Field label={b.details.budget}>
+                    <select
+                      value={budget}
+                      onChange={(e) => setBudget(e.target.value)}
+                      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                    >
+                      {b.details.budgetOptions.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
                 </div>
                 <div className="mt-4">
                   <Field label={b.details.notes}>
@@ -281,14 +296,16 @@ function CustomDesignPage() {
               >
                 {b.back}
               </button>
-              <button
-                type="button"
-                onClick={() => setStep((s) => Math.min(2, s + 1))}
-                disabled={step === 2 || (step === 0 && !style)}
-                className="rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-40"
-              >
-                {b.next}
-              </button>
+              {step < 2 && (
+                <button
+                  type="button"
+                  onClick={() => setStep((s) => Math.min(2, s + 1))}
+                  disabled={step === 0 && !style}
+                  className="rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-40"
+                >
+                  {b.next}
+                </button>
+              )}
             </div>
           </div>
 
