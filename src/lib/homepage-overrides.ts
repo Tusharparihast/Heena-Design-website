@@ -39,17 +39,17 @@ export type HomepageAboutOverrides = {
 
 
 export type HomepageVideoOverrides = {
-  label?: string;
-  title?: string;
-  body?: string;
-  play?: string;
-  note?: string;
-  expand?: string;
-  close?: string;
+  label?: string | undefined;
+  title?: string | undefined;
+  body?: string | undefined;
+  play?: string | undefined;
+  note?: string | undefined;
+  expand?: string | undefined;
+  close?: string | undefined;
   /** External URL or local path to the demo video. */
-  videoUrl?: string;
+  videoUrl?: string | undefined;
   /** Poster for the demo video. Can be a base64 data URL or path. */
-  posterUrl?: string;
+  posterUrl?: string | undefined;
 };
 
 export type HomepageSectionOverrides = {
@@ -86,6 +86,11 @@ export function writeHomepageOverrides(overrides: HomepageOverrides) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(overrides));
 }
 
+/** Keep only entries whose value is not undefined. Empty strings are kept intentionally. */
+function pickDefined<T extends Record<string, unknown>>(obj: T): Partial<T> {
+  return Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined)) as Partial<T>;
+}
+
 /** Apply homepage text overrides to a base dictionary. */
 export function mergeHomepageDictionary(
   dict: Dict,
@@ -95,18 +100,19 @@ export function mergeHomepageDictionary(
   const next: Dict = { ...dict };
   if (overrides.hero) {
     const { media: _, ...heroText } = overrides.hero;
-    next.hero = { ...dict.hero, ...heroText };
+    next.hero = { ...dict.hero, ...pickDefined(heroText) };
   }
   if (overrides.about) {
     const { imageUrl: _, ...aboutText } = overrides.about;
-    next.about = { ...dict.about, ...aboutText };
+    next.about = { ...dict.about, ...pickDefined(aboutText) };
   }
   if (overrides.video) {
     const { videoUrl: _, posterUrl: __, ...videoText } = overrides.video;
-    next.video = { ...dict.video, ...videoText };
+    next.video = { ...dict.video, ...pickDefined(videoText) };
   }
   return next;
 }
+
 
 /** Merge a single locale patch into the existing overrides object. */
 export function mergeHomepageOverrides(
