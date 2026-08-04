@@ -39,30 +39,46 @@ function CustomDesignPage() {
   const [date, setDate] = useState("");
   const [people, setPeople] = useState("1");
   const [placement, setPlacement] = useState<string>(b.details.placementOptions[0] ?? "");
-  const [budget, setBudget] = useState<string>(b.details.budgetOptions[0] ?? "");
+  const [budgetChoice, setBudgetChoice] = useState<string>(b.details.budgetOptions[0] ?? "");
+  const [budgetCustom, setBudgetCustom] = useState("");
   const [notes, setNotes] = useState("");
   const [copied, setCopied] = useState(false);
 
   // Object URLs are only for local previews — revoke them on unmount.
   useEffect(() => () => files.forEach((f) => URL.revokeObjectURL(f.url)), [files]);
 
-  const message = useMemo(() => {
-    const styleName = style ? b.style[style].name : "";
-    return [
-      `${b.hero.title}`,
-      `${b.style.title} ${styleName}`,
-      `${b.occasion.title}: ${occasion}`,
-      `${b.details.placement}: ${placement}`,
-      `${b.details.budget}: ${budget}`,
-      `${b.details.people}: ${people}`,
-      date ? `${b.details.date}: ${date}` : null,
-      name ? `${b.details.name}: ${name}` : null,
-      notes ? `${b.details.notes} ${notes}` : null,
-      files.length ? `${b.upload.title}: ${files.length}` : null,
-    ]
-      .filter(Boolean)
-      .join("\n");
+  // "Custom amount" swaps the preset for whatever the visitor types in.
+  const isCustomBudget = budgetChoice === b.details.budgetCustom;
+  const budget = isCustomBudget ? budgetCustom.trim() : budgetChoice;
+
+  // Today's date in local time — used to block past dates in the picker.
+  const today = useMemo(() => {
+    const d = new Date();
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }, []);
+
+  // Label/value pairs power both the styled summary box and the plain-text message.
+  const rows = useMemo(() => {
+    const clean = (s: string) => s.replace(/[?？]\s*$/, "");
+    const list = [
+      { label: clean(b.style.title), value: style ? b.style[style].name : "" },
+      { label: clean(b.occasion.title), value: occasion },
+      { label: clean(b.details.placement), value: placement },
+      { label: clean(b.details.budget), value: budget },
+      { label: clean(b.details.people), value: people },
+      { label: clean(b.details.date), value: date },
+      { label: clean(b.details.name), value: name },
+      { label: clean(b.details.notes), value: notes },
+      { label: b.upload.title, value: files.length ? String(files.length) : "" },
+    ];
+    return list.filter((r) => r.value.trim() !== "");
   }, [b, style, occasion, placement, budget, people, date, name, notes, files.length]);
+
+  const message = useMemo(
+    () => [b.hero.title, ...rows.map((r) => `${r.label}: ${r.value}`)].join("\n"),
+    [b.hero.title, rows],
+  );
 
   function addFiles(list: FileList | null) {
     if (!list) return;
