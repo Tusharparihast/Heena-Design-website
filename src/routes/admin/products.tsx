@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Pencil, Percent, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
+import { MoreVertical, Pencil, Percent, Plus, RotateCcw, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -21,6 +21,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -85,6 +91,8 @@ interface Row {
   discount?: number | undefined;
   defaultDiscount?: number | undefined;
   hidden: boolean;
+  /** Whether the base product has any overrides (shows the reset action). */
+  hasEdit: boolean;
 }
 
 function AdminProductsPage() {
@@ -126,6 +134,7 @@ function AdminProductsPage() {
         discount: eff.discount,
         defaultDiscount: p.discount,
         hidden: overrides.hidden.includes(p.id),
+        hasEdit: Boolean(edit),
       };
     });
     const customRows: Row[] = overrides.added.map((c) => ({
@@ -140,6 +149,7 @@ function AdminProductsPage() {
       discount: c.discount,
       defaultDiscount: undefined,
       hidden: false,
+      hasEdit: false,
     }));
     return [...baseRows, ...customRows];
   }, [overrides]);
@@ -358,6 +368,16 @@ function AdminProductsPage() {
     setEditor(null);
   };
 
+  const resetRow = (id: string) => {
+    const edits = { ...overrides.edits };
+    delete edits[id];
+    commit(
+      { ...overrides, edits },
+      "Overrides cleared",
+      "This product is back to its default details.",
+    );
+  };
+
   const confirmDelete = () => {
     if (!deleteId) return;
     const name = overrides.added.find((c) => c.id === deleteId)?.nameEn ?? "Product";
@@ -537,33 +557,35 @@ function AdminProductsPage() {
                       />
                     )}
                   </TableCell>
-                  <TableCell className="pr-6 text-right whitespace-nowrap">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      aria-label={`Edit ${row.name}`}
-                      onClick={() =>
-                        setEditor(
-                          row.custom
-                            ? { kind: "custom", id: row.id }
-                            : { kind: "base", id: row.id },
-                        )
-                      }
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    {row.custom ? (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-destructive hover:text-destructive"
-                        aria-label={`Delete ${row.name}`}
-                        onClick={() => setDeleteId(row.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    ) : null}
+                  <TableCell className="pr-6 text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" aria-label={`Actions for ${row.name}`}>
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setEditor(row.custom ? { kind: "custom", id: row.id } : { kind: "base", id: row.id })}>
+                          <Pencil className="mr-2 h-4 w-4" />
+                          Edit details
+                        </DropdownMenuItem>
+                        {!row.custom && row.hasEdit ? (
+                          <DropdownMenuItem onClick={() => resetRow(row.id)}>
+                            <RotateCcw className="mr-2 h-4 w-4" />
+                            Reset to defaults
+                          </DropdownMenuItem>
+                        ) : null}
+                        {row.custom ? (
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => setDeleteId(row.id)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete product
+                          </DropdownMenuItem>
+                        ) : null}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}
