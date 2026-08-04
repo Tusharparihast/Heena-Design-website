@@ -124,48 +124,38 @@ export function Footer() {
             <div className="mt-8 h-px w-12 bg-foreground/30" aria-hidden />
           </div>
 
-          {/* Reach us */}
+          {/* Reach us — labeled icon buttons, clearly clickable */}
           <div className="order-3">
             <h3 className="mb-6 border-b border-border pb-2 text-xs font-light tracking-[0.2em] uppercase">
               {t.footer.reach}
             </h3>
-            <ul className="flex flex-wrap gap-3">
-              {reachLinks.map((c) => {
-                const Icon = c.icon;
-                const cls = c.filled
-                  ? "flex h-10 w-10 items-center justify-center rounded-full text-white shadow-sm transition-transform hover:scale-110"
-                  : "flex h-10 w-10 items-center justify-center rounded-full border border-border text-muted-foreground transition-all hover:border-foreground/40 hover:bg-foreground/5 hover:text-foreground";
-                const style = c.filled ? { backgroundColor: c.filled } : undefined;
-                return (
-                  <li key={c.label}>
-                    {c.onClick ? (
-                      <button
-                        type="button"
-                        onClick={c.onClick}
-                        aria-label={c.label}
-                        title={c.label}
-                        className={cls}
-                        style={style}
-                      >
-                        <Icon className="h-5 w-5" aria-hidden />
-                      </button>
-                    ) : (
-                      <a
-                        href={c.href}
-                        target="_blank"
-                        rel="noreferrer"
-                        aria-label={c.label}
-                        title={c.label}
-                        className={cls}
-                        style={style}
-                      >
-                        <Icon className="h-5 w-5" aria-hidden />
-                      </a>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
+            <div className="flex flex-wrap gap-1">
+              <ReachButton label={t.contact.wechat} onClick={copyWechatId} filled="#07C160">
+                <WeChatIcon className="h-5 w-5" fill="#ffffff" aria-hidden />
+              </ReachButton>
+              <ReachButton
+                label={t.contact.whatsapp}
+                href={`https://wa.me/${site.whatsapp.replace(/[^0-9]/g, "")}`}
+                filled="#25D366"
+              >
+                <WhatsAppIcon className="h-5 w-5" fill="#ffffff" aria-hidden />
+              </ReachButton>
+              <ReachButton label={t.contact.phone} href={`tel:${site.phone}`}>
+                <Phone className="h-5 w-5" aria-hidden />
+              </ReachButton>
+              <ReachButton label={t.contact.instagram} href={site.instagram}>
+                <Instagram className="h-5 w-5" aria-hidden />
+              </ReachButton>
+              <ReachButton label={t.contact.facebook} href={site.facebook}>
+                <Facebook className="h-5 w-5" aria-hidden />
+              </ReachButton>
+              <ReachButton label={t.contact.email} href={`mailto:${site.email}`}>
+                <Mail className="h-5 w-5" aria-hidden />
+              </ReachButton>
+              <ReachButton label={site.city} href={site.mapUrl}>
+                <MapPin className="h-5 w-5" aria-hidden />
+              </ReachButton>
+            </div>
             <p className="mt-6 text-xs tracking-wider text-muted-foreground uppercase">{site.city}</p>
           </div>
         </div>
