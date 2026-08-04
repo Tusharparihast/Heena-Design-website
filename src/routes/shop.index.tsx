@@ -107,8 +107,13 @@ function ShopPage() {
         </div>
 
         <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((p) => (
-            <ProductCard key={p.id} product={p} copy={p.copy} onOrder={(id, qty) => setOrder({ id, qty })} />
+          {items.map(({ product, copy }) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              copy={copy}
+              onOrder={(id, qty) => setOrder({ id, qty })}
+            />
           ))}
         </ul>
 
@@ -130,7 +135,7 @@ function ProductCard({
   onOrder,
 }: {
   product: ShopProduct;
-  copy: ShopCopy;
+  copy: ProductCopy;
   onOrder: (id: string, qty: number) => void;
 }) {
   const { t } = useLanguage();
@@ -147,7 +152,7 @@ function ProductCard({
         aria-label={copy.name}
       >
         <img
-          src={shopImages[product.id]}
+          src={product.image}
           alt={copy.name}
           width={800}
           height={800}
