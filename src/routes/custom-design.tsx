@@ -339,9 +339,17 @@ function CustomDesignPage() {
 
           <aside className="rounded-2xl border border-border bg-secondary/50 p-6 lg:sticky lg:top-24 lg:self-start">
             <h2 className="text-lg font-semibold">{b.summary.title}</h2>
-            <pre className="mt-4 max-h-64 overflow-auto rounded-xl border border-border bg-background p-4 font-sans text-sm whitespace-pre-wrap text-muted-foreground">
-              {message}
-            </pre>
+            <div className="mt-4 max-h-64 overflow-auto rounded-xl border border-border bg-background p-4 text-sm">
+              <p className="font-semibold">{b.hero.title}</p>
+              <dl className="mt-2 space-y-1.5">
+                {rows.map((r) => (
+                  <div key={r.label} className="flex flex-wrap gap-x-2">
+                    <dt className="shrink-0 font-semibold text-foreground">{r.label}:</dt>
+                    <dd className="min-w-0 break-words text-muted-foreground">{r.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
 
             <div className="mt-5 space-y-2">
               <a
