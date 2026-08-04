@@ -58,12 +58,11 @@ export interface ProductEditorInitial {
   hasEdit: boolean;
 }
 
-const categories: { value: ShopCategory; label: string }[] = [
-  { value: "cones", label: "Fresh cones" },
-  { value: "kits", label: "Kits" },
-  { value: "care", label: "Aftercare" },
-  { value: "practice", label: "Practice tools" },
-];
+/** A selectable category option (built-in or studio-created). */
+export interface CategoryOption {
+  value: string;
+  label: string;
+}
 
 const stockOptions: { value: StockStatus; label: string }[] = [
   { value: "in", label: "In stock" },
@@ -101,12 +100,15 @@ async function fileToDataUrl(file: File): Promise<string> {
 export function ProductEditorDialog({
   open,
   initial,
+  categories,
   onOpenChange,
   onSave,
   onResetEdit,
 }: {
   open: boolean;
   initial: ProductEditorInitial | null;
+  /** Built-in + studio-created categories for the category dropdown. */
+  categories: CategoryOption[];
   onOpenChange: (open: boolean) => void;
   onSave: (values: ProductFormValues) => void;
   /** Clear all overrides for a built-in product. */
@@ -119,6 +121,7 @@ export function ProductEditorDialog({
           <ProductEditorForm
             key={initial.id ?? "new"}
             initial={initial}
+            categories={categories}
             onCancel={() => onOpenChange(false)}
             onSave={onSave}
             onResetEdit={onResetEdit}
@@ -131,11 +134,13 @@ export function ProductEditorDialog({
 
 function ProductEditorForm({
   initial,
+  categories,
   onCancel,
   onSave,
   onResetEdit,
 }: {
   initial: ProductEditorInitial;
+  categories: CategoryOption[];
   onCancel: () => void;
   onSave: (values: ProductFormValues) => void;
   onResetEdit?: (() => void) | undefined;
