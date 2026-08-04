@@ -243,9 +243,14 @@ export function OrderRequestModal({
                   </div>
                   <QuantityStepper small value={qty} onChange={setQty} max={MAX_ORDER_QTY} label={t.shopPage.quantity} />
                 </div>
-                <div className="mt-3 flex items-baseline justify-between border-t border-border pt-3">
+                <div className="mt-3 flex items-baseline justify-between gap-3 border-t border-border pt-3">
                   <span className="text-xs text-muted-foreground">{f.estimatedTotal}</span>
-                  <span className="text-base font-semibold text-primary">{formatNpr(total)}</span>
+                  <span className="inline-flex flex-wrap items-baseline justify-end gap-x-2 text-base font-semibold text-primary">
+                    {formatNpr(total)}
+                    {locale === "zh" ? (
+                      <span className="text-xs font-normal text-muted-foreground">{formatCny(total)}</span>
+                    ) : null}
+                  </span>
                 </div>
                 <p className="mt-1 text-[11px] text-muted-foreground">{f.totalNote}</p>
               </div>
@@ -256,13 +261,16 @@ export function OrderRequestModal({
                   {f.customer}
                 </legend>
 
-                <Field label={f.fullName} error={errors.name}>
-                  <input type="text" value={fields.name} onChange={set("name")} placeholder={f.fullNamePh} maxLength={100} className={inputClass} autoComplete="name" />
-                </Field>
+                {/* Two columns on the wider desktop dialog; single column in the mobile drawer. */}
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field label={f.fullName} error={errors.name}>
+                    <input type="text" value={fields.name} onChange={set("name")} placeholder={f.fullNamePh} maxLength={100} className={inputClass} autoComplete="name" />
+                  </Field>
 
-                <Field label={f.phone} error={errors.phone}>
-                  <input type="tel" value={fields.phone} onChange={set("phone")} placeholder={f.phonePh} maxLength={20} className={inputClass} autoComplete="tel" />
-                </Field>
+                  <Field label={f.phone} error={errors.phone}>
+                    <input type="tel" value={fields.phone} onChange={set("phone")} placeholder={f.phonePh} maxLength={20} className={inputClass} autoComplete="tel" />
+                  </Field>
+                </div>
 
                 <Field label={f.wechat} error={errors.wechat}>
                   <input type="text" value={fields.wechat} onChange={set("wechat")} placeholder={f.wechatPh} maxLength={100} className={inputClass} />
