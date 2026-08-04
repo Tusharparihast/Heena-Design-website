@@ -138,8 +138,8 @@ function CoursesPage() {
         <h2 className="text-3xl font-semibold sm:text-4xl">{c.process.title}</h2>
         <div className="mt-8 flex flex-col items-stretch gap-4 md:flex-row md:items-center">
           {c.process.steps.map((step, i) => (
-            <div key={step.title} className="contents">
-              <article className="flex-1 rounded-2xl border border-border bg-card p-6">
+            <div key={`wrapper-${step.title}`} className="contents">
+              <article key={`step-${step.title}`} className="flex-1 rounded-2xl border border-border bg-card p-6">
                 <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold text-primary">
                   {i + 1}
                 </span>
@@ -147,7 +147,7 @@ function CoursesPage() {
                 <p className="mt-2 text-sm text-muted-foreground">{step.body}</p>
               </article>
               {i < c.process.steps.length - 1 && (
-                <div className="flex items-center justify-center py-2 md:px-2 md:py-0">
+                <div key={`arrow-${step.title}`} className="flex items-center justify-center py-2 md:px-2 md:py-0">
                   <ArrowDown className="h-5 w-5 text-primary/70 arrow-pulse md:hidden" aria-hidden />
                   <ArrowRight
                     className="hidden h-5 w-5 text-primary/70 arrow-pulse md:block"
