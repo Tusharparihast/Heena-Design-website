@@ -91,6 +91,8 @@ interface Row {
   discount?: number | undefined;
   defaultDiscount?: number | undefined;
   hidden: boolean;
+  /** Whether the base product has any overrides (shows the reset action). */
+  hasEdit: boolean;
 }
 
 function AdminProductsPage() {
