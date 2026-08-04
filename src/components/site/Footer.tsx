@@ -35,29 +35,18 @@ function ReachButton({
     ? "grid h-12 w-12 place-items-center rounded-full text-white shadow-sm transition-transform group-hover:scale-110 group-hover:shadow-md"
     : "grid h-12 w-12 place-items-center rounded-full border border-border bg-background text-muted-foreground transition-all group-hover:border-foreground/40 group-hover:bg-accent/50 group-hover:text-foreground";
 
-  return onClick ? (
-    <button type="button" onClick={onClick} aria-label={label} title={label} className={`${base} cursor-pointer`}>
-      <span className={bubble} style={filled ? { backgroundColor: filled } : undefined}>
-        {children}
-      </span>
-      <span className="text-[10px] font-medium tracking-wide text-muted-foreground transition-colors group-hover:text-foreground">
-        {label}
-      </span>
-    </button>
-  ) : (
+  return (
     <a
       href={href}
-      target="_blank"
-      rel="noreferrer"
+      onClick={onClick}
+      target={href?.startsWith("http") ? "_blank" : undefined}
+      rel={href?.startsWith("http") ? "noreferrer" : undefined}
       aria-label={label}
       title={label}
-      className={base}
+      className={`${base} group`}
     >
       <span className={bubble} style={filled ? { backgroundColor: filled } : undefined}>
         {children}
-      </span>
-      <span className="text-[10px] font-medium tracking-wide text-muted-foreground transition-colors group-hover:text-foreground">
-        {label}
       </span>
     </a>
   );
