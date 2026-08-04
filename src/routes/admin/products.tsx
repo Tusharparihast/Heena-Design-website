@@ -694,6 +694,118 @@ function AdminProductsPage() {
         </CardContent>
       </Card>
 
+      {/* Categories */}
+      <Card className="shadow-none">
+        <CardContent className="p-4 sm:p-5">
+          <h3 className="text-sm font-semibold">Categories</h3>
+          <p className="mt-1 max-w-lg text-xs text-muted-foreground">
+            Categories group products in the shop filters. Add your own below — the built-in ones
+            can&apos;t be removed.
+          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <Input
+              value={catNameEn}
+              onChange={(e) => setCatNameEn(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") addCategory();
+              }}
+              placeholder="Category name (English)"
+              aria-label="New category name in English"
+              maxLength={40}
+              className="h-9 w-56"
+            />
+            <Input
+              value={catNameZh}
+              onChange={(e) => setCatNameZh(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") addCategory();
+              }}
+              placeholder="类别名称（中文，可选）"
+              aria-label="New category name in Chinese (optional)"
+              maxLength={40}
+              className="h-9 w-56"
+            />
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={addCategory}
+              disabled={!loaded || !catNameEn.trim()}
+            >
+              <Plus className="mr-1.5 h-3.5 w-3.5" />
+              Add category
+            </Button>
+          </div>
+          <ul className="mt-4 flex flex-wrap gap-2">
+            {DEFAULT_CATEGORY_IDS.map((id) => (
+              <li
+                key={id}
+                className="flex items-center gap-2 rounded-full border border-border bg-secondary/40 px-3 py-1.5 text-xs"
+              >
+                {en.shopPage.filters[id]}
+                <Badge variant="outline" className="text-[10px]">
+                  Built-in
+                </Badge>
+              </li>
+            ))}
+            {overrides.categories.map((c) => (
+              <li
+                key={c.id}
+                className="flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs"
+              >
+                {c.nameEn}
+                {c.nameZh ? <span className="text-muted-foreground">· {c.nameZh}</span> : null}
+                <button
+                  type="button"
+                  onClick={() => setDeleteCategoryId(c.id)}
+                  aria-label={`Delete category ${c.nameEn}`}
+                  className="ml-0.5 rounded-full p-0.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
+
+      {/* Deleted built-in products (restorable) */}
+      {overrides.deleted.length > 0 ? (
+        <Card className="shadow-none">
+          <CardContent className="p-4 sm:p-5">
+            <h3 className="text-sm font-semibold">Deleted products</h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Removed from the shop — restore them anytime.
+            </p>
+            <ul className="mt-3 space-y-2">
+              {overrides.deleted.map((id) => (
+                <li
+                  key={id}
+                  className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2"
+                >
+                  <span className="flex min-w-0 items-center gap-3">
+                    {shopImages[id] ? (
+                      <img
+                        src={shopImages[id]}
+                        alt=""
+                        width={32}
+                        height={32}
+                        loading="lazy"
+                        className="h-8 w-8 shrink-0 rounded-md object-cover"
+                      />
+                    ) : null}
+                    <span className="truncate text-sm">{productNamesEn.get(id) ?? id}</span>
+                  </span>
+                  <Button variant="outline" size="sm" onClick={() => restoreProduct(id)}>
+                    <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+                    Restore
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      ) : null}
+
       <p className="text-center text-xs text-muted-foreground">
         Product changes are saved in this browser for now — they'll move to the database with the
         backend phase so every visitor sees them.
@@ -702,6 +814,7 @@ function AdminProductsPage() {
       <ProductEditorDialog
         open={editor !== null}
         initial={editorInitial}
+        categories={editorCategories}
         onOpenChange={(open) => {
           if (!open) setEditor(null);
         }}
@@ -714,12 +827,33 @@ function AdminProductsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this product?</AlertDialogTitle>
             <AlertDialogDescription>
-              It will be removed from the shop immediately. This cannot be undone.
+              {deleteId && overrides.added.some((c) => c.id === deleteId)
+                ? "It will be removed from the shop immediately. This cannot be undone."
+                : "It will be removed from the shop immediately. You can restore it later from the Deleted products list."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete}>Delete product</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={deleteCategoryId !== null}
+        onOpenChange={(open) => !open && setDeleteCategoryId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this category?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Products in this category will be moved to “{en.shopPage.filters.cones}”. The category
+              filter will disappear from the shop.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteCategory}>Delete category</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
