@@ -1,6 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { Eye, ImagePlus, RotateCcw, Save, Trash2 } from "lucide-react";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { type Locale } from "@/i18n/dictionaries";
+import { dictionaries } from "@/i18n/dictionaries";
 import { fileToDataUrl } from "@/lib/image-upload";
 import {
   type HomepageHeroMedia,
@@ -20,6 +21,7 @@ import {
   type HomepageOverrides,
   type HomepageSectionOverrides,
   type HomepageVideoOverrides,
+  type HomepageWhyOverrides,
 } from "@/lib/homepage-overrides";
 import { cn } from "@/lib/utils";
 
@@ -199,6 +201,20 @@ function AdminHomepagePage() {
   const about = (draft[editingLocale]?.about ?? {}) as HomepageAboutOverrides;
   const video = (draft[editingLocale]?.video ?? {}) as HomepageVideoOverrides;
 
+  const baseWhy = dictionaries[editingLocale].why;
+  const whyDraft = (draft[editingLocale]?.why ?? {}) as HomepageWhyOverrides;
+  const why = useMemo(
+    () => ({
+      label: whyDraft.label ?? baseWhy.label,
+      title: whyDraft.title ?? baseWhy.title,
+      items: baseWhy.items.map((item, i) => ({
+        title: whyDraft.items?.[i]?.title ?? item.title,
+        body: whyDraft.items?.[i]?.body ?? item.body,
+      })),
+    }),
+    [baseWhy, whyDraft],
+  );
+
   const patchSection = (key: keyof HomepageSectionOverrides, patch: object) => {
     setDraft((prev) => ({
       ...prev,
@@ -220,6 +236,21 @@ function AdminHomepagePage() {
         },
       },
     }));
+  };
+
+  const patchWhyItem = (index: number, key: "title" | "body", value: string) => {
+    setDraft((prev) => {
+      const currentItems = prev[editingLocale]?.why?.items ?? [];
+      const nextItems = [...currentItems];
+      nextItems[index] = { ...nextItems[index], [key]: value };
+      return {
+        ...prev,
+        [editingLocale]: {
+          ...prev[editingLocale],
+          why: { ...prev[editingLocale]?.why, items: nextItems },
+        },
+      };
+    });
   };
 
   const resetSection = (key: keyof HomepageSectionOverrides) => {
@@ -245,8 +276,8 @@ function AdminHomepagePage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Homepage</h1>
           <p className="text-sm text-muted-foreground">
-            Edit the landing page Hero, About and Watch sections. Switch between English and
-            Chinese, then save to update the public site.
+            Edit the landing page Hero, About, Why Learn and Watch sections. Switch between English
+            and Chinese, then save to update the public site.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -268,6 +299,7 @@ function AdminHomepagePage() {
         <TabsList>
           <TabsTrigger value="hero">Hero</TabsTrigger>
           <TabsTrigger value="about">About</TabsTrigger>
+          <TabsTrigger value="why">Why Learn</TabsTrigger>
           <TabsTrigger value="video">Watch</TabsTrigger>
         </TabsList>
 
@@ -429,6 +461,50 @@ function AdminHomepagePage() {
                 value={about.imageUrl}
                 onChange={(v) => patchSection("about", { imageUrl: v || undefined })}
               />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="why" className="space-y-6">
+          <Card>
+            <CardHeader className="flex flex-row items-start justify-between gap-4">
+              <div>
+                <CardTitle>Why Learn text</CardTitle>
+                <CardDescription>The four feature cards on the homepage.</CardDescription>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => resetSection("why")}>
+                <RotateCcw className="mr-2 h-4 w-4" />
+                Reset
+              </Button>
+            </CardHeader>
+            <CardContent className="grid gap-4 sm:grid-cols-2">
+              <Field
+                label="Label"
+                value={why.label}
+                onChange={(v) => patchSection("why", { label: v })}
+              />
+              <Field
+                label="Title"
+                value={why.title}
+                onChange={(v) => patchSection("why", { title: v })}
+              />
+            </CardContent>
+            <CardContent className="space-y-6">
+              {why.items.map((item, i) => (
+                <div key={i} className="grid gap-4 sm:grid-cols-2">
+                  <Field
+                    label={`Card ${i + 1} title`}
+                    value={item.title}
+                    onChange={(v) => patchWhyItem(i, "title", v)}
+                  />
+                  <Field
+                    label={`Card ${i + 1} body`}
+                    value={item.body}
+                    onChange={(v) => patchWhyItem(i, "body", v)}
+                    multiline
+                  />
+                </div>
+              ))}
             </CardContent>
           </Card>
         </TabsContent>
