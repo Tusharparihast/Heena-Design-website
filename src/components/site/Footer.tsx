@@ -76,28 +76,6 @@ export function Footer() {
     }
   };
 
-  const reachLinks: Array<{
-    icon: ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
-    label: string;
-    href?: string;
-    onClick?: () => void;
-    /** Brand-filled bubble (WeChat / WhatsApp) vs. quiet bordered bubble. */
-    filled?: string;
-  }> = [
-    { icon: WeChatIcon, label: t.contact.wechat, onClick: copyWechatId, filled: "#07C160" },
-    {
-      icon: WhatsAppIcon,
-      label: t.contact.whatsapp,
-      href: `https://wa.me/${site.whatsapp.replace(/[^0-9]/g, "")}`,
-      filled: "#25D366",
-    },
-    { icon: Phone, label: t.contact.phone, href: `tel:${site.phone}` },
-    { icon: Instagram, label: t.contact.instagram, href: site.instagram },
-    { icon: Facebook, label: t.contact.facebook, href: site.facebook },
-    { icon: Mail, label: t.contact.email, href: `mailto:${site.email}` },
-    { icon: MapPin, label: site.city, href: site.mapUrl },
-  ];
-
   const exploreLinks = [
     { to: "/gallery", label: t.nav.gallery },
     { to: "/shop", label: t.nav.shop },
@@ -106,6 +84,7 @@ export function Footer() {
     { to: "/custom-design", label: t.nav.custom },
     { to: "/contact", label: t.nav.contact },
   ] as const;
+
 
   return (
     <footer className="relative overflow-hidden border-t border-border bg-secondary/40">
