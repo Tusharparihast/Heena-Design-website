@@ -52,6 +52,12 @@ export interface CustomCategory {
   nameZh: string;
 }
 
+/** Renamed labels for a built-in category. */
+export interface CategoryEdit {
+  nameEn?: string;
+  nameZh?: string;
+}
+
 /** A fully custom product added from the admin dashboard. */
 export interface CustomProduct {
   id: string;
@@ -78,6 +84,10 @@ export interface CatalogOverrides {
   deleted: string[];
   /** Studio-created categories, shown as extra shop filters. */
   categories: CustomCategory[];
+  /** Renames for built-in categories, keyed by built-in category id. */
+  categoryEdits: Record<string, CategoryEdit>;
+  /** Ids of built-in categories removed from the shop. */
+  deletedCategories: string[];
 }
 
 export const emptyCatalogOverrides: CatalogOverrides = {
@@ -86,6 +96,8 @@ export const emptyCatalogOverrides: CatalogOverrides = {
   hidden: [],
   deleted: [],
   categories: [],
+  categoryEdits: {},
+  deletedCategories: [],
 };
 
 /** Text the storefront renders for a product (mirrors the i18n item shape). */
@@ -224,7 +236,26 @@ function sanitize(raw: unknown): CatalogOverrides {
   const deleted = Array.isArray(rawDeleted)
     ? rawDeleted.filter((id): id is string => typeof id === "string" && id in shopImagesIds)
     : [];
-  return { edits, added, hidden, deleted, categories };
+  const rawCategoryEdits = obj["categoryEdits"];
+  const categoryEdits: Record<string, CategoryEdit> = {};
+  if (rawCategoryEdits && typeof rawCategoryEdits === "object") {
+    for (const [id, value] of Object.entries(rawCategoryEdits as Record<string, unknown>)) {
+      if (!(DEFAULT_CATEGORY_IDS as readonly string[]).includes(id)) continue;
+      const rec = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+      const nameEn = cleanText(rec["nameEn"]);
+      const nameZh = cleanText(rec["nameZh"]);
+      if (!nameEn && !nameZh) continue;
+      categoryEdits[id] = { ...(nameEn ? { nameEn } : {}), ...(nameZh ? { nameZh } : {}) };
+    }
+  }
+  const rawDeletedCategories = obj["deletedCategories"];
+  const deletedCategories = Array.isArray(rawDeletedCategories)
+    ? rawDeletedCategories.filter(
+        (id): id is string =>
+          typeof id === "string" && (DEFAULT_CATEGORY_IDS as readonly string[]).includes(id),
+      )
+    : [];
+  return { edits, added, hidden, deleted, categories, categoryEdits, deletedCategories };
 }
 
 const shopImagesIds: Record<string, true> = Object.fromEntries(shopProducts.map((p) => [p.id, true]));
@@ -248,7 +279,15 @@ function migrateLegacyDiscounts(): CatalogOverrides | null {
         if (pct !== undefined) edits[id] = { discount: pct };
       }
     }
-    const migrated: CatalogOverrides = { edits, added: [], hidden: [], deleted: [], categories: [] };
+    const migrated: CatalogOverrides = {
+      edits,
+      added: [],
+      hidden: [],
+      deleted: [],
+      categories: [],
+      categoryEdits: {},
+      deletedCategories: [],
+    };
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
     window.localStorage.removeItem(LEGACY_DISCOUNT_KEY);
     return migrated;
@@ -287,7 +326,9 @@ export function isCatalogPristine(overrides: CatalogOverrides): boolean {
     overrides.added.length === 0 &&
     overrides.hidden.length === 0 &&
     overrides.deleted.length === 0 &&
-    overrides.categories.length === 0
+    overrides.categories.length === 0 &&
+    Object.keys(overrides.categoryEdits).length === 0 &&
+    overrides.deletedCategories.length === 0
   );
 }
 
@@ -431,7 +472,51 @@ export function categoryLabel(
 ): string {
   const custom = overrides.categories.find((c) => c.id === categoryId);
   if (custom) return (locale === "zh" ? custom.nameZh : "") || custom.nameEn;
+  const edit = overrides.categoryEdits[categoryId];
+  if (edit) {
+    const renamed = (locale === "zh" ? edit.nameZh : "") || edit.nameEn;
+    if (renamed) return renamed;
+  }
   return dictLabels[categoryId] ?? categoryId;
+}
+
+/** A category currently shown in the shop (built-in or studio-created). */
+export interface EffectiveCategory {
+  id: string;
+  nameEn: string;
+  nameZh: string;
+  builtin: boolean;
+}
+
+/**
+ * Every active category: built-ins (minus deleted, with renames applied)
+ * followed by studio-created ones. `dictLabels` provides the localized
+ * fallback names for built-ins.
+ */
+export function effectiveCategories(
+  overrides: CatalogOverrides,
+  dictLabels: Record<string, string>,
+): EffectiveCategory[] {
+  const builtins = DEFAULT_CATEGORY_IDS.filter(
+    (id) => !overrides.deletedCategories.includes(id),
+  ).map((id) => {
+    const edit = overrides.categoryEdits[id];
+    return {
+      id: id as string,
+      nameEn: edit?.nameEn ?? dictLabels[id] ?? id,
+      nameZh: edit?.nameZh ?? "",
+      builtin: true,
+    };
+  });
+  return [
+    ...builtins,
+    ...overrides.categories.map((c) => ({
+      id: c.id,
+      nameEn: c.nameEn,
+      nameZh: c.nameZh,
+      builtin: false,
+    })),
+  ];
 }
 
 /* ------------------------------------------------------------------ */
