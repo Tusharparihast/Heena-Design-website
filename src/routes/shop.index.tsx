@@ -8,8 +8,13 @@ import { OrderRequestModal } from "@/components/shop/OrderRequestModal";
 import { QuantityStepper } from "@/components/shop/QuantityStepper";
 import { StockBadge } from "@/components/shop/StockBadge";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { MAX_ORDER_QTY, shopImages, shopProducts, type ShopCategory, type ShopProduct } from "@/lib/shop";
-import { useDiscountOverrides, withResolvedDiscount } from "@/lib/shop-overrides";
+import { MAX_ORDER_QTY, type ShopCategory, type ShopProduct } from "@/lib/shop";
+import {
+  effectiveProducts,
+  resolveCopy,
+  useCatalogOverrides,
+  type ProductCopy,
+} from "@/lib/catalog-overrides";
 import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -34,31 +39,20 @@ export const Route = createFileRoute("/shop/")({
 const filterKeys = ["all", "cones", "kits", "care", "practice"] as const;
 type FilterKey = (typeof filterKeys)[number];
 
-type ShopCopy = {
-  id: string;
-  name: string;
-  body: string;
-  details: string;
-  price: string;
-  features: string[];
-  usage: string[];
-};
-
 function ShopPage() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const s = t.shopPage;
   const [filter, setFilter] = useState<FilterKey>("all");
   const [order, setOrder] = useState<{ id: string; qty: number } | null>(null);
-  const overrides = useDiscountOverrides();
+  const overrides = useCatalogOverrides();
 
   const items = useMemo(() => {
     const byId = new Map(s.items.map((i) => [i.id, i]));
-    return shopProducts
-      .map((p) => withResolvedDiscount(p, overrides))
+    return effectiveProducts(overrides)
       .filter((p) => filter === "all" || p.category === (filter as ShopCategory))
-      .map((p) => ({ ...p, copy: byId.get(p.id) }))
-      .filter((p): p is ShopProduct & { copy: ShopCopy } => Boolean(p.copy));
-  }, [filter, s.items, overrides]);
+      .map((product) => ({ product, copy: resolveCopy(product, byId.get(product.id), overrides, locale) }))
+      .filter((x): x is { product: ShopProduct; copy: ProductCopy } => x.copy !== null);
+  }, [filter, s.items, overrides, locale]);
 
   const waLink = `https://wa.me/${site.whatsapp.replace(/[^\d]/g, "")}?text=${encodeURIComponent(
     `Hello ${site.name}, I would like to order from your shop.`
@@ -113,8 +107,13 @@ function ShopPage() {
         </div>
 
         <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((p) => (
-            <ProductCard key={p.id} product={p} copy={p.copy} onOrder={(id, qty) => setOrder({ id, qty })} />
+          {items.map(({ product, copy }) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              copy={copy}
+              onOrder={(id, qty) => setOrder({ id, qty })}
+            />
           ))}
         </ul>
 
@@ -136,7 +135,7 @@ function ProductCard({
   onOrder,
 }: {
   product: ShopProduct;
-  copy: ShopCopy;
+  copy: ProductCopy;
   onOrder: (id: string, qty: number) => void;
 }) {
   const { t } = useLanguage();
@@ -153,7 +152,7 @@ function ProductCard({
         aria-label={copy.name}
       >
         <img
-          src={shopImages[product.id]}
+          src={product.image}
           alt={copy.name}
           width={800}
           height={800}

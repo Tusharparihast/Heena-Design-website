@@ -4,8 +4,8 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { MAX_ORDER_QTY, formatCny, formatNpr, shopImages, shopProducts, unitPriceNpr } from "@/lib/shop";
-import { useDiscountOverrides, withResolvedDiscount } from "@/lib/shop-overrides";
+import { MAX_ORDER_QTY, formatCny, formatNpr, unitPriceNpr } from "@/lib/shop";
+import { effectiveProducts, resolveCopy, useCatalogOverrides } from "@/lib/catalog-overrides";
 import { useCnyRate } from "@/lib/use-cny-rate";
 import { cn } from "@/lib/utils";
 import { ShopPrice } from "./DiscountBadge";
@@ -59,10 +59,14 @@ export function OrderRequestModal({
   const [errors, setErrors] = useState<Partial<Record<keyof Fields, string>>>({});
   const [status, setStatus] = useState<Status>("idle");
 
-  const overrides = useDiscountOverrides();
-  const baseProduct = shopProducts.find((p) => p.id === productId) ?? null;
-  const product = baseProduct ? withResolvedDiscount(baseProduct, overrides) : null;
-  const copy = t.shopPage.items.find((i) => i.id === productId) ?? null;
+  const overrides = useCatalogOverrides();
+  const product = useMemo(
+    () => effectiveProducts(overrides).find((p) => p.id === productId) ?? null,
+    [overrides, productId]
+  );
+  const copy = product
+    ? resolveCopy(product, t.shopPage.items.find((i) => i.id === productId), overrides, locale)
+    : null;
 
   // Reset everything whenever a product opens the drawer.
   useEffect(() => {
@@ -228,7 +232,7 @@ export function OrderRequestModal({
               <div className="rounded-xl border border-border bg-secondary/40 p-4">
                 <div className="flex items-center gap-3">
                   <img
-                    src={shopImages[product.id]}
+                    src={product.image}
                     alt={copy.name}
                     width={56}
                     height={56}

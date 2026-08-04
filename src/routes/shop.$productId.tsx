@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Check, MapPin, QrCode, ShoppingBag } from "lucide-react";
 import { Section } from "@/components/site/Section";
 import { DiscountBadge, ShopPrice } from "@/components/shop/DiscountBadge";
@@ -8,8 +8,14 @@ import { QuantityStepper } from "@/components/shop/QuantityStepper";
 import { StockBadge } from "@/components/shop/StockBadge";
 import { en } from "@/i18n/dictionaries";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { MAX_ORDER_QTY, relatedProducts, shopImages, shopProducts } from "@/lib/shop";
-import { useDiscountOverrides, withResolvedDiscount } from "@/lib/shop-overrides";
+import { MAX_ORDER_QTY, type ShopProduct } from "@/lib/shop";
+import {
+  effectiveProducts,
+  relatedFrom,
+  resolveCopy,
+  useCatalogOverrides,
+  type ProductCopy,
+} from "@/lib/catalog-overrides";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/shop/$productId")({
@@ -35,15 +41,18 @@ export const Route = createFileRoute("/shop/$productId")({
 
 function ProductPage() {
   const { productId } = Route.useParams();
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const s = t.shopPage;
   const d = s.detailsPage;
 
-  const overrides = useDiscountOverrides();
-  const baseProduct = shopProducts.find((p) => p.id === productId);
-  const copy = s.items.find((i) => i.id === productId);
+  const overrides = useCatalogOverrides();
+  const catalog = useMemo(() => effectiveProducts(overrides), [overrides]);
+  const baseProduct = catalog.find((p) => p.id === productId);
+  const copy = baseProduct
+    ? resolveCopy(baseProduct, s.items.find((i) => i.id === productId), overrides, locale)
+    : null;
   if (!baseProduct || !copy) throw notFound();
-  const product = withResolvedDiscount(baseProduct, overrides);
+  const product = baseProduct;
 
   const [imgIdx, setImgIdx] = useState(0);
   const [qty, setQty] = useState(1);
@@ -58,9 +67,9 @@ function ProductPage() {
 
   const images = product.gallery.length > 0 ? product.gallery : [product.image];
   const out = product.stock === "out";
-  const related = relatedProducts(product.id, 3)
-    .map((p) => ({ ...withResolvedDiscount(p, overrides), copy: s.items.find((i) => i.id === p.id) }))
-    .filter((p) => Boolean(p.copy));
+  const related = relatedFrom(catalog, product.id, 3)
+    .map((p) => ({ ...p, copy: resolveCopy(p, s.items.find((i) => i.id === p.id), overrides, locale) }))
+    .filter((p): p is ShopProduct & { copy: ProductCopy } => p.copy !== null);
 
   return (
     <main className="relative">
@@ -165,33 +174,39 @@ function ProductPage() {
           </div>
         </div>
 
-        {/* Features + usage */}
-        <div className="mt-12 grid gap-8 sm:grid-cols-2">
-          <div className="rounded-2xl border border-border bg-card p-6">
-            <h2 className="text-base font-semibold">{d.features}</h2>
-            <ul className="mt-4 space-y-2.5">
-              {copy.features.map((feature) => (
-                <li key={feature} className="flex items-start gap-2.5 text-sm text-muted-foreground">
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
-                  {feature}
-                </li>
-              ))}
-            </ul>
+        {/* Features + usage (hidden for custom products without this content) */}
+        {copy.features.length > 0 || copy.usage.length > 0 ? (
+          <div className="mt-12 grid gap-8 sm:grid-cols-2">
+            {copy.features.length > 0 ? (
+              <div className="rounded-2xl border border-border bg-card p-6">
+                <h2 className="text-base font-semibold">{d.features}</h2>
+                <ul className="mt-4 space-y-2.5">
+                  {copy.features.map((feature) => (
+                    <li key={feature} className="flex items-start gap-2.5 text-sm text-muted-foreground">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            {copy.usage.length > 0 ? (
+              <div className="rounded-2xl border border-border bg-card p-6">
+                <h2 className="text-base font-semibold">{d.usage}</h2>
+                <ol className="mt-4 space-y-2.5">
+                  {copy.usage.map((step, i) => (
+                    <li key={step} className="flex items-start gap-3 text-sm text-muted-foreground">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-semibold text-primary">
+                        {i + 1}
+                      </span>
+                      {step}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            ) : null}
           </div>
-          <div className="rounded-2xl border border-border bg-card p-6">
-            <h2 className="text-base font-semibold">{d.usage}</h2>
-            <ol className="mt-4 space-y-2.5">
-              {copy.usage.map((step, i) => (
-                <li key={step} className="flex items-start gap-3 text-sm text-muted-foreground">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-semibold text-primary">
-                    {i + 1}
-                  </span>
-                  {step}
-                </li>
-              ))}
-            </ol>
-          </div>
-        </div>
+        ) : null}
 
         {/* Related products */}
         {related.length > 0 ? (
@@ -207,7 +222,7 @@ function ProductPage() {
                   >
                     <div className="relative aspect-square overflow-hidden bg-secondary/40">
                       <img
-                        src={shopImages[p.id]}
+                        src={p.image}
                         alt={p.copy!.name}
                         width={800}
                         height={800}
