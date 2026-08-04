@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Check, Copy, Mail, MessageCircle, Upload, X } from "lucide-react";
+import { ArrowRight, Check, Copy, Mail, MessageCircle, Upload, X } from "lucide-react";
 import { MehndiPattern } from "@/components/site/MehndiPattern";
 import { Section } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
@@ -391,6 +391,41 @@ function CustomDesignPage() {
 
             <p className="mt-4 text-xs text-muted-foreground italic">{b.summary.note}</p>
           </aside>
+        </div>
+      </Section>
+
+      <Section className="border-t border-border pt-12 sm:pt-16">
+        <div className="flex items-center gap-4" aria-hidden>
+          <span className="h-px flex-1 bg-border" />
+          <span className="text-3xl font-semibold tracking-[0.35em] text-primary sm:text-4xl">
+            {t.appointment.or}
+          </span>
+          <span className="h-px flex-1 bg-border" />
+        </div>
+
+        <div className="mx-auto mt-12 max-w-2xl text-center">
+          <p className="text-xs font-semibold tracking-[0.2em] text-primary uppercase">
+            {t.appointment.eyebrow}
+          </p>
+          <h2 className="mt-3 text-3xl font-semibold sm:text-4xl">{t.appointment.title}</h2>
+          <p className="mt-4 text-muted-foreground">{t.appointment.body}</p>
+          <ul className="mt-6 inline-flex flex-col items-start gap-2 text-left text-sm text-muted-foreground">
+            {t.appointment.points.map((point) => (
+              <li key={point} className="flex items-start gap-2">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden />
+                <span>{point}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-8">
+            <Link
+              to="/appointment"
+              className="inline-flex items-center gap-2 rounded-full bg-primary px-8 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              {t.appointment.cta}
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+          </div>
         </div>
       </Section>
     </main>
