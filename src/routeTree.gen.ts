@@ -21,6 +21,7 @@ import { Route as ShopRouteImport } from './routes/shop'
 import { Route as StudentWorkRouteImport } from './routes/student-work'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminSectionRouteImport } from './routes/admin/$section'
+import { Route as AdminProductsRouteImport } from './routes/admin/products'
 import { Route as ShopIndexRouteImport } from './routes/shop.index'
 import { Route as ShopProductIdRouteImport } from './routes/shop.$productId'
 
@@ -84,6 +85,11 @@ const AdminSectionRoute = AdminSectionRouteImport.update({
   path: '/$section',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminProductsRoute = AdminProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const ShopIndexRoute = ShopIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/shop': typeof ShopRouteWithChildren
   '/student-work': typeof StudentWorkRoute
   '/admin/$section': typeof AdminSectionRoute
+  '/admin/products': typeof AdminProductsRoute
   '/shop/$productId': typeof ShopProductIdRoute
   '/admin/': typeof AdminIndexRoute
   '/shop/': typeof ShopIndexRoute
@@ -121,6 +128,7 @@ export interface FileRoutesByTo {
   '/gallery': typeof GalleryRoute
   '/student-work': typeof StudentWorkRoute
   '/admin/$section': typeof AdminSectionRoute
+  '/admin/products': typeof AdminProductsRoute
   '/shop/$productId': typeof ShopProductIdRoute
   '/admin': typeof AdminIndexRoute
   '/shop': typeof ShopIndexRoute
@@ -138,6 +146,7 @@ export interface FileRoutesById {
   '/shop': typeof ShopRouteWithChildren
   '/student-work': typeof StudentWorkRoute
   '/admin/$section': typeof AdminSectionRoute
+  '/admin/products': typeof AdminProductsRoute
   '/shop/$productId': typeof ShopProductIdRoute
   '/admin/': typeof AdminIndexRoute
   '/shop/': typeof ShopIndexRoute
@@ -156,6 +165,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/student-work'
     | '/admin/$section'
+    | '/admin/products'
     | '/shop/$productId'
     | '/admin/'
     | '/shop/'
@@ -170,6 +180,7 @@ export interface FileRouteTypes {
     | '/gallery'
     | '/student-work'
     | '/admin/$section'
+    | '/admin/products'
     | '/shop/$productId'
     | '/admin'
     | '/shop'
@@ -186,6 +197,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/student-work'
     | '/admin/$section'
+    | '/admin/products'
     | '/shop/$productId'
     | '/admin/'
     | '/shop/'
@@ -290,6 +302,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSectionRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/products': {
+      id: '/admin/products'
+      path: '/products'
+      fullPath: '/admin/products'
+      preLoaderRoute: typeof AdminProductsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/shop/': {
       id: '/shop/'
       path: '/'
@@ -309,11 +328,13 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteRouteChildren {
   AdminSectionRoute: typeof AdminSectionRoute
+  AdminProductsRoute: typeof AdminProductsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminSectionRoute: AdminSectionRoute,
+  AdminProductsRoute: AdminProductsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
@@ -348,3 +369,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

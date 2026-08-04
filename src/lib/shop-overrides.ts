@@ -74,7 +74,12 @@ export function withResolvedDiscount(
   product: ShopProduct,
   overrides: DiscountOverrides,
 ): ShopProduct {
-  return { ...product, discount: resolveDiscount(product, overrides) };
+  const discount = resolveDiscount(product, overrides);
+  if (discount === undefined) {
+    const { discount: _removed, ...rest } = product;
+    return rest;
+  }
+  return { ...product, discount };
 }
 
 /**
