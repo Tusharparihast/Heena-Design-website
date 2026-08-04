@@ -96,7 +96,7 @@ export function Lightbox({
   };
 
   const handlePointerMove = (event: React.PointerEvent<HTMLImageElement>) => {
-    if (!dragging) return;
+    if (!isDragging.current) return;
     event.preventDefault();
     const dx = event.clientX - dragStart.current.x;
     const dy = event.clientY - dragStart.current.y;
@@ -107,6 +107,7 @@ export function Lightbox({
   };
 
   const handlePointerUp = (event: React.PointerEvent<HTMLImageElement>) => {
+    isDragging.current = false;
     setDragging(false);
     try {
       event.currentTarget.releasePointerCapture(event.pointerId);
