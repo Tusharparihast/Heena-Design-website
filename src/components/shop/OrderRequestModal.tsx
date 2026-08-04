@@ -3,7 +3,8 @@ import { CheckCircle2, Clock, QrCode, Send, X } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { MAX_ORDER_QTY, formatNpr, shopImages, shopProducts, unitPriceNpr } from "@/lib/shop";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { MAX_ORDER_QTY, formatCny, formatNpr, shopImages, shopProducts, unitPriceNpr } from "@/lib/shop";
 import { useDiscountOverrides, withResolvedDiscount } from "@/lib/shop-overrides";
 import { cn } from "@/lib/utils";
 import { ShopPrice } from "./DiscountBadge";
@@ -45,7 +46,8 @@ export function OrderRequestModal({
   initialQty?: number;
   onClose: () => void;
 }) {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
+  const isMobile = useIsMobile();
   const f = t.shopPage.orderForm;
 
   const [mounted, setMounted] = useState(false);
@@ -162,8 +164,18 @@ export function OrderRequestModal({
         aria-modal="true"
         aria-label={f.title}
         className={cn(
-          "absolute top-0 right-0 flex h-full w-full max-w-md flex-col border-l border-border bg-card shadow-2xl transition-transform duration-300 ease-out",
-          mounted ? "translate-x-0" : "translate-x-full"
+          "absolute flex flex-col bg-card shadow-2xl duration-300 ease-out",
+          // Mobile: full-height drawer sliding in from the right edge.
+          // Desktop: centered dialog fading/scaling in — a side drawer feels out of place on wide screens.
+          isMobile
+            ? cn(
+                "inset-y-0 right-0 h-full w-full max-w-md border-l border-border transition-transform",
+                mounted ? "translate-x-0" : "translate-x-full"
+              )
+            : cn(
+                "top-1/2 left-1/2 max-h-[88vh] w-[min(38rem,calc(100vw-2.5rem))] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border transition-[opacity,scale]",
+                mounted ? "scale-100 opacity-100" : "scale-95 opacity-0"
+              )
         )}
       >
         <div className="flex items-start justify-between gap-4 border-b border-border p-5">
@@ -231,9 +243,14 @@ export function OrderRequestModal({
                   </div>
                   <QuantityStepper small value={qty} onChange={setQty} max={MAX_ORDER_QTY} label={t.shopPage.quantity} />
                 </div>
-                <div className="mt-3 flex items-baseline justify-between border-t border-border pt-3">
+                <div className="mt-3 flex items-baseline justify-between gap-3 border-t border-border pt-3">
                   <span className="text-xs text-muted-foreground">{f.estimatedTotal}</span>
-                  <span className="text-base font-semibold text-primary">{formatNpr(total)}</span>
+                  <span className="inline-flex flex-wrap items-baseline justify-end gap-x-2 text-base font-semibold text-primary">
+                    {formatNpr(total)}
+                    {locale === "zh" ? (
+                      <span className="text-xs font-normal text-muted-foreground">{formatCny(total)}</span>
+                    ) : null}
+                  </span>
                 </div>
                 <p className="mt-1 text-[11px] text-muted-foreground">{f.totalNote}</p>
               </div>
@@ -244,13 +261,16 @@ export function OrderRequestModal({
                   {f.customer}
                 </legend>
 
-                <Field label={f.fullName} error={errors.name}>
-                  <input type="text" value={fields.name} onChange={set("name")} placeholder={f.fullNamePh} maxLength={100} className={inputClass} autoComplete="name" />
-                </Field>
+                {/* Two columns on the wider desktop dialog; single column in the mobile drawer. */}
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field label={f.fullName} error={errors.name}>
+                    <input type="text" value={fields.name} onChange={set("name")} placeholder={f.fullNamePh} maxLength={100} className={inputClass} autoComplete="name" />
+                  </Field>
 
-                <Field label={f.phone} error={errors.phone}>
-                  <input type="tel" value={fields.phone} onChange={set("phone")} placeholder={f.phonePh} maxLength={20} className={inputClass} autoComplete="tel" />
-                </Field>
+                  <Field label={f.phone} error={errors.phone}>
+                    <input type="tel" value={fields.phone} onChange={set("phone")} placeholder={f.phonePh} maxLength={20} className={inputClass} autoComplete="tel" />
+                  </Field>
+                </div>
 
                 <Field label={f.wechat} error={errors.wechat}>
                   <input type="text" value={fields.wechat} onChange={set("wechat")} placeholder={f.wechatPh} maxLength={100} className={inputClass} />

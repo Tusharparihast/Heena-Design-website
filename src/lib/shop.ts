@@ -50,6 +50,19 @@ export function formatNpr(amount: number) {
   return `Rs. ${amount.toLocaleString("en-US")}`;
 }
 
+/**
+ * Approximate NPR → CNY reference rate for Chinese-language price hints.
+ * Payment is always settled in NPR; the ¥ figure is a courtesy estimate.
+ * Adjust this single number as the exchange rate moves.
+ */
+export const NPR_PER_CNY = 19;
+
+/** Approximate CNY equivalent of an NPR amount, e.g. "≈ ¥34". */
+export function formatCny(nprAmount: number) {
+  const cny = Math.max(1, Math.round(nprAmount / NPR_PER_CNY));
+  return `≈ ¥${cny.toLocaleString("en-US")}`;
+}
+
 /** Effective unit price after the studio discount. */
 export function unitPriceNpr(p: ShopProduct) {
   return p.discount ? Math.round((p.priceNpr * (100 - p.discount)) / 100) : p.priceNpr;

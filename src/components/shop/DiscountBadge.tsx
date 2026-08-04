@@ -1,6 +1,6 @@
 import { Percent } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { formatNpr, unitPriceNpr, type ShopProduct } from "@/lib/shop";
+import { formatCny, formatNpr, unitPriceNpr, type ShopProduct } from "@/lib/shop";
 import { cn } from "@/lib/utils";
 
 /**
@@ -38,11 +38,25 @@ export function ShopPrice({
   price: string;
   className?: string;
 }) {
-  if (!product.discount) return <span className={className}>{price}</span>;
+  const { locale } = useLanguage();
+  // Chinese visitors also see an approximate CNY equivalent of the NPR price.
+  const cnyHint =
+    locale === "zh" ? (
+      <span className="text-xs font-normal text-muted-foreground">{formatCny(unitPriceNpr(product))}</span>
+    ) : null;
+
+  if (!product.discount)
+    return (
+      <span className="inline-flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+        <span className={className}>{price}</span>
+        {cnyHint}
+      </span>
+    );
   return (
     <span className="inline-flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
       <span className={className}>{formatNpr(unitPriceNpr(product))}</span>
       <span className="text-xs font-normal text-muted-foreground line-through">{formatNpr(product.priceNpr)}</span>
+      {cnyHint}
     </span>
   );
 }
