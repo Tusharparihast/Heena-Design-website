@@ -404,6 +404,8 @@ export const en = {
         "NPR 15,000+",
         "Not sure yet",
       ],
+      budgetCustom: "Custom amount",
+      budgetCustomPh: "e.g. NPR 5,000",
       notes: "Anything else?",
       notesPh: "Describe the design, size, timing or anything we should know.",
     },

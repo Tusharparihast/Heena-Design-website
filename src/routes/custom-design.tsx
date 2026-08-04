@@ -39,30 +39,46 @@ function CustomDesignPage() {
   const [date, setDate] = useState("");
   const [people, setPeople] = useState("1");
   const [placement, setPlacement] = useState<string>(b.details.placementOptions[0] ?? "");
-  const [budget, setBudget] = useState<string>(b.details.budgetOptions[0] ?? "");
+  const [budgetChoice, setBudgetChoice] = useState<string>(b.details.budgetOptions[0] ?? "");
+  const [budgetCustom, setBudgetCustom] = useState("");
   const [notes, setNotes] = useState("");
   const [copied, setCopied] = useState(false);
 
   // Object URLs are only for local previews — revoke them on unmount.
   useEffect(() => () => files.forEach((f) => URL.revokeObjectURL(f.url)), [files]);
 
-  const message = useMemo(() => {
-    const styleName = style ? b.style[style].name : "";
-    return [
-      `${b.hero.title}`,
-      `${b.style.title} ${styleName}`,
-      `${b.occasion.title}: ${occasion}`,
-      `${b.details.placement}: ${placement}`,
-      `${b.details.budget}: ${budget}`,
-      `${b.details.people}: ${people}`,
-      date ? `${b.details.date}: ${date}` : null,
-      name ? `${b.details.name}: ${name}` : null,
-      notes ? `${b.details.notes} ${notes}` : null,
-      files.length ? `${b.upload.title}: ${files.length}` : null,
-    ]
-      .filter(Boolean)
-      .join("\n");
+  // "Custom amount" swaps the preset for whatever the visitor types in.
+  const isCustomBudget = budgetChoice === b.details.budgetCustom;
+  const budget = isCustomBudget ? budgetCustom.trim() : budgetChoice;
+
+  // Today's date in local time — used to block past dates in the picker.
+  const today = useMemo(() => {
+    const d = new Date();
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }, []);
+
+  // Label/value pairs power both the styled summary box and the plain-text message.
+  const rows = useMemo(() => {
+    const clean = (s: string) => s.replace(/[?？]\s*$/, "");
+    const list = [
+      { label: clean(b.style.title), value: style ? b.style[style].name : "" },
+      { label: clean(b.occasion.title), value: occasion },
+      { label: clean(b.details.placement), value: placement },
+      { label: clean(b.details.budget), value: budget },
+      { label: clean(b.details.people), value: people },
+      { label: clean(b.details.date), value: date },
+      { label: clean(b.details.name), value: name },
+      { label: clean(b.details.notes), value: notes },
+      { label: b.upload.title, value: files.length ? String(files.length) : "" },
+    ];
+    return list.filter((r) => r.value.trim() !== "");
   }, [b, style, occasion, placement, budget, people, date, name, notes, files.length]);
+
+  const message = useMemo(
+    () => [b.hero.title, ...rows.map((r) => `${r.label}: ${r.value}`)].join("\n"),
+    [b.hero.title, rows],
+  );
 
   function addFiles(list: FileList | null) {
     if (!list) return;
@@ -232,11 +248,14 @@ function CustomDesignPage() {
                   <Field label={b.details.date}>
                     <input
                       type="date"
+                      min={today}
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
                       className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                     />
                   </Field>
+                </div>
+                <div className="mt-4 grid items-start gap-4 sm:grid-cols-3">
                   <Field label={b.details.people}>
                     <input
                       type="number"
@@ -261,8 +280,8 @@ function CustomDesignPage() {
                   </Field>
                   <Field label={b.details.budget}>
                     <select
-                      value={budget}
-                      onChange={(e) => setBudget(e.target.value)}
+                      value={budgetChoice}
+                      onChange={(e) => setBudgetChoice(e.target.value)}
                       className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                     >
                       {b.details.budgetOptions.map((opt) => (
@@ -270,7 +289,16 @@ function CustomDesignPage() {
                           {opt}
                         </option>
                       ))}
+                      <option value={b.details.budgetCustom}>{b.details.budgetCustom}</option>
                     </select>
+                    {isCustomBudget && (
+                      <input
+                        value={budgetCustom}
+                        onChange={(e) => setBudgetCustom(e.target.value)}
+                        placeholder={b.details.budgetCustomPh}
+                        className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                      />
+                    )}
                   </Field>
                 </div>
                 <div className="mt-4">
@@ -311,9 +339,17 @@ function CustomDesignPage() {
 
           <aside className="rounded-2xl border border-border bg-secondary/50 p-6 lg:sticky lg:top-24 lg:self-start">
             <h2 className="text-lg font-semibold">{b.summary.title}</h2>
-            <pre className="mt-4 max-h-64 overflow-auto rounded-xl border border-border bg-background p-4 font-sans text-sm whitespace-pre-wrap text-muted-foreground">
-              {message}
-            </pre>
+            <div className="mt-4 max-h-64 overflow-auto rounded-xl border border-border bg-background p-4 text-sm">
+              <p className="font-semibold">{b.hero.title}</p>
+              <dl className="mt-2 space-y-1.5">
+                {rows.map((r) => (
+                  <div key={r.label} className="flex flex-wrap gap-x-2">
+                    <dt className="shrink-0 font-semibold text-foreground">{r.label}:</dt>
+                    <dd className="min-w-0 break-words text-muted-foreground">{r.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
 
             <div className="mt-5 space-y-2">
               <a

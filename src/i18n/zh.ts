@@ -346,6 +346,8 @@ export const zh: Dict = {
         "15,000 尼泊尔卢比以上",
         "还不确定",
       ],
+      budgetCustom: "自定义金额",
+      budgetCustomPh: "例如：5,000 尼泊尔卢比",
       notes: "其他说明",
       notesPh: "请描述图案、尺寸、时间或其他需要我们了解的信息。",
     },
