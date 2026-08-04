@@ -19,6 +19,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -49,14 +57,17 @@ import {
   applyEdit,
   categoryLabel,
   cleanEdit,
+  effectiveCategories,
   emptyCatalogOverrides,
   makeCategoryId,
   makeProductId,
   readCatalogOverrides,
   writeCatalogOverrides,
   type CatalogOverrides,
+  type CategoryEdit,
   type CustomCategory,
   type CustomProduct,
+  type EffectiveCategory,
   type ProductEdit,
 } from "@/lib/catalog-overrides";
 import {
@@ -107,6 +118,9 @@ function AdminProductsPage() {
   const [catNameEn, setCatNameEn] = useState("");
   const [catNameZh, setCatNameZh] = useState("");
   const [deleteCategoryId, setDeleteCategoryId] = useState<string | null>(null);
+  const [renameCategory, setRenameCategory] = useState<EffectiveCategory | null>(null);
+  const [renameEn, setRenameEn] = useState("");
+  const [renameZh, setRenameZh] = useState("");
 
   // Load saved overrides once on mount (localStorage is client-only).
   useEffect(() => {
@@ -158,13 +172,14 @@ function AdminProductsPage() {
     return [...baseRows, ...customRows];
   }, [overrides]);
 
-  /** Category options for the editor dialog: built-ins + studio-created. */
+  /** Category options for the editor dialog: built-ins (renamed, minus deleted) + studio-created. */
   const editorCategories = useMemo(
-    () => [
-      ...DEFAULT_CATEGORY_IDS.map((id) => ({ value: id as string, label: en.shopPage.filters[id] })),
-      ...overrides.categories.map((c) => ({ value: c.id, label: c.nameEn })),
-    ],
-    [overrides.categories],
+    () =>
+      effectiveCategories(overrides, en.shopPage.filters).map((c) => ({
+        value: c.id,
+        label: c.nameEn,
+      })),
+    [overrides],
   );
 
   const visibleRows = useMemo(() => {
@@ -438,30 +453,78 @@ function AdminProductsPage() {
 
   const confirmDeleteCategory = () => {
     if (!deleteCategoryId) return;
-    const cat = overrides.categories.find((c) => c.id === deleteCategoryId);
-    const FALLBACK = "cones";
-    // Products in the deleted category move to the first built-in category.
+    const remaining = effectiveCategories(overrides, en.shopPage.filters).filter(
+      (c) => c.id !== deleteCategoryId,
+    );
+    const fallback = remaining[0];
+    if (!fallback) {
+      toast.error("You can't delete the last category.");
+      setDeleteCategoryId(null);
+      return;
+    }
+    const isBuiltin = (DEFAULT_CATEGORY_IDS as readonly string[]).includes(deleteCategoryId);
+    // Products in the deleted category move to the first remaining category.
     const edits = Object.fromEntries(
       Object.entries(overrides.edits).map(([id, e]) => [
         id,
-        e.category === deleteCategoryId ? { ...e, category: FALLBACK } : e,
+        e.category === deleteCategoryId ? { ...e, category: fallback.id } : e,
       ]),
     );
     const added = overrides.added.map((c) =>
-      c.category === deleteCategoryId ? { ...c, category: FALLBACK } : c,
+      c.category === deleteCategoryId ? { ...c, category: fallback.id } : c,
     );
     commit(
       {
         ...overrides,
         edits,
         added,
-        categories: overrides.categories.filter((c) => c.id !== deleteCategoryId),
+        categories: isBuiltin
+          ? overrides.categories
+          : overrides.categories.filter((c) => c.id !== deleteCategoryId),
+        categoryEdits: isBuiltin
+          ? Object.fromEntries(
+              Object.entries(overrides.categoryEdits).filter(([k]) => k !== deleteCategoryId),
+            )
+          : overrides.categoryEdits,
+        deletedCategories: isBuiltin
+          ? [...overrides.deletedCategories, deleteCategoryId]
+          : overrides.deletedCategories,
       },
       "Category deleted",
-      cat ? `Its products were moved to “${en.shopPage.filters[FALLBACK]}”.` : undefined,
+      `Its products were moved to “${fallback.nameEn}”.`,
     );
     setDeleteCategoryId(null);
   };
+
+  const saveRenameCategory = () => {
+    if (!renameCategory) return;
+    const nameEn = renameEn.trim();
+    if (!nameEn) return;
+    const nameZh = renameZh.trim();
+    if (renameCategory.builtin) {
+      const edit: CategoryEdit = { nameEn, ...(nameZh ? { nameZh } : {}) };
+      commit(
+        { ...overrides, categoryEdits: { ...overrides.categoryEdits, [renameCategory.id]: edit } },
+        "Category renamed",
+      );
+    } else {
+      commit(
+        {
+          ...overrides,
+          categories: overrides.categories.map((c) =>
+            c.id === renameCategory.id ? { ...c, nameEn, nameZh } : c,
+          ),
+        },
+        "Category renamed",
+      );
+    }
+    setRenameCategory(null);
+  };
+
+  /** Where products go when the category pending deletion is removed. */
+  const deleteCategoryFallback = deleteCategoryId
+    ? effectiveCategories(overrides, en.shopPage.filters).find((c) => c.id !== deleteCategoryId)
+    : undefined;
 
 
   return (
@@ -650,8 +713,8 @@ function AdminProductsPage() {
         <CardContent className="p-4 sm:p-5">
           <h3 className="text-sm font-semibold">Categories</h3>
           <p className="mt-1 max-w-lg text-xs text-muted-foreground">
-            Categories group products in the shop filters. Add your own below — the built-in ones
-            can&apos;t be removed.
+            Categories group products in the shop filters. Rename or remove any of them, or add
+            your own below.
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <Input
@@ -687,29 +750,30 @@ function AdminProductsPage() {
             </Button>
           </div>
           <ul className="mt-4 flex flex-wrap gap-2">
-            {DEFAULT_CATEGORY_IDS.map((id) => (
-              <li
-                key={id}
-                className="flex items-center gap-2 rounded-full border border-border bg-secondary/40 px-3 py-1.5 text-xs"
-              >
-                {en.shopPage.filters[id]}
-                <Badge variant="outline" className="text-[10px]">
-                  Built-in
-                </Badge>
-              </li>
-            ))}
-            {overrides.categories.map((c) => (
+            {effectiveCategories(overrides, en.shopPage.filters).map((c) => (
               <li
                 key={c.id}
-                className="flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/5 px-3 py-1.5 text-xs"
+                className="flex items-center gap-1.5 rounded-full border border-border bg-secondary/40 px-3 py-1.5 text-xs"
               >
                 {c.nameEn}
                 {c.nameZh ? <span className="text-muted-foreground">· {c.nameZh}</span> : null}
                 <button
                   type="button"
+                  onClick={() => {
+                    setRenameCategory(c);
+                    setRenameEn(c.nameEn);
+                    setRenameZh(c.nameZh);
+                  }}
+                  aria-label={`Rename category ${c.nameEn}`}
+                  className="ml-0.5 rounded-full p-0.5 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
                   onClick={() => setDeleteCategoryId(c.id)}
                   aria-label={`Delete category ${c.nameEn}`}
-                  className="ml-0.5 rounded-full p-0.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                  className="rounded-full p-0.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -798,8 +862,8 @@ function AdminProductsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this category?</AlertDialogTitle>
             <AlertDialogDescription>
-              Products in this category will be moved to “{en.shopPage.filters.cones}”. The category
-              filter will disappear from the shop.
+              Products in this category will be moved to “{deleteCategoryFallback?.nameEn}”. The
+              category filter will disappear from the shop.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -809,6 +873,49 @@ function AdminProductsPage() {
         </AlertDialogContent>
       </AlertDialog>
 
+      <Dialog
+        open={renameCategory !== null}
+        onOpenChange={(open) => !open && setRenameCategory(null)}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Rename category</DialogTitle>
+            <DialogDescription>
+              The new name shows everywhere — shop filters, product pages and the editor.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              value={renameEn}
+              onChange={(e) => setRenameEn(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") saveRenameCategory();
+              }}
+              placeholder="Category name (English)"
+              aria-label="Category name in English"
+              maxLength={40}
+            />
+            <Input
+              value={renameZh}
+              onChange={(e) => setRenameZh(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") saveRenameCategory();
+              }}
+              placeholder="类别名称（中文，可选）"
+              aria-label="Category name in Chinese (optional)"
+              maxLength={40}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRenameCategory(null)}>
+              Cancel
+            </Button>
+            <Button onClick={saveRenameCategory} disabled={!renameEn.trim()}>
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

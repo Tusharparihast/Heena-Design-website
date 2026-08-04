@@ -8,8 +8,9 @@ import { OrderRequestModal } from "@/components/shop/OrderRequestModal";
 import { QuantityStepper } from "@/components/shop/QuantityStepper";
 import { StockBadge } from "@/components/shop/StockBadge";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { DEFAULT_CATEGORY_IDS, MAX_ORDER_QTY, type ShopProduct } from "@/lib/shop";
+import { MAX_ORDER_QTY, type ShopProduct } from "@/lib/shop";
 import {
+  effectiveCategories,
   effectiveProducts,
   resolveCopy,
   useCatalogOverrides,
@@ -43,15 +44,14 @@ function ShopPage() {
   const [order, setOrder] = useState<{ id: string; qty: number } | null>(null);
   const overrides = useCatalogOverrides();
 
-  /** Filter chips: All + built-in categories + studio-created categories. */
+  /** Filter chips: All + every active category (built-ins can be renamed or removed). */
   const chips = useMemo(() => {
-    const base = DEFAULT_CATEGORY_IDS.map((id) => ({ id: id as string, label: s.filters[id] }));
-    const custom = overrides.categories.map((c) => ({
+    const cats = effectiveCategories(overrides, s.filters).map((c) => ({
       id: c.id,
       label: (locale === "zh" ? c.nameZh : "") || c.nameEn,
     }));
-    return [{ id: "all", label: s.filters.all }, ...base, ...custom];
-  }, [s.filters, overrides.categories, locale]);
+    return [{ id: "all", label: s.filters.all }, ...cats];
+  }, [s.filters, overrides, locale]);
 
   // Fall back to "all" if the active chip was a custom category that got deleted.
   const activeFilter = chips.some((c) => c.id === filter) ? filter : "all";
