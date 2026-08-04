@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Clock, QrCode, Send, X } from "lucide-react";
+import { toast } from "sonner";
 import { z } from "zod";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { MAX_ORDER_QTY, formatNpr, shopImages, shopProducts, unitPriceNpr } from "@/lib/shop";
@@ -7,6 +8,7 @@ import { useDiscountOverrides, withResolvedDiscount } from "@/lib/shop-overrides
 import { cn } from "@/lib/utils";
 import { ShopPrice } from "./DiscountBadge";
 import { QuantityStepper } from "./QuantityStepper";
+
 
 type ContactMethod = "wechat" | "whatsapp" | "phone" | "email";
 type Status = "idle" | "sending" | "done";
