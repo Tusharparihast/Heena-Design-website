@@ -186,7 +186,7 @@ function ProductEditorForm({
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    const next: Record<string, string> = {};
+    const next: FormErrors = {};
     const priceNpr = Number.parseInt(price, 10);
     const pct = discount.trim() ? Number.parseInt(discount, 10) : undefined;
 
