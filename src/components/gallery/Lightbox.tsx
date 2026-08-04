@@ -79,10 +79,7 @@ export function Lightbox({
   );
 
   const handlePointerDown = (event: React.PointerEvent<HTMLImageElement>) => {
-    if (!zoomed) {
-      setZoomed(true);
-      return;
-    }
+    if (!zoomed) return;
     event.preventDefault();
     setDragging(true);
     dragStart.current = {
