@@ -135,207 +135,214 @@ function CustomDesignPage() {
         </ol>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1.4fr_1fr]">
-          <div className="rounded-2xl border border-border bg-card p-6 sm:p-8">
-            {step === 0 && (
-              <div>
-                <h2 className="text-xl font-semibold">{b.style.title}</h2>
-                <div className="mt-5 grid gap-4 sm:grid-cols-3">
-                  {styleKeys.map((key) => (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => setStyle(key)}
-                      className={cn(
-                        "rounded-xl border p-4 text-left transition-colors",
-                        style === key
-                          ? "border-primary bg-primary/10"
-                          : "border-border hover:bg-accent/50",
-                      )}
-                    >
-                      <span className="block font-medium">{b.style[key].name}</span>
-                      <span className="mt-2 block text-sm text-muted-foreground">
-                        {b.style[key].body}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-
-                <h2 className="mt-8 text-xl font-semibold">{b.occasion.title}</h2>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {b.occasion.options.map((opt) => (
-                    <button
-                      key={opt}
-                      type="button"
-                      onClick={() => setOccasion(opt)}
-                      className={cn(
-                        "rounded-full border px-4 py-2 text-sm transition-colors",
-                        occasion === opt
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border hover:bg-accent",
-                      )}
-                    >
-                      {opt}
-                    </button>
-                  ))}
-                </div>
-
-                {!style && <p className="mt-6 text-sm text-muted-foreground">{b.required}</p>}
-              </div>
-            )}
-
-            {step === 1 && (
-              <div>
-                <h2 className="text-xl font-semibold">{b.upload.title}</h2>
-                <p className="mt-2 text-sm text-muted-foreground">{b.upload.body}</p>
-
-                <label className="mt-5 flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-border bg-background px-4 py-10 text-center transition-colors hover:bg-accent/40">
-                  <Upload className="h-6 w-6 text-primary" aria-hidden />
-                  <span className="mt-3 text-sm font-medium">{b.upload.button}</span>
-                  <span className="mt-1 text-xs text-muted-foreground">{b.upload.hint}</span>
-                  <input
-                    type="file"
-                    accept="image/png,image/jpeg"
-                    multiple
-                    className="sr-only"
-                    onChange={(e) => {
-                      addFiles(e.target.files);
-                      e.target.value = "";
-                    }}
-                  />
-                </label>
-
-                {files.length > 0 && (
-                  <ul className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    {files.map((f, i) => (
-                      <li key={f.url} className="relative overflow-hidden rounded-xl border border-border">
-                        <img
-                          src={f.url}
-                          alt={f.name}
-                          loading="lazy"
-                          decoding="async"
-                          className="aspect-square w-full object-cover"
-                        />
+          <div className="flex flex-col rounded-2xl border border-border bg-card">
+            <div className="flex-1 p-6 sm:p-8">
+              <div className="min-h-[22rem] sm:min-h-[26rem]">
+                {step === 0 && (
+                  <div>
+                    <h2 className="text-xl font-semibold">{b.style.title}</h2>
+                    <div className="mt-5 grid gap-4 sm:grid-cols-3">
+                      {styleKeys.map((key) => (
                         <button
+                          key={key}
                           type="button"
-                          aria-label={b.upload.remove}
-                          onClick={() => {
-                            URL.revokeObjectURL(f.url);
-                            setFiles((prev) => prev.filter((_, idx) => idx !== i));
-                          }}
-                          className="absolute top-1.5 right-1.5 rounded-full bg-background/90 p-1.5 text-foreground shadow-sm"
+                          onClick={() => setStyle(key)}
+                          className={cn(
+                            "rounded-xl border p-4 text-left transition-colors",
+                            style === key
+                              ? "border-primary bg-primary/10"
+                              : "border-border hover:bg-accent/50",
+                          )}
                         >
-                          <X className="h-3.5 w-3.5" aria-hidden />
+                          <span className="block font-medium">{b.style[key].name}</span>
+                          <span className="mt-2 block text-sm text-muted-foreground">
+                            {b.style[key].body}
+                          </span>
                         </button>
-                      </li>
-                    ))}
-                  </ul>
+                      ))}
+                    </div>
+
+                    <h2 className="mt-8 text-xl font-semibold">{b.occasion.title}</h2>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {b.occasion.options.map((opt) => (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => setOccasion(opt)}
+                          className={cn(
+                            "rounded-full border px-4 py-2 text-sm transition-colors",
+                            occasion === opt
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-border hover:bg-accent",
+                          )}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+
+                    {!style && <p className="mt-6 text-sm text-muted-foreground">{b.required}</p>}
+                  </div>
+                )}
+
+                {step === 1 && (
+                  <div>
+                    <h2 className="text-xl font-semibold">{b.upload.title}</h2>
+                    <p className="mt-2 text-sm text-muted-foreground">{b.upload.body}</p>
+
+                    <label className="mt-5 flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-border bg-background px-4 py-10 text-center transition-colors hover:bg-accent/40">
+                      <Upload className="h-6 w-6 text-primary" aria-hidden />
+                      <span className="mt-3 text-sm font-medium">{b.upload.button}</span>
+                      <span className="mt-1 text-xs text-muted-foreground">{b.upload.hint}</span>
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg"
+                        multiple
+                        className="sr-only"
+                        onChange={(e) => {
+                          addFiles(e.target.files);
+                          e.target.value = "";
+                        }}
+                      />
+                    </label>
+
+                    {files.length > 0 && (
+                      <ul className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                        {files.map((f, i) => (
+                          <li key={f.url} className="relative overflow-hidden rounded-xl border border-border">
+                            <img
+                              src={f.url}
+                              alt={f.name}
+                              loading="lazy"
+                              decoding="async"
+                              className="aspect-square w-full object-cover"
+                            />
+                            <button
+                              type="button"
+                              aria-label={b.upload.remove}
+                              onClick={() => {
+                                URL.revokeObjectURL(f.url);
+                                setFiles((prev) => prev.filter((_, idx) => idx !== i));
+                              }}
+                              className="absolute top-1.5 right-1.5 rounded-full bg-background/90 p-1.5 text-foreground shadow-sm"
+                            >
+                              <X className="h-3.5 w-3.5" aria-hidden />
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+
+                {step === 2 && (
+                  <div>
+                    <h2 className="text-xl font-semibold">{b.details.title}</h2>
+                    <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                      <Field label={b.details.name}>
+                        <input
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          placeholder={b.details.namePh}
+                          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                        />
+                      </Field>
+                      <Field label={b.details.date}>
+                        <input
+                          type="date"
+                          min={today}
+                          value={date}
+                          onChange={(e) => setDate(e.target.value)}
+                          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                        />
+                      </Field>
+                    </div>
+                    <div className="mt-4 grid items-start gap-4 sm:grid-cols-3">
+                      <Field label={b.details.people}>
+                        <input
+                          type="number"
+                          min={1}
+                          value={people}
+                          onChange={(e) => setPeople(e.target.value)}
+                          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                        />
+                      </Field>
+                      <Field label={b.details.placement}>
+                        <select
+                          value={placement}
+                          onChange={(e) => setPlacement(e.target.value)}
+                          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                        >
+                          {b.details.placementOptions.map((opt) => (
+                            <option key={opt} value={opt}>
+                              {opt}
+                            </option>
+                          ))}
+                        </select>
+                      </Field>
+                      <Field label={b.details.budget}>
+                        <select
+                          value={budgetChoice}
+                          onChange={(e) => setBudgetChoice(e.target.value)}
+                          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                        >
+                          {b.details.budgetOptions.map((opt) => (
+                            <option key={opt} value={opt}>
+                              {opt}
+                            </option>
+                          ))}
+                          <option value={b.details.budgetCustom}>{b.details.budgetCustom}</option>
+                        </select>
+                        {isCustomBudget && (
+                          <input
+                            value={budgetCustom}
+                            onChange={(e) => setBudgetCustom(e.target.value)}
+                            placeholder={b.details.budgetCustomPh}
+                            className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                          />
+                        )}
+                      </Field>
+                    </div>
+                    <div className="mt-4">
+                      <Field label={b.details.notes}>
+                        <textarea
+                          rows={4}
+                          value={notes}
+                          onChange={(e) => setNotes(e.target.value)}
+                          placeholder={b.details.notesPh}
+                          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                        />
+                      </Field>
+                    </div>
+                  </div>
                 )}
               </div>
-            )}
+            </div>
 
-            {step === 2 && (
-              <div>
-                <h2 className="text-xl font-semibold">{b.details.title}</h2>
-                <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                  <Field label={b.details.name}>
-                    <input
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder={b.details.namePh}
-                      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                    />
-                  </Field>
-                  <Field label={b.details.date}>
-                    <input
-                      type="date"
-                      min={today}
-                      value={date}
-                      onChange={(e) => setDate(e.target.value)}
-                      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                    />
-                  </Field>
-                </div>
-                <div className="mt-4 grid items-start gap-4 sm:grid-cols-3">
-                  <Field label={b.details.people}>
-                    <input
-                      type="number"
-                      min={1}
-                      value={people}
-                      onChange={(e) => setPeople(e.target.value)}
-                      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                    />
-                  </Field>
-                  <Field label={b.details.placement}>
-                    <select
-                      value={placement}
-                      onChange={(e) => setPlacement(e.target.value)}
-                      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                    >
-                      {b.details.placementOptions.map((opt) => (
-                        <option key={opt} value={opt}>
-                          {opt}
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
-                  <Field label={b.details.budget}>
-                    <select
-                      value={budgetChoice}
-                      onChange={(e) => setBudgetChoice(e.target.value)}
-                      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                    >
-                      {b.details.budgetOptions.map((opt) => (
-                        <option key={opt} value={opt}>
-                          {opt}
-                        </option>
-                      ))}
-                      <option value={b.details.budgetCustom}>{b.details.budgetCustom}</option>
-                    </select>
-                    {isCustomBudget && (
-                      <input
-                        value={budgetCustom}
-                        onChange={(e) => setBudgetCustom(e.target.value)}
-                        placeholder={b.details.budgetCustomPh}
-                        className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                      />
-                    )}
-                  </Field>
-                </div>
-                <div className="mt-4">
-                  <Field label={b.details.notes}>
-                    <textarea
-                      rows={4}
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      placeholder={b.details.notesPh}
-                      className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                    />
-                  </Field>
-                </div>
-              </div>
-            )}
-
-            <div className="mt-8 flex justify-between gap-3">
-              <button
-                type="button"
-                onClick={() => setStep((s) => Math.max(0, s - 1))}
-                disabled={step === 0}
-                className="rounded-full border border-border px-5 py-2.5 text-sm font-medium transition-colors hover:bg-accent disabled:opacity-40"
-              >
-                {b.back}
-              </button>
-              {step < 2 && (
+            <div className="border-t border-border px-6 py-5 sm:px-8">
+              <div className="flex justify-between gap-3">
                 <button
                   type="button"
-                  onClick={() => setStep((s) => Math.min(2, s + 1))}
-                  disabled={step === 0 && !style}
-                  className="rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-40"
+                  onClick={() => setStep((s) => Math.max(0, s - 1))}
+                  disabled={step === 0}
+                  className="rounded-full border border-border px-5 py-2.5 text-sm font-medium transition-colors hover:bg-accent disabled:opacity-40"
                 >
-                  {b.next}
+                  {b.back}
                 </button>
-              )}
+                {step < 2 && (
+                  <button
+                    type="button"
+                    onClick={() => setStep((s) => Math.min(2, s + 1))}
+                    disabled={step === 0 && !style}
+                    className="rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-40"
+                  >
+                    {b.next}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
+
 
           <aside className="rounded-2xl border border-border bg-secondary/50 p-6 lg:sticky lg:top-24 lg:self-start">
             <h2 className="text-lg font-semibold">{b.summary.title}</h2>
