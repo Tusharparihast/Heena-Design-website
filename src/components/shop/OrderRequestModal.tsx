@@ -4,6 +4,7 @@ import { z } from "zod";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { MAX_ORDER_QTY, formatNpr, shopImages, shopProducts, unitPriceNpr } from "@/lib/shop";
 import { cn } from "@/lib/utils";
+import { ShopPrice } from "./DiscountBadge";
 import { QuantityStepper } from "./QuantityStepper";
 
 type ContactMethod = "wechat" | "whatsapp" | "phone" | "email";
@@ -212,7 +213,9 @@ export function OrderRequestModal({
                       {f.productLabel}
                     </p>
                     <p className="truncate text-sm font-semibold">{copy.name}</p>
-                    <p className="text-xs text-muted-foreground">{copy.price}</p>
+                    <p className="text-xs text-muted-foreground">
+                      <ShopPrice product={product} price={copy.price} className="font-semibold text-primary" />
+                    </p>
                   </div>
                   <QuantityStepper small value={qty} onChange={setQty} max={MAX_ORDER_QTY} label={t.shopPage.quantity} />
                 </div>
