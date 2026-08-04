@@ -368,6 +368,16 @@ function AdminProductsPage() {
     setEditor(null);
   };
 
+  const resetRow = (id: string) => {
+    const edits = { ...overrides.edits };
+    delete edits[id];
+    commit(
+      { ...overrides, edits },
+      "Overrides cleared",
+      "This product is back to its default details.",
+    );
+  };
+
   const confirmDelete = () => {
     if (!deleteId) return;
     const name = overrides.added.find((c) => c.id === deleteId)?.nameEn ?? "Product";
