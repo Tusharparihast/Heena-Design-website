@@ -577,7 +577,9 @@ function AdminProductsPage() {
                             </Badge>
                           ) : null}
                         </p>
-                        <p className="text-xs text-muted-foreground capitalize">{row.category}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {categoryLabel(row.category, overrides, "en", en.shopPage.filters)}
+                        </p>
                       </div>
                     </div>
                   </TableCell>
@@ -643,16 +645,12 @@ function AdminProductsPage() {
                     />
                   </TableCell>
                   <TableCell>
-                    {row.custom ? (
-                      <span className="text-xs text-muted-foreground">—</span>
-                    ) : (
-                      <Switch
-                        checked={!row.hidden}
-                        onCheckedChange={(v) => setVisible(row, v)}
-                        disabled={!loaded}
-                        aria-label={`Shop visibility for ${row.name}`}
-                      />
-                    )}
+                    <Switch
+                      checked={!row.hidden}
+                      onCheckedChange={(v) => setVisible(row, v)}
+                      disabled={!loaded}
+                      aria-label={`Shop visibility for ${row.name}`}
+                    />
                   </TableCell>
                   <TableCell className="pr-6 text-right">
                     <DropdownMenu>
@@ -672,15 +670,13 @@ function AdminProductsPage() {
                             Reset to defaults
                           </DropdownMenuItem>
                         ) : null}
-                        {row.custom ? (
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onClick={() => setDeleteId(row.id)}
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete product
-                          </DropdownMenuItem>
-                        ) : null}
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => setDeleteId(row.id)}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete product
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
