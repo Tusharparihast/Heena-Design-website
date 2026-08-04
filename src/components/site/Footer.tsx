@@ -92,7 +92,7 @@ export function Footer() {
       <Motif className="pointer-events-none absolute -top-20 -right-20 h-72 w-72 text-foreground opacity-[0.04] sm:h-96 sm:w-96" />
       <Motif className="pointer-events-none absolute -bottom-16 -left-16 h-56 w-56 text-foreground opacity-[0.04] sm:h-72 sm:w-72" />
 
-      <div className="relative mx-auto max-w-6xl px-6 py-16 sm:px-8">
+      <div className="relative mx-auto max-w-6xl px-6 pt-16 pb-28 sm:px-8 md:py-16">
         <div className="grid grid-cols-1 items-start gap-12 md:grid-cols-3 md:gap-16">
           {/* Explore — left on desktop, after brand on mobile */}
           <div className="order-2 md:order-1">

@@ -51,7 +51,7 @@ export function FloatingWeChat() {
   return (
     <div
       ref={rootRef}
-      className="fixed right-4 bottom-6 z-50 flex flex-col items-end gap-3 sm:right-7 sm:bottom-8"
+      className="pointer-events-none fixed right-4 bottom-6 z-50 flex flex-col items-end gap-3 sm:right-7 sm:bottom-8"
     >
       {/* Contact panel */}
       <div
@@ -127,7 +127,7 @@ export function FloatingWeChat() {
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-label={open ? t.wechatWidget.close : t.wechatWidget.open}
-        className="relative grid h-14 w-14 cursor-pointer place-items-center rounded-full bg-wechat shadow-lg transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        className="pointer-events-auto relative grid h-14 w-14 cursor-pointer place-items-center rounded-full bg-wechat shadow-lg transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
         <span className="wechat-ping absolute inset-0 rounded-full bg-wechat" aria-hidden />
         <span className="wechat-float relative grid place-items-center">
