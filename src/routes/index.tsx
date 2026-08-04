@@ -8,6 +8,7 @@ import { GalleryPreview, VideoSection } from "@/components/home/GalleryPreview";
 import { TestimonialsSection } from "@/components/home/TestimonialsSection";
 import { FaqSection } from "@/components/home/FaqSection";
 import { ContactSection } from "@/components/home/ContactSection";
+import { SectionDivider } from "@/components/site/SectionDivider";
 
 const title = "Nagma Designs — Bridal Henna & Mehndi Classes in Kathmandu";
 const description =
@@ -39,14 +40,23 @@ function Index() {
     <main>
       <h1 className="sr-only">{title}</h1>
       <Hero />
+      <SectionDivider pattern="flower" />
       <AboutSection />
+      <SectionDivider pattern="vine" />
       <WhySection />
+      <SectionDivider pattern="mandala" />
       <CoursesSection />
+      <SectionDivider pattern="vine-mandala" />
       <DesignsSection />
+      <SectionDivider pattern="flower" />
       <GalleryPreview />
+      <SectionDivider pattern="vine" />
       <VideoSection />
+      <SectionDivider pattern="mandala" />
       <TestimonialsSection />
+      <SectionDivider pattern="vine-mandala" />
       <FaqSection />
+      <SectionDivider pattern="flower" />
       <ContactSection />
     </main>
   );
