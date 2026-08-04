@@ -83,6 +83,7 @@ export function Lightbox({
     dragStart.current.moved = false;
     if (!zoomed) return;
     event.preventDefault();
+    isDragging.current = true;
     setDragging(true);
     dragStart.current = {
       x: event.clientX,
