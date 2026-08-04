@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { MessageCircle, ShoppingBag } from "lucide-react";
 import { Section, SectionHeading } from "@/components/site/Section";
 import { MehndiPattern } from "@/components/site/MehndiPattern";
+import { DiscountBadge, ShopPrice } from "@/components/shop/DiscountBadge";
 import { OrderRequestModal } from "@/components/shop/OrderRequestModal";
 import { QuantityStepper } from "@/components/shop/QuantityStepper";
 import { StockBadge } from "@/components/shop/StockBadge";
@@ -162,6 +163,7 @@ function ProductCard({
             {s.featured}
           </span>
         ) : null}
+        <DiscountBadge percent={product.discount} className="absolute top-3 right-3" />
       </Link>
 
       <div className="flex flex-1 flex-col p-5">
@@ -177,7 +179,7 @@ function ProductCard({
         <p className="mt-2 text-sm text-muted-foreground">{copy.body}</p>
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-          <span className="text-sm font-semibold text-primary">{copy.price}</span>
+          <ShopPrice product={product} price={copy.price} className="text-sm font-semibold text-primary" />
           <StockBadge status={product.stock} />
         </div>
 

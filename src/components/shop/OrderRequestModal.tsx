@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Clock, QrCode, Send, X } from "lucide-react";
 import { z } from "zod";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { MAX_ORDER_QTY, formatNpr, shopImages, shopProducts } from "@/lib/shop";
+import { MAX_ORDER_QTY, formatNpr, shopImages, shopProducts, unitPriceNpr } from "@/lib/shop";
 import { cn } from "@/lib/utils";
 import { QuantityStepper } from "./QuantityStepper";
 
@@ -110,7 +110,7 @@ export function OrderRequestModal({
 
   if (!product || !copy) return null;
 
-  const total = product.priceNpr * qty;
+  const total = unitPriceNpr(product) * qty;
 
   const set = (key: keyof Fields) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setFields((prev) => ({ ...prev, [key]: e.target.value }));
