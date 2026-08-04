@@ -248,11 +248,14 @@ function CustomDesignPage() {
                   <Field label={b.details.date}>
                     <input
                       type="date"
+                      min={today}
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
                       className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                     />
                   </Field>
+                </div>
+                <div className="mt-4 grid items-start gap-4 sm:grid-cols-3">
                   <Field label={b.details.people}>
                     <input
                       type="number"
@@ -277,8 +280,8 @@ function CustomDesignPage() {
                   </Field>
                   <Field label={b.details.budget}>
                     <select
-                      value={budget}
-                      onChange={(e) => setBudget(e.target.value)}
+                      value={budgetChoice}
+                      onChange={(e) => setBudgetChoice(e.target.value)}
                       className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                     >
                       {b.details.budgetOptions.map((opt) => (
@@ -286,7 +289,16 @@ function CustomDesignPage() {
                           {opt}
                         </option>
                       ))}
+                      <option value={b.details.budgetCustom}>{b.details.budgetCustom}</option>
                     </select>
+                    {isCustomBudget && (
+                      <input
+                        value={budgetCustom}
+                        onChange={(e) => setBudgetCustom(e.target.value)}
+                        placeholder={b.details.budgetCustomPh}
+                        className="mt-2 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                      />
+                    )}
                   </Field>
                 </div>
                 <div className="mt-4">
