@@ -9,6 +9,7 @@ import { QuantityStepper } from "@/components/shop/QuantityStepper";
 import { StockBadge } from "@/components/shop/StockBadge";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { MAX_ORDER_QTY, shopImages, shopProducts, type ShopCategory, type ShopProduct } from "@/lib/shop";
+import { useDiscountOverrides, withResolvedDiscount } from "@/lib/shop-overrides";
 import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -48,14 +49,16 @@ function ShopPage() {
   const s = t.shopPage;
   const [filter, setFilter] = useState<FilterKey>("all");
   const [order, setOrder] = useState<{ id: string; qty: number } | null>(null);
+  const overrides = useDiscountOverrides();
 
   const items = useMemo(() => {
     const byId = new Map(s.items.map((i) => [i.id, i]));
     return shopProducts
+      .map((p) => withResolvedDiscount(p, overrides))
       .filter((p) => filter === "all" || p.category === (filter as ShopCategory))
       .map((p) => ({ ...p, copy: byId.get(p.id) }))
       .filter((p): p is ShopProduct & { copy: ShopCopy } => Boolean(p.copy));
-  }, [filter, s.items]);
+  }, [filter, s.items, overrides]);
 
   const waLink = `https://wa.me/${site.whatsapp.replace(/[^\d]/g, "")}?text=${encodeURIComponent(
     `Hello ${site.name}, I would like to order from your shop.`
