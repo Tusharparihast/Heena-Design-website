@@ -16,6 +16,54 @@ function Motif({ className }: { className?: string }) {
   );
 }
 
+function ReachButton({
+  href,
+  onClick,
+  label,
+  filled,
+  children,
+}: {
+  href?: string;
+  onClick?: () => void;
+  label: string;
+  filled?: string;
+  children: React.ReactNode;
+}) {
+  const base =
+    "group flex flex-col items-center gap-2 rounded-xl p-3 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
+  const bubble = filled
+    ? "grid h-12 w-12 place-items-center rounded-full text-white shadow-sm transition-transform group-hover:scale-110 group-hover:shadow-md"
+    : "grid h-12 w-12 place-items-center rounded-full border border-border bg-background text-muted-foreground transition-all group-hover:border-foreground/40 group-hover:bg-accent/50 group-hover:text-foreground";
+
+  return onClick ? (
+    <button type="button" onClick={onClick} aria-label={label} title={label} className={`${base} cursor-pointer`}>
+      <span className={bubble} style={filled ? { backgroundColor: filled } : undefined}>
+        {children}
+      </span>
+      <span className="text-[10px] font-medium tracking-wide text-muted-foreground transition-colors group-hover:text-foreground">
+        {label}
+      </span>
+    </button>
+  ) : (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      aria-label={label}
+      title={label}
+      className={base}
+    >
+      <span className={bubble} style={filled ? { backgroundColor: filled } : undefined}>
+        {children}
+      </span>
+      <span className="text-[10px] font-medium tracking-wide text-muted-foreground transition-colors group-hover:text-foreground">
+        {label}
+      </span>
+    </a>
+  );
+}
+
+
 export function Footer() {
   const { t } = useLanguage();
 
