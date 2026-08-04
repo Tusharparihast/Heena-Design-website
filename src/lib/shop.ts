@@ -1,7 +1,9 @@
 /**
  * Shop products.
- * Text (name, description, price) lives in src/i18n/en.ts and zh.ts under `shopPage.items`.
- * Here we only keep the id -> image + category mapping so images bundle locally.
+ * Text (name, description, price display, features, usage) lives in
+ * src/i18n/en.ts and zh.ts under `shopPage.items`.
+ * Here we keep the id -> image/category/stock/numeric-price mapping so images
+ * bundle locally and totals can be estimated.
  */
 import hennaCone from "@/assets/shop/henna-cone.jpg";
 import bridalKit from "@/assets/shop/bridal-kit.jpg";
@@ -11,25 +13,45 @@ import practiceHand from "@/assets/shop/practice-hand.jpg";
 import stencils from "@/assets/shop/stencils.jpg";
 
 export type ShopCategory = "cones" | "kits" | "care" | "practice";
+export type StockStatus = "in" | "low" | "out";
 
 export type ShopProduct = {
   id: string;
   image: string;
+  /** Extra shots for the product page gallery (falls back to `image`). */
+  gallery: string[];
   category: ShopCategory;
+  /** Numeric price in NPR, used to estimate order totals. Display price lives in i18n. */
+  priceNpr: number;
+  stock: StockStatus;
   featured?: boolean;
 };
 
+export const MAX_ORDER_QTY = 20;
+
 export const shopProducts: ShopProduct[] = [
-  { id: "henna-cone", image: hennaCone, category: "cones", featured: true },
-  { id: "cone-pack", image: hennaCone, category: "cones" },
-  { id: "bridal-kit", image: bridalKit, category: "kits", featured: true },
-  { id: "starter-kit", image: bridalKit, category: "kits" },
-  { id: "aftercare-oil", image: aftercareOil, category: "care" },
-  { id: "practice-book", image: practiceBook, category: "practice" },
-  { id: "practice-hand", image: practiceHand, category: "practice" },
-  { id: "stencils", image: stencils, category: "practice" },
+  { id: "henna-cone", image: hennaCone, gallery: [hennaCone], category: "cones", priceNpr: 150, stock: "in", featured: true },
+  { id: "cone-pack", image: hennaCone, gallery: [hennaCone], category: "cones", priceNpr: 650, stock: "in" },
+  { id: "bridal-kit", image: bridalKit, gallery: [bridalKit], category: "kits", priceNpr: 2500, stock: "in", featured: true },
+  { id: "starter-kit", image: bridalKit, gallery: [bridalKit], category: "kits", priceNpr: 1800, stock: "in" },
+  { id: "aftercare-oil", image: aftercareOil, gallery: [aftercareOil], category: "care", priceNpr: 400, stock: "in" },
+  { id: "practice-book", image: practiceBook, gallery: [practiceBook], category: "practice", priceNpr: 700, stock: "in" },
+  { id: "practice-hand", image: practiceHand, gallery: [practiceHand], category: "practice", priceNpr: 1200, stock: "low" },
+  { id: "stencils", image: stencils, gallery: [stencils], category: "practice", priceNpr: 550, stock: "in" },
 ];
 
 export const shopImages: Record<string, string> = Object.fromEntries(
   shopProducts.map((p) => [p.id, p.image])
 );
+
+export function formatNpr(amount: number) {
+  return `Rs. ${amount.toLocaleString("en-US")}`;
+}
+
+export function relatedProducts(id: string, limit = 3): ShopProduct[] {
+  const current = shopProducts.find((p) => p.id === id);
+  if (!current) return [];
+  const sameCategory = shopProducts.filter((p) => p.id !== id && p.category === current.category);
+  const others = shopProducts.filter((p) => p.id !== id && p.category !== current.category);
+  return [...sameCategory, ...others].slice(0, limit);
+}
