@@ -71,7 +71,7 @@ function BeforeAfter({ before, after, beforeLabel, afterLabel }: { before: strin
       }}
     >
       <img
-        src={resolveImage(after)}
+        src={resolveTestimonialImage(after)}
         alt={afterLabel}
         loading="lazy"
         decoding="async"
