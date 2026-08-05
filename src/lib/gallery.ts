@@ -34,13 +34,17 @@ export const galleryCategories: GalleryCategory[] = [
   { id: "feet", en: "Feet Mehndi", zh: "足部海娜" },
 ];
 
+/** Which public gallery a photo belongs to: the main Designs gallery or Student work. */
+export type GalleryCollection = "gallery" | "student";
+
 export type GalleryItem = {
   id: string;
   src: string;
   /** Intrinsic size — reserved in the grid so the page never shifts while loading. */
   width: number;
   height: number;
-  categories: CategoryId[];
+  /** Built-in CategoryId values or studio-created custom category ids. */
+  categories: string[];
   en: string;
   zh: string;
 };
