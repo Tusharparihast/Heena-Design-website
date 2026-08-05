@@ -1,5 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { Eye, ImagePlus, RotateCcw, Save, Trash2 } from "lucide-react";
+import { Eye, ImagePlus, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { type Locale, dictionaries } from "@/i18n/dictionaries";
 import { fileToDataUrl } from "@/lib/image-upload";
+import { modernImages, traditionalImages } from "@/lib/design-images";
 import {
   type HomepageHeroMedia,
   type HomepageOverrides,
@@ -28,6 +29,14 @@ export const Route = createFileRoute("/admin/homepage")({
 });
 
 const LOCALES: Locale[] = ["en", "zh"];
+
+/** Split a comma-separated tag string (English or Chinese commas) into a clean list. */
+function parseTags(value: string): string[] {
+  return value
+    .split(/[,、，]/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
 
 function LangBadge({ children }: { children: React.ReactNode }) {
   return (
@@ -224,6 +233,96 @@ function ImageField({
           alt={`${label} preview`}
           className="h-32 max-w-full rounded-lg border border-border object-cover"
         />
+      )}
+    </div>
+  );
+}
+
+/** Image grid manager for the Traditional / Modern sections: replace, remove and add tiles. */
+function ImagesManager({
+  images,
+  onChange,
+  onReset,
+}: {
+  images: string[];
+  onChange: (imgs: string[]) => void;
+  onReset?: (() => void) | undefined;
+}) {
+  const fileInput = useRef<HTMLInputElement>(null);
+  const pending = useRef<number | "add" | null>(null);
+
+  const pick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    const target = pending.current;
+    pending.current = null;
+    if (!file || target === null) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file.");
+      return;
+    }
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      if (target === "add") onChange([...images, dataUrl]);
+      else onChange(images.map((img, i) => (i === target ? dataUrl : img)));
+    } catch {
+      toast.error("Could not use that image. Try another one.");
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+        {images.map((src, i) => (
+          <div key={i} className="group relative overflow-hidden rounded-lg border border-border">
+            <img
+              src={src}
+              alt={`Design ${i + 1}`}
+              className="aspect-square h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 flex items-center justify-center gap-1 bg-background/70 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
+              <Button
+                type="button"
+                size="icon"
+                variant="secondary"
+                aria-label={`Replace image ${i + 1}`}
+                onClick={() => {
+                  pending.current = i;
+                  fileInput.current?.click();
+                }}
+              >
+                <ImagePlus className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                size="icon"
+                variant="secondary"
+                aria-label={`Remove image ${i + 1}`}
+                onClick={() => onChange(images.filter((_, j) => j !== i))}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        ))}
+        <button
+          type="button"
+          aria-label="Add image"
+          onClick={() => {
+            pending.current = "add";
+            fileInput.current?.click();
+          }}
+          className="flex aspect-square items-center justify-center rounded-lg border border-dashed border-border text-muted-foreground transition-colors hover:bg-muted"
+        >
+          <Plus className="h-5 w-5" />
+        </button>
+      </div>
+      <input ref={fileInput} type="file" accept="image/*" className="hidden" onChange={pick} />
+      {onReset && (
+        <Button type="button" variant="ghost" size="sm" onClick={onReset}>
+          <RotateCcw className="mr-2 h-4 w-4" />
+          Restore default images
+        </Button>
       )}
     </div>
   );
