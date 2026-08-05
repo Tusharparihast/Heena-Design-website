@@ -536,11 +536,15 @@ function AdminHomepagePage() {
               onChange={(loc, v) => patchSection(loc, blockKey, { body: v })}
               multiline
             />
-            <BilingualField
+            <BilingualTagsField
+              key={`tags-${JSON.stringify([
+                textEn.tags ?? base.en.tags,
+                textZh.tags ?? base.zh.tags,
+              ])}`}
               label="Tags (comma separated)"
-              valueEn={(textEn.tags ?? base.en.tags).join(", ")}
-              valueZh={(textZh.tags ?? base.zh.tags).join(", ")}
-              onChange={(loc, v) => patchSection(loc, blockKey, { tags: parseTags(v) })}
+              valueEn={textEn.tags ?? base.en.tags}
+              valueZh={textZh.tags ?? base.zh.tags}
+              onChange={(loc, tags) => patchSection(loc, blockKey, { tags })}
             />
           </CardContent>
         </Card>
