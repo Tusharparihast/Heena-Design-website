@@ -36,10 +36,7 @@ export function Hero() {
       />
       <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 sm:py-24 lg:grid-cols-2">
         <div>
-          <p className="fade-up text-xs font-semibold tracking-[0.24em] text-primary uppercase">
-            {t.hero.eyebrow}
-          </p>
-          <h1 className="mt-5 text-4xl leading-[1.05] font-semibold sm:text-6xl">
+          <h1 className="text-4xl leading-[1.05] font-semibold sm:text-6xl">
             <span className="fade-up block" style={{ animationDelay: "0.15s" }}>
               {t.hero.title1}
             </span>
