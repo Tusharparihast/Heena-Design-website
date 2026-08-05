@@ -209,7 +209,7 @@ function sanitize(raw: unknown): GalleryOverrides {
     : [];
   const rawPurged = obj["purged"];
   const purged = Array.isArray(rawPurged)
-    ? rawPurged.filter((id): id is string => typeof id === "string" && builtinItemIds[id])
+    ? rawPurged.filter((id): id is string => typeof id === "string" && builtinItemIds[id] === true)
     : [];
 
   const categoryEdits: Record<string, { nameEn?: string; nameZh?: string }> = {};
