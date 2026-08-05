@@ -11,17 +11,12 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { type Locale } from "@/i18n/dictionaries";
-import { dictionaries } from "@/i18n/dictionaries";
+import { type Locale, dictionaries } from "@/i18n/dictionaries";
 import { fileToDataUrl } from "@/lib/image-upload";
 import {
   type HomepageHeroMedia,
-  type HomepageHeroOverrides,
-  type HomepageAboutOverrides,
   type HomepageOverrides,
   type HomepageSectionOverrides,
-  type HomepageVideoOverrides,
-  type HomepageWhyOverrides,
 } from "@/lib/homepage-overrides";
 import { cn } from "@/lib/utils";
 
@@ -32,33 +27,79 @@ export const Route = createFileRoute("/admin/homepage")({
   component: AdminHomepagePage,
 });
 
-function LocaleToggle({ value, onChange }: { value: Locale; onChange: (v: Locale) => void }) {
+const LOCALES: Locale[] = ["en", "zh"];
+
+function LangBadge({ children }: { children: React.ReactNode }) {
   return (
-    <div className="inline-flex rounded-lg border border-border p-1">
-      <button
-        type="button"
-        onClick={() => onChange("en")}
-        className={cn(
-          "px-3 py-1 text-sm font-medium transition-colors",
-          value === "en"
-            ? "rounded-md bg-primary text-primary-foreground"
-            : "text-muted-foreground hover:text-foreground",
-        )}
-      >
-        EN
-      </button>
-      <button
-        type="button"
-        onClick={() => onChange("zh")}
-        className={cn(
-          "px-3 py-1 text-sm font-medium transition-colors",
-          value === "zh"
-            ? "rounded-md bg-primary text-primary-foreground"
-            : "text-muted-foreground hover:text-foreground",
-        )}
-      >
-        中文
-      </button>
+    <span className="inline-flex w-12 shrink-0 items-center justify-center rounded-md border border-border bg-muted px-1.5 py-1 text-[11px] font-semibold text-muted-foreground">
+      {children}
+    </span>
+  );
+}
+
+/** A text field edited in both languages at once — English first, 中文 below. */
+function BilingualField({
+  label,
+  valueEn,
+  valueZh,
+  onChange,
+  placeholder,
+  multiline,
+  className,
+}: {
+  label: string;
+  valueEn: string | undefined;
+  valueZh: string | undefined;
+  onChange: (locale: Locale, value: string) => void;
+  placeholder?: string;
+  multiline?: boolean;
+  className?: string;
+}) {
+  const baseId = useId();
+  const slug = label.toLowerCase().replace(/\s+/g, "-");
+  return (
+    <div className={cn("space-y-2", className)}>
+      <Label htmlFor={`${baseId}-${slug}-en`}>{label}</Label>
+      <div className="space-y-2">
+        <div className={cn("flex gap-2", multiline ? "items-start" : "items-center")}>
+          <LangBadge>EN</LangBadge>
+          {multiline ? (
+            <Textarea
+              id={`${baseId}-${slug}-en`}
+              value={valueEn ?? ""}
+              onChange={(e) => onChange("en", e.target.value)}
+              placeholder={placeholder}
+              rows={4}
+            />
+          ) : (
+            <Input
+              id={`${baseId}-${slug}-en`}
+              value={valueEn ?? ""}
+              onChange={(e) => onChange("en", e.target.value)}
+              placeholder={placeholder}
+            />
+          )}
+        </div>
+        <div className={cn("flex gap-2", multiline ? "items-start" : "items-center")}>
+          <LangBadge>中文</LangBadge>
+          {multiline ? (
+            <Textarea
+              id={`${baseId}-${slug}-zh`}
+              value={valueZh ?? ""}
+              onChange={(e) => onChange("zh", e.target.value)}
+              placeholder={placeholder}
+              rows={4}
+            />
+          ) : (
+            <Input
+              id={`${baseId}-${slug}-zh`}
+              value={valueZh ?? ""}
+              onChange={(e) => onChange("zh", e.target.value)}
+              placeholder={placeholder}
+            />
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -189,65 +230,86 @@ function ImageField({
 }
 
 function AdminHomepagePage() {
-  const { homeOverrides, setHomepageOverrides, locale } = useLanguage();
-  const [editingLocale, setEditingLocale] = useState<Locale>(locale);
+  const { homeOverrides, setHomepageOverrides } = useLanguage();
   const [draft, setDraft] = useState<HomepageOverrides>(homeOverrides);
 
   useEffect(() => {
     setDraft(homeOverrides);
   }, [homeOverrides]);
 
-  const hero = (draft[editingLocale]?.hero ?? {}) as HomepageHeroOverrides;
-  const about = (draft[editingLocale]?.about ?? {}) as HomepageAboutOverrides;
-  const video = (draft[editingLocale]?.video ?? {}) as HomepageVideoOverrides;
+  const heroEn = draft.en?.hero ?? {};
+  const heroZh = draft.zh?.hero ?? {};
+  const aboutEn = draft.en?.about ?? {};
+  const aboutZh = draft.zh?.about ?? {};
+  const videoEn = draft.en?.video ?? {};
+  const videoZh = draft.zh?.video ?? {};
 
-  const baseWhy = dictionaries[editingLocale].why;
-  const whyDraft = (draft[editingLocale]?.why ?? {}) as HomepageWhyOverrides;
-  const why = useMemo(
-    () => ({
-      label: whyDraft.label ?? baseWhy.label,
-      title: whyDraft.title ?? baseWhy.title,
-      items: baseWhy.items.map((item, i) => ({
-        title: whyDraft.items?.[i]?.title ?? item.title,
-        body: whyDraft.items?.[i]?.body ?? item.body,
-      })),
-    }),
-    [baseWhy, whyDraft],
-  );
+  const why = useMemo(() => {
+    const merge = (locale: Locale) => {
+      const base = dictionaries[locale].why;
+      const override = draft[locale]?.why;
+      return {
+        label: override?.label ?? base.label,
+        title: override?.title ?? base.title,
+        items: base.items.map((item, i) => ({
+          title: override?.items?.[i]?.title ?? item.title,
+          body: override?.items?.[i]?.body ?? item.body,
+        })),
+      };
+    };
+    return { en: merge("en"), zh: merge("zh") };
+  }, [draft]);
 
-  const patchSection = (key: keyof HomepageSectionOverrides, patch: object) => {
+  const patchSection = (locale: Locale, key: keyof HomepageSectionOverrides, patch: object) => {
     setDraft((prev) => ({
       ...prev,
-      [editingLocale]: {
-        ...prev[editingLocale],
-        [key]: { ...prev[editingLocale]?.[key], ...patch },
+      [locale]: {
+        ...prev[locale],
+        [key]: { ...prev[locale]?.[key], ...patch },
       },
     }));
   };
 
+  /** Media is language-agnostic: apply the same patch to both locales. */
   const patchHeroMedia = (patch: Partial<HomepageHeroMedia>) => {
-    setDraft((prev) => ({
-      ...prev,
-      [editingLocale]: {
-        ...prev[editingLocale],
-        hero: {
-          ...prev[editingLocale]?.hero,
-          media: { ...prev[editingLocale]?.hero?.media, ...patch },
-        },
-      },
-    }));
+    setDraft((prev) => {
+      const next = { ...prev };
+      for (const locale of LOCALES) {
+        next[locale] = {
+          ...next[locale],
+          hero: {
+            ...next[locale]?.hero,
+            media: { ...next[locale]?.hero?.media, ...patch },
+          },
+        };
+      }
+      return next;
+    });
   };
 
-  const patchWhyItem = (index: number, key: "title" | "body", value: string) => {
+  const patchSharedMedia = (key: "about" | "video", patch: object) => {
     setDraft((prev) => {
-      const currentItems = prev[editingLocale]?.why?.items ?? [];
+      const next = { ...prev };
+      for (const locale of LOCALES) {
+        next[locale] = {
+          ...next[locale],
+          [key]: { ...next[locale]?.[key], ...patch },
+        };
+      }
+      return next;
+    });
+  };
+
+  const patchWhyItem = (locale: Locale, index: number, key: "title" | "body", value: string) => {
+    setDraft((prev) => {
+      const currentItems = prev[locale]?.why?.items ?? [];
       const nextItems = [...currentItems];
       nextItems[index] = { ...nextItems[index], [key]: value };
       return {
         ...prev,
-        [editingLocale]: {
-          ...prev[editingLocale],
-          why: { ...prev[editingLocale]?.why, items: nextItems },
+        [locale]: {
+          ...prev[locale],
+          why: { ...prev[locale]?.why, items: nextItems },
         },
       };
     });
@@ -256,7 +318,8 @@ function AdminHomepagePage() {
   const resetSection = (key: keyof HomepageSectionOverrides) => {
     setDraft((prev) => ({
       ...prev,
-      [editingLocale]: { ...prev[editingLocale], [key]: undefined },
+      en: { ...prev.en, [key]: undefined },
+      zh: { ...prev.zh, [key]: undefined },
     }));
     toast.info(`Reset ${key} draft`, {
       description: "Click Save changes to apply the reset on the public site.",
@@ -276,12 +339,12 @@ function AdminHomepagePage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Homepage</h1>
           <p className="text-sm text-muted-foreground">
-            Edit the landing page Hero, About, Why Learn and Watch sections. Switch between English
-            and Chinese, then save to update the public site.
+            Edit the landing page Hero, About, Why Learn and Watch sections. Every text field shows
+            English first with 中文 below; images and videos are shared across both languages. Save
+            to update the public site.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <LocaleToggle value={editingLocale} onChange={setEditingLocale} />
           <Button variant="outline" asChild>
             <Link to="/" target="_blank" rel="noopener noreferrer">
               <Eye className="mr-2 h-4 w-4" />
@@ -308,50 +371,38 @@ function AdminHomepagePage() {
             <CardHeader className="flex flex-row items-start justify-between gap-4">
               <div>
                 <CardTitle>Hero text</CardTitle>
-                <CardDescription>Heading, body and buttons at the top of the homepage.</CardDescription>
+                <CardDescription>Heading and body at the top of the homepage.</CardDescription>
               </div>
               <Button variant="ghost" size="sm" onClick={() => resetSection("hero")}>
                 <RotateCcw className="mr-2 h-4 w-4" />
                 Reset
               </Button>
             </CardHeader>
-            <CardContent className="grid gap-4 sm:grid-cols-2">
-              <Field
-                label="Eyebrow"
-                value={hero.eyebrow}
-                onChange={(v) => patchSection("hero", { eyebrow: v })}
-              />
-              <Field
+            <CardContent className="space-y-5">
+              <BilingualField
                 label="Title line 1"
-                value={hero.title1}
-                onChange={(v) => patchSection("hero", { title1: v })}
+                valueEn={heroEn.title1 ?? dictionaries.en.hero.title1}
+                valueZh={heroZh.title1 ?? dictionaries.zh.hero.title1}
+                onChange={(loc, v) => patchSection(loc, "hero", { title1: v })}
               />
-              <Field
+              <BilingualField
                 label="Title line 2"
-                value={hero.title2}
-                onChange={(v) => patchSection("hero", { title2: v })}
+                valueEn={heroEn.title2 ?? dictionaries.en.hero.title2}
+                valueZh={heroZh.title2 ?? dictionaries.zh.hero.title2}
+                onChange={(loc, v) => patchSection(loc, "hero", { title2: v })}
               />
-              <Field
+              <BilingualField
                 label="Title line 3"
-                value={hero.title3}
-                onChange={(v) => patchSection("hero", { title3: v })}
+                valueEn={heroEn.title3 ?? dictionaries.en.hero.title3}
+                valueZh={heroZh.title3 ?? dictionaries.zh.hero.title3}
+                onChange={(loc, v) => patchSection(loc, "hero", { title3: v })}
               />
-              <Field
+              <BilingualField
                 label="Body"
-                value={hero.body}
-                onChange={(v) => patchSection("hero", { body: v })}
+                valueEn={heroEn.body ?? dictionaries.en.hero.body}
+                valueZh={heroZh.body ?? dictionaries.zh.hero.body}
+                onChange={(loc, v) => patchSection(loc, "hero", { body: v })}
                 multiline
-                className="sm:col-span-2"
-              />
-              <Field
-                label="CTA button"
-                value={hero.cta}
-                onChange={(v) => patchSection("hero", { cta: v })}
-              />
-              <Field
-                label="Secondary button"
-                value={hero.secondary}
-                onChange={(v) => patchSection("hero", { secondary: v })}
               />
             </CardContent>
           </Card>
@@ -360,34 +411,34 @@ function AdminHomepagePage() {
             <CardHeader>
               <CardTitle>Hero media</CardTitle>
               <CardDescription>
-                Choose a video, poster, or a static image. Leave blank to keep the bundled
-                defaults.
+                Choose a video, poster, or a static image. Shared by both languages — leave blank to
+                keep the bundled defaults.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-3">
                 <Switch
                   id="hero-image-mode"
-                  checked={hero.media?.imageMode ?? false}
+                  checked={heroEn.media?.imageMode ?? false}
                   onCheckedChange={(v) => patchHeroMedia({ imageMode: v })}
                 />
                 <Label htmlFor="hero-image-mode">Use static image instead of video</Label>
               </div>
               <Field
                 label="Hero video URL"
-                value={hero.media?.videoUrl}
+                value={heroEn.media?.videoUrl}
                 onChange={(v) => patchHeroMedia({ videoUrl: v || undefined })}
                 placeholder="/assets/hero-mehndi.mp4 or https://..."
               />
               <ImageField
                 label="Poster image"
-                value={hero.media?.posterUrl}
+                value={heroEn.media?.posterUrl}
                 onChange={(v) => patchHeroMedia({ posterUrl: v || undefined })}
               />
-              {hero.media?.imageMode && (
+              {heroEn.media?.imageMode && (
                 <ImageField
                   label="Hero static image"
-                  value={hero.media?.imageUrl}
+                  value={heroEn.media?.imageUrl}
                   onChange={(v) => patchHeroMedia({ imageUrl: v || undefined })}
                 />
               )}
@@ -407,45 +458,50 @@ function AdminHomepagePage() {
                 Reset
               </Button>
             </CardHeader>
-            <CardContent className="grid gap-4 sm:grid-cols-2">
-              <Field
+            <CardContent className="space-y-5">
+              <BilingualField
                 label="Label"
-                value={about.label}
-                onChange={(v) => patchSection("about", { label: v })}
+                valueEn={aboutEn.label ?? dictionaries.en.about.label}
+                valueZh={aboutZh.label ?? dictionaries.zh.about.label}
+                onChange={(loc, v) => patchSection(loc, "about", { label: v })}
               />
-              <Field
+              <BilingualField
                 label="Title"
-                value={about.title}
-                onChange={(v) => patchSection("about", { title: v })}
+                valueEn={aboutEn.title ?? dictionaries.en.about.title}
+                valueZh={aboutZh.title ?? dictionaries.zh.about.title}
+                onChange={(loc, v) => patchSection(loc, "about", { title: v })}
               />
-              <Field
+              <BilingualField
                 label="Body paragraph 1"
-                value={about.body1}
-                onChange={(v) => patchSection("about", { body1: v })}
+                valueEn={aboutEn.body1 ?? dictionaries.en.about.body1}
+                valueZh={aboutZh.body1 ?? dictionaries.zh.about.body1}
+                onChange={(loc, v) => patchSection(loc, "about", { body1: v })}
                 multiline
-                className="sm:col-span-2"
               />
-              <Field
+              <BilingualField
                 label="Body paragraph 2"
-                value={about.body2}
-                onChange={(v) => patchSection("about", { body2: v })}
+                valueEn={aboutEn.body2 ?? dictionaries.en.about.body2}
+                valueZh={aboutZh.body2 ?? dictionaries.zh.about.body2}
+                onChange={(loc, v) => patchSection(loc, "about", { body2: v })}
                 multiline
-                className="sm:col-span-2"
               />
-              <Field
+              <BilingualField
                 label="Stat 1 label"
-                value={about.stat1}
-                onChange={(v) => patchSection("about", { stat1: v })}
+                valueEn={aboutEn.stat1 ?? dictionaries.en.about.stat1}
+                valueZh={aboutZh.stat1 ?? dictionaries.zh.about.stat1}
+                onChange={(loc, v) => patchSection(loc, "about", { stat1: v })}
               />
-              <Field
+              <BilingualField
                 label="Stat 2 label"
-                value={about.stat2}
-                onChange={(v) => patchSection("about", { stat2: v })}
+                valueEn={aboutEn.stat2 ?? dictionaries.en.about.stat2}
+                valueZh={aboutZh.stat2 ?? dictionaries.zh.about.stat2}
+                onChange={(loc, v) => patchSection(loc, "about", { stat2: v })}
               />
-              <Field
+              <BilingualField
                 label="Stat 3 label"
-                value={about.stat3}
-                onChange={(v) => patchSection("about", { stat3: v })}
+                valueEn={aboutEn.stat3 ?? dictionaries.en.about.stat3}
+                valueZh={aboutZh.stat3 ?? dictionaries.zh.about.stat3}
+                onChange={(loc, v) => patchSection(loc, "about", { stat3: v })}
               />
             </CardContent>
           </Card>
@@ -453,13 +509,15 @@ function AdminHomepagePage() {
           <Card>
             <CardHeader>
               <CardTitle>About image</CardTitle>
-              <CardDescription>Leave blank to keep the bundled default.</CardDescription>
+              <CardDescription>
+                Shared by both languages — leave blank to keep the bundled default.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <ImageField
                 label="Image"
-                value={about.imageUrl}
-                onChange={(v) => patchSection("about", { imageUrl: v || undefined })}
+                value={aboutEn.imageUrl}
+                onChange={(v) => patchSharedMedia("about", { imageUrl: v || undefined })}
               />
             </CardContent>
           </Card>
@@ -477,30 +535,33 @@ function AdminHomepagePage() {
                 Reset
               </Button>
             </CardHeader>
-            <CardContent className="grid gap-4 sm:grid-cols-2">
-              <Field
+            <CardContent className="space-y-5">
+              <BilingualField
                 label="Label"
-                value={why.label}
-                onChange={(v) => patchSection("why", { label: v })}
+                valueEn={why.en.label}
+                valueZh={why.zh.label}
+                onChange={(loc, v) => patchSection(loc, "why", { label: v })}
               />
-              <Field
+              <BilingualField
                 label="Title"
-                value={why.title}
-                onChange={(v) => patchSection("why", { title: v })}
+                valueEn={why.en.title}
+                valueZh={why.zh.title}
+                onChange={(loc, v) => patchSection(loc, "why", { title: v })}
               />
-            </CardContent>
-            <CardContent className="space-y-6">
-              {why.items.map((item, i) => (
-                <div key={i} className="grid gap-4 sm:grid-cols-2">
-                  <Field
-                    label={`Card ${i + 1} title`}
-                    value={item.title}
-                    onChange={(v) => patchWhyItem(i, "title", v)}
+              {why.en.items.map((item, i) => (
+                <div key={i} className="space-y-5 rounded-lg border border-border p-4">
+                  <p className="text-sm font-semibold">Card {i + 1}</p>
+                  <BilingualField
+                    label="Title"
+                    valueEn={item.title}
+                    valueZh={why.zh.items[i]?.title}
+                    onChange={(loc, v) => patchWhyItem(loc, i, "title", v)}
                   />
-                  <Field
-                    label={`Card ${i + 1} body`}
-                    value={item.body}
-                    onChange={(v) => patchWhyItem(i, "body", v)}
+                  <BilingualField
+                    label="Body"
+                    valueEn={item.body}
+                    valueZh={why.zh.items[i]?.body}
+                    onChange={(loc, v) => patchWhyItem(loc, i, "body", v)}
                     multiline
                   />
                 </div>
@@ -521,43 +582,49 @@ function AdminHomepagePage() {
                 Reset
               </Button>
             </CardHeader>
-            <CardContent className="grid gap-4 sm:grid-cols-2">
-              <Field
+            <CardContent className="space-y-5">
+              <BilingualField
                 label="Label"
-                value={video.label}
-                onChange={(v) => patchSection("video", { label: v })}
+                valueEn={videoEn.label ?? dictionaries.en.video.label}
+                valueZh={videoZh.label ?? dictionaries.zh.video.label}
+                onChange={(loc, v) => patchSection(loc, "video", { label: v })}
               />
-              <Field
+              <BilingualField
                 label="Title"
-                value={video.title}
-                onChange={(v) => patchSection("video", { title: v })}
+                valueEn={videoEn.title ?? dictionaries.en.video.title}
+                valueZh={videoZh.title ?? dictionaries.zh.video.title}
+                onChange={(loc, v) => patchSection(loc, "video", { title: v })}
               />
-              <Field
+              <BilingualField
                 label="Body"
-                value={video.body}
-                onChange={(v) => patchSection("video", { body: v })}
+                valueEn={videoEn.body ?? dictionaries.en.video.body}
+                valueZh={videoZh.body ?? dictionaries.zh.video.body}
+                onChange={(loc, v) => patchSection(loc, "video", { body: v })}
                 multiline
-                className="sm:col-span-2"
               />
-              <Field
+              <BilingualField
                 label="Play button"
-                value={video.play}
-                onChange={(v) => patchSection("video", { play: v })}
+                valueEn={videoEn.play ?? dictionaries.en.video.play}
+                valueZh={videoZh.play ?? dictionaries.zh.video.play}
+                onChange={(loc, v) => patchSection(loc, "video", { play: v })}
               />
-              <Field
+              <BilingualField
                 label="Note"
-                value={video.note}
-                onChange={(v) => patchSection("video", { note: v })}
+                valueEn={videoEn.note ?? dictionaries.en.video.note}
+                valueZh={videoZh.note ?? dictionaries.zh.video.note}
+                onChange={(loc, v) => patchSection(loc, "video", { note: v })}
               />
-              <Field
+              <BilingualField
                 label="Expand label"
-                value={video.expand}
-                onChange={(v) => patchSection("video", { expand: v })}
+                valueEn={videoEn.expand ?? dictionaries.en.video.expand}
+                valueZh={videoZh.expand ?? dictionaries.zh.video.expand}
+                onChange={(loc, v) => patchSection(loc, "video", { expand: v })}
               />
-              <Field
+              <BilingualField
                 label="Close label"
-                value={video.close}
-                onChange={(v) => patchSection("video", { close: v })}
+                valueEn={videoEn.close ?? dictionaries.en.video.close}
+                valueZh={videoZh.close ?? dictionaries.zh.video.close}
+                onChange={(loc, v) => patchSection(loc, "video", { close: v })}
               />
             </CardContent>
           </Card>
@@ -565,19 +632,21 @@ function AdminHomepagePage() {
           <Card>
             <CardHeader>
               <CardTitle>Demo media</CardTitle>
-              <CardDescription>Leave blank to keep the bundled defaults.</CardDescription>
+              <CardDescription>
+                Shared by both languages — leave blank to keep the bundled defaults.
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Field
                 label="Demo video URL"
-                value={video.videoUrl}
-                onChange={(v) => patchSection("video", { videoUrl: v || undefined })}
+                value={videoEn.videoUrl}
+                onChange={(v) => patchSharedMedia("video", { videoUrl: v || undefined })}
                 placeholder="/assets/hero-mehndi.mp4 or https://..."
               />
               <ImageField
                 label="Demo poster"
-                value={video.posterUrl}
-                onChange={(v) => patchSection("video", { posterUrl: v || undefined })}
+                value={videoEn.posterUrl}
+                onChange={(v) => patchSharedMedia("video", { posterUrl: v || undefined })}
               />
             </CardContent>
           </Card>
