@@ -4,6 +4,11 @@ import { ArrowLeft, Check, Copy, Mail, MessageCircle } from "lucide-react";
 import { MehndiPattern } from "@/components/site/MehndiPattern";
 import { Section } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import {
+  dateAvailability,
+  useAppointmentSettings,
+  useEffectiveAppointmentPage,
+} from "@/lib/appointments";
 import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -26,8 +31,11 @@ export const Route = createFileRoute("/appointment")({
 });
 
 function AppointmentPage() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const a = t.appointment.page;
+  // Admin-managed page text, option lists and availability (/admin/appointments).
+  const page = useEffectiveAppointmentPage(locale);
+  const apptSettings = useAppointmentSettings();
 
   const [name, setName] = useState("");
   const [contact, setContact] = useState("");
@@ -40,8 +48,11 @@ function AppointmentPage() {
   const [notes, setNotes] = useState("");
   const [copied, setCopied] = useState(false);
 
-  const service = a.form.serviceOptions[serviceIdx] ?? a.form.serviceOptions[0] ?? "";
-  const time = a.form.timeOptions[timeIdx] ?? a.form.timeOptions[0] ?? "";
+  const service = page.services[serviceIdx] ?? page.services[0] ?? "";
+  const time = page.timeSlots[timeIdx] ?? page.timeSlots[0] ?? "";
+
+  // Closed weekday / blocked date warning under the date picker.
+  const availability = date ? dateAvailability(apptSettings, date) : "open";
 
   // Today's date in local time — blocks past dates in the picker.
   const today = useMemo(() => {
@@ -66,8 +77,8 @@ function AppointmentPage() {
   }, [a, name, contact, service, date, time, people, notes]);
 
   const message = useMemo(
-    () => [a.title, ...rows.map((r) => `${r.label}: ${r.value}`)].join("\n"),
-    [a.title, rows],
+    () => [page.title, ...rows.map((r) => `${r.label}: ${r.value}`)].join("\n"),
+    [page.title, rows],
   );
 
   async function copyMessage() {
@@ -95,8 +106,8 @@ function AppointmentPage() {
           <p className="mt-6 text-xs font-semibold tracking-[0.2em] text-primary uppercase">
             {a.eyebrow}
           </p>
-          <h1 className="mt-4 max-w-3xl text-4xl font-semibold sm:text-5xl">{a.title}</h1>
-          <p className="mt-5 max-w-2xl text-muted-foreground">{a.body}</p>
+          <h1 className="mt-4 max-w-3xl text-4xl font-semibold sm:text-5xl">{page.title}</h1>
+          <p className="mt-5 max-w-2xl text-muted-foreground">{page.body}</p>
         </div>
       </section>
 
@@ -129,7 +140,7 @@ function AppointmentPage() {
                 {a.form.service}
               </span>
               <div className="flex flex-wrap gap-2">
-                {a.form.serviceOptions.map((opt, idx) => (
+                {page.services.map((opt, idx) => (
                   <button
                     key={opt}
                     type="button"
@@ -148,22 +159,31 @@ function AppointmentPage() {
             </div>
 
             <div className="mt-5 grid items-start gap-4 sm:grid-cols-3">
-              <Field label={a.form.date}>
-                <input
-                  type="date"
-                  min={today}
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                />
-              </Field>
+              <div>
+                <Field label={a.form.date}>
+                  <input
+                    type="date"
+                    min={today}
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                  />
+                </Field>
+                {availability !== "open" && (
+                  <p className="mt-1.5 text-xs font-medium text-destructive">
+                    {availability === "blocked"
+                      ? a.availability.blocked
+                      : a.availability.closedDay}
+                  </p>
+                )}
+              </div>
               <Field label={a.form.time}>
                 <select
                   value={timeIdx}
                   onChange={(e) => setTimeIdx(Number(e.target.value))}
                   className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                 >
-                  {a.form.timeOptions.map((opt, idx) => (
+                  {page.timeSlots.map((opt, idx) => (
                     <option key={opt} value={idx}>
                       {opt}
                     </option>
@@ -174,6 +194,7 @@ function AppointmentPage() {
                 <input
                   type="number"
                   min={1}
+                  max={page.maxPeople}
                   value={people}
                   onChange={(e) => setPeople(e.target.value)}
                   className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
@@ -239,7 +260,7 @@ function AppointmentPage() {
               </a>
             </div>
 
-            <p className="mt-4 text-xs text-muted-foreground italic">{a.summary.note}</p>
+            <p className="mt-4 text-xs text-muted-foreground italic">{page.note}</p>
           </aside>
         </div>
       </Section>

@@ -21,6 +21,7 @@ import { Route as ShopRouteImport } from './routes/shop'
 import { Route as StudentWorkRouteImport } from './routes/student-work'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminSectionRouteImport } from './routes/admin/$section'
+import { Route as AdminAppointmentsRouteImport } from './routes/admin/appointments'
 import { Route as AdminGalleryRouteImport } from './routes/admin/gallery'
 import { Route as AdminHomepageRouteImport } from './routes/admin/homepage'
 import { Route as AdminProductsRouteImport } from './routes/admin/products'
@@ -88,6 +89,11 @@ const AdminSectionRoute = AdminSectionRouteImport.update({
   path: '/$section',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminAppointmentsRoute = AdminAppointmentsRouteImport.update({
+  id: '/appointments',
+  path: '/appointments',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminGalleryRoute = AdminGalleryRouteImport.update({
   id: '/gallery',
   path: '/gallery',
@@ -131,6 +137,7 @@ export interface FileRoutesByFullPath {
   '/shop': typeof ShopRouteWithChildren
   '/student-work': typeof StudentWorkRoute
   '/admin/$section': typeof AdminSectionRoute
+  '/admin/appointments': typeof AdminAppointmentsRoute
   '/admin/gallery': typeof AdminGalleryRoute
   '/admin/homepage': typeof AdminHomepageRoute
   '/admin/products': typeof AdminProductsRoute
@@ -149,6 +156,7 @@ export interface FileRoutesByTo {
   '/gallery': typeof GalleryRoute
   '/student-work': typeof StudentWorkRoute
   '/admin/$section': typeof AdminSectionRoute
+  '/admin/appointments': typeof AdminAppointmentsRoute
   '/admin/gallery': typeof AdminGalleryRoute
   '/admin/homepage': typeof AdminHomepageRoute
   '/admin/products': typeof AdminProductsRoute
@@ -170,6 +178,7 @@ export interface FileRoutesById {
   '/shop': typeof ShopRouteWithChildren
   '/student-work': typeof StudentWorkRoute
   '/admin/$section': typeof AdminSectionRoute
+  '/admin/appointments': typeof AdminAppointmentsRoute
   '/admin/gallery': typeof AdminGalleryRoute
   '/admin/homepage': typeof AdminHomepageRoute
   '/admin/products': typeof AdminProductsRoute
@@ -192,6 +201,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/student-work'
     | '/admin/$section'
+    | '/admin/appointments'
     | '/admin/gallery'
     | '/admin/homepage'
     | '/admin/products'
@@ -210,6 +220,7 @@ export interface FileRouteTypes {
     | '/gallery'
     | '/student-work'
     | '/admin/$section'
+    | '/admin/appointments'
     | '/admin/gallery'
     | '/admin/homepage'
     | '/admin/products'
@@ -230,6 +241,7 @@ export interface FileRouteTypes {
     | '/shop'
     | '/student-work'
     | '/admin/$section'
+    | '/admin/appointments'
     | '/admin/gallery'
     | '/admin/homepage'
     | '/admin/products'
@@ -338,6 +350,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSectionRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/appointments': {
+      id: '/admin/appointments'
+      path: '/appointments'
+      fullPath: '/admin/appointments'
+      preLoaderRoute: typeof AdminAppointmentsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/gallery': {
       id: '/admin/gallery'
       path: '/gallery'
@@ -385,6 +404,7 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteRouteChildren {
   AdminSectionRoute: typeof AdminSectionRoute
+  AdminAppointmentsRoute: typeof AdminAppointmentsRoute
   AdminGalleryRoute: typeof AdminGalleryRoute
   AdminHomepageRoute: typeof AdminHomepageRoute
   AdminProductsRoute: typeof AdminProductsRoute
@@ -394,6 +414,7 @@ interface AdminRouteRouteChildren {
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminSectionRoute: AdminSectionRoute,
+  AdminAppointmentsRoute: AdminAppointmentsRoute,
   AdminGalleryRoute: AdminGalleryRoute,
   AdminHomepageRoute: AdminHomepageRoute,
   AdminProductsRoute: AdminProductsRoute,
