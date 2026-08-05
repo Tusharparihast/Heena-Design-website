@@ -80,7 +80,7 @@ function BeforeAfter({ before, after, beforeLabel, afterLabel }: { before: strin
       />
       <div className="absolute inset-0" style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}>
         <img
-          src={resolveImage(before)}
+          src={resolveTestimonialImage(before)}
           alt={beforeLabel}
           loading="lazy"
           decoding="async"
