@@ -231,66 +231,72 @@ export function TestimonialsSection() {
   return (
     <Section id="testimonials" className="bg-secondary/40">
       <SectionHeading label={section.label} title={section.title} align="center" />
-      <div className="relative mx-auto mt-12 max-w-6xl">
-        <button
-          type="button"
-          onClick={prev}
-          aria-label={t.testimonials.prev}
-          className="absolute -left-2 top-1/2 z-10 hidden -translate-y-1/2 rounded-full border border-border bg-background p-2 text-primary shadow-sm transition hover:bg-primary/10 hover:shadow-md md:-left-5 md:block md:p-3"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-
-        <button
-          type="button"
-          onClick={next}
-          aria-label={t.testimonials.next}
-          className="absolute -right-2 top-1/2 z-10 hidden -translate-y-1/2 rounded-full border border-border bg-background p-2 text-primary shadow-sm transition hover:bg-primary/10 hover:shadow-md md:-right-5 md:block md:p-3"
-        >
-          <ChevronRight className="h-5 w-5" />
-        </button>
-
-        <div
-          className="overflow-hidden"
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={handlePointerCancel}
-        >
-          <div
-            ref={trackRef}
-            className="flex touch-pan-y transition-transform duration-500 ease-out will-change-transform"
-            style={{ transform: `translateX(-${active * (100 / perPage)}%)` }}
+      {items.length === 0 ? (
+        <p className="mt-12 text-center text-sm text-muted-foreground">
+          {locale === "zh" ? "新的评价即将到来。" : "New reviews are on the way."}
+        </p>
+      ) : (
+        <div className="relative mx-auto mt-12 max-w-6xl">
+          <button
+            type="button"
+            onClick={prev}
+            aria-label={t.testimonials.prev}
+            className="absolute -left-2 top-1/2 z-10 hidden -translate-y-1/2 rounded-full border border-border bg-background p-2 text-primary shadow-sm transition hover:bg-primary/10 hover:shadow-md md:-left-5 md:block md:p-3"
           >
-            {items.map((item) => (
-              <div
-                key={item.name}
-                className="w-full shrink-0 px-3 md:w-1/3"
-              >
-                <TestimonialCard item={item} beforeLabel={beforeLabel} afterLabel={afterLabel} />
-              </div>
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+
+          <button
+            type="button"
+            onClick={next}
+            aria-label={t.testimonials.next}
+            className="absolute -right-2 top-1/2 z-10 hidden -translate-y-1/2 rounded-full border border-border bg-background p-2 text-primary shadow-sm transition hover:bg-primary/10 hover:shadow-md md:-right-5 md:block md:p-3"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+
+          <div
+            className="overflow-hidden"
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerCancel}
+          >
+            <div
+              ref={trackRef}
+              className="flex touch-pan-y transition-transform duration-500 ease-out will-change-transform"
+              style={{ transform: `translateX(-${active * (100 / perPage)}%)` }}
+            >
+              {items.map((item) => (
+                <div
+                  key={item.id}
+                  className="w-full shrink-0 px-3 md:w-1/3"
+                >
+                  <TestimonialCard item={item} beforeLabel={beforeLabel} afterLabel={afterLabel} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-6 flex items-center justify-center gap-2">
+            {Array.from({ length: maxIndex + 1 }).map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setActive(i)}
+                aria-label={`${t.testimonials.slide} ${i + 1}`}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  i === active ? "w-6 bg-primary" : "w-2 bg-primary/30 hover:bg-primary/50"
+                }`}
+              />
             ))}
           </div>
-        </div>
 
-        <div className="mt-6 flex items-center justify-center gap-2">
-          {Array.from({ length: maxIndex + 1 }).map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => setActive(i)}
-              aria-label={`${t.testimonials.slide} ${i + 1}`}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                i === active ? "w-6 bg-primary" : "w-2 bg-primary/30 hover:bg-primary/50"
-              }`}
-            />
-          ))}
+          <div className="mt-4 text-center text-xs text-muted-foreground md:hidden">
+            {t.testimonials.swipeHint}
+          </div>
         </div>
-
-        <div className="mt-4 text-center text-xs text-muted-foreground md:hidden">
-          {t.testimonials.swipeHint}
-        </div>
-      </div>
+      )}
     </Section>
   );
 }
