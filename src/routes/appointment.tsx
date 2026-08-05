@@ -9,6 +9,7 @@ import {
   useAppointmentSettings,
   useEffectiveAppointmentPage,
 } from "@/lib/appointments";
+import { logWebsiteBooking } from "@/lib/bookings-db";
 import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -81,10 +82,27 @@ function AppointmentPage() {
     [page.title, rows],
   );
 
+  // Auto-log the request to the studio dashboard (never blocks the handoff).
+  function logRequest(channel: "whatsapp" | "wechat" | "email") {
+    void logWebsiteBooking({
+      kind: "appointment",
+      name,
+      contact,
+      service,
+      date,
+      time,
+      people: Number(people) || 1,
+      notes,
+      locale,
+      channel,
+    });
+  }
+
   async function copyMessage() {
     try {
       await navigator.clipboard.writeText(message);
       setCopied(true);
+      logRequest("wechat");
       setTimeout(() => setCopied(false), 2000);
     } catch {
       setCopied(false);
@@ -232,6 +250,7 @@ function AppointmentPage() {
             <div className="mt-5 space-y-2">
               <a
                 href={`https://wa.me/${site.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(message)}`}
+                onClick={() => logRequest("whatsapp")}
                 target="_blank"
                 rel="noreferrer"
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
@@ -253,6 +272,7 @@ function AppointmentPage() {
               </button>
               <a
                 href={`mailto:${site.email}?subject=${encodeURIComponent(a.title)}&body=${encodeURIComponent(message)}`}
+                onClick={() => logRequest("email")}
                 className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm font-medium transition-colors hover:bg-accent"
               >
                 <Mail className="h-4 w-4" aria-hidden />

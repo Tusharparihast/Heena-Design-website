@@ -4,6 +4,7 @@ import { ArrowRight, Check, Copy, Mail, MessageCircle, Upload, X } from "lucide-
 import { MehndiPattern } from "@/components/site/MehndiPattern";
 import { Section } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { logWebsiteBooking } from "@/lib/bookings-db";
 import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +29,7 @@ export const Route = createFileRoute("/custom-design")({
 type StyleKey = "traditional" | "modern" | "both";
 
 function CustomDesignPage() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const b = t.booking;
 
   const [step, setStep] = useState(0);
@@ -96,10 +97,32 @@ function CustomDesignPage() {
     setFiles((prev) => [...prev, ...next]);
   }
 
+  // Auto-log the request to the studio dashboard (never blocks the handoff).
+  function logRequest(channel: "whatsapp" | "wechat" | "email") {
+    void logWebsiteBooking({
+      kind: "custom-design",
+      name,
+      service: [style ? b.style[style].name : "", occasion].filter(Boolean).join(" · "),
+      date,
+      people: Number(people) || 1,
+      notes: [
+        notes,
+        placement && `Placement: ${placement}`,
+        budget && `Budget: ${budget}`,
+        files.length ? `Reference photos: ${files.length}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n"),
+      locale,
+      channel,
+    });
+  }
+
   async function copyMessage() {
     try {
       await navigator.clipboard.writeText(message);
       setCopied(true);
+      logRequest("wechat");
       setTimeout(() => setCopied(false), 2000);
     } catch {
       setCopied(false);
@@ -371,6 +394,7 @@ function CustomDesignPage() {
             <div className="mt-5 space-y-2">
               <a
                 href={`https://wa.me/${site.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(message)}`}
+                onClick={() => logRequest("whatsapp")}
                 target="_blank"
                 rel="noreferrer"
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
@@ -392,6 +416,7 @@ function CustomDesignPage() {
               </button>
               <a
                 href={`mailto:${site.email}?subject=${encodeURIComponent(b.hero.title)}&body=${encodeURIComponent(message)}`}
+                onClick={() => logRequest("email")}
                 className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm font-medium transition-colors hover:bg-accent"
               >
                 <Mail className="h-4 w-4" aria-hidden />

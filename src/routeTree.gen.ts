@@ -24,6 +24,7 @@ import { Route as AdminSectionRouteImport } from './routes/admin/$section'
 import { Route as AdminAppointmentsRouteImport } from './routes/admin/appointments'
 import { Route as AdminGalleryRouteImport } from './routes/admin/gallery'
 import { Route as AdminHomepageRouteImport } from './routes/admin/homepage'
+import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminProductsRouteImport } from './routes/admin/products'
 import { Route as AdminTestimonialsRouteImport } from './routes/admin/testimonials'
 import { Route as ShopIndexRouteImport } from './routes/shop.index'
@@ -104,6 +105,11 @@ const AdminHomepageRoute = AdminHomepageRouteImport.update({
   path: '/homepage',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminProductsRoute = AdminProductsRouteImport.update({
   id: '/products',
   path: '/products',
@@ -140,6 +146,7 @@ export interface FileRoutesByFullPath {
   '/admin/appointments': typeof AdminAppointmentsRoute
   '/admin/gallery': typeof AdminGalleryRoute
   '/admin/homepage': typeof AdminHomepageRoute
+  '/admin/login': typeof AdminLoginRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/testimonials': typeof AdminTestimonialsRoute
   '/shop/$productId': typeof ShopProductIdRoute
@@ -159,6 +166,7 @@ export interface FileRoutesByTo {
   '/admin/appointments': typeof AdminAppointmentsRoute
   '/admin/gallery': typeof AdminGalleryRoute
   '/admin/homepage': typeof AdminHomepageRoute
+  '/admin/login': typeof AdminLoginRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/testimonials': typeof AdminTestimonialsRoute
   '/shop/$productId': typeof ShopProductIdRoute
@@ -181,6 +189,7 @@ export interface FileRoutesById {
   '/admin/appointments': typeof AdminAppointmentsRoute
   '/admin/gallery': typeof AdminGalleryRoute
   '/admin/homepage': typeof AdminHomepageRoute
+  '/admin/login': typeof AdminLoginRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/testimonials': typeof AdminTestimonialsRoute
   '/shop/$productId': typeof ShopProductIdRoute
@@ -204,6 +213,7 @@ export interface FileRouteTypes {
     | '/admin/appointments'
     | '/admin/gallery'
     | '/admin/homepage'
+    | '/admin/login'
     | '/admin/products'
     | '/admin/testimonials'
     | '/shop/$productId'
@@ -223,6 +233,7 @@ export interface FileRouteTypes {
     | '/admin/appointments'
     | '/admin/gallery'
     | '/admin/homepage'
+    | '/admin/login'
     | '/admin/products'
     | '/admin/testimonials'
     | '/shop/$productId'
@@ -244,6 +255,7 @@ export interface FileRouteTypes {
     | '/admin/appointments'
     | '/admin/gallery'
     | '/admin/homepage'
+    | '/admin/login'
     | '/admin/products'
     | '/admin/testimonials'
     | '/shop/$productId'
@@ -371,6 +383,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminHomepageRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/products': {
       id: '/admin/products'
       path: '/products'
@@ -407,6 +426,7 @@ interface AdminRouteRouteChildren {
   AdminAppointmentsRoute: typeof AdminAppointmentsRoute
   AdminGalleryRoute: typeof AdminGalleryRoute
   AdminHomepageRoute: typeof AdminHomepageRoute
+  AdminLoginRoute: typeof AdminLoginRoute
   AdminProductsRoute: typeof AdminProductsRoute
   AdminTestimonialsRoute: typeof AdminTestimonialsRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -417,6 +437,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminAppointmentsRoute: AdminAppointmentsRoute,
   AdminGalleryRoute: AdminGalleryRoute,
   AdminHomepageRoute: AdminHomepageRoute,
+  AdminLoginRoute: AdminLoginRoute,
   AdminProductsRoute: AdminProductsRoute,
   AdminTestimonialsRoute: AdminTestimonialsRoute,
   AdminIndexRoute: AdminIndexRoute,
