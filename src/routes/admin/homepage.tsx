@@ -113,6 +113,65 @@ function BilingualField({
   );
 }
 
+/**
+ * Tags editor that lets the user type commas and spaces freely.
+ * The raw text is kept locally while typing and only parsed into a
+ * tag list on blur, so keystrokes are never reformatted mid-edit.
+ * The parent remounts this component (via `key`) after each commit,
+ * which normalizes the displayed list.
+ */
+function BilingualTagsField({
+  label,
+  valueEn,
+  valueZh,
+  onChange,
+}: {
+  label: string;
+  valueEn: string[] | undefined;
+  valueZh: string[] | undefined;
+  onChange: (locale: Locale, tags: string[]) => void;
+}) {
+  const baseId = useId();
+  const slug = label.toLowerCase().replace(/\s+/g, "-");
+  const [textEn, setTextEn] = useState(() => (valueEn ?? []).join(", "));
+  const [textZh, setTextZh] = useState(() => (valueZh ?? []).join(", "));
+
+  const commit = (locale: Locale, raw: string) => {
+    onChange(locale, parseTags(raw));
+  };
+
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={`${baseId}-${slug}-en`}>{label}</Label>
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <LangBadge>EN</LangBadge>
+          <Input
+            id={`${baseId}-${slug}-en`}
+            value={textEn}
+            onChange={(e) => setTextEn(e.target.value)}
+            onBlur={() => commit("en", textEn)}
+            placeholder="Bridal, Arabic, Festival"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <LangBadge>中文</LangBadge>
+          <Input
+            id={`${baseId}-${slug}-zh`}
+            value={textZh}
+            onChange={(e) => setTextZh(e.target.value)}
+            onBlur={() => commit("zh", textZh)}
+            placeholder="新娘、阿拉伯式、节日"
+          />
+        </div>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Separate tags with commas. The list is cleaned up when you leave the field.
+      </p>
+    </div>
+  );
+}
+
 function Field({
   label,
   value,
