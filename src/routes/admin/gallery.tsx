@@ -104,10 +104,7 @@ function AdminGalleryPage() {
     effectiveGalleryItems(overrides, "gallery").length +
     effectiveGalleryItems(overrides, "student").length;
   const trashRows = trashedGalleryItems(overrides);
-  const trashedCategories = [
-    ...categories,
-    // Trashed built-ins/customs are no longer in `categories`, so rebuild their labels.
-  ];
+  // Trashed built-ins/customs are no longer in `categories`, so rebuild their labels.
   const trashedCategoryRows: EffectiveGalleryCategory[] = overrides.deletedCategories.map((id) => {
     const custom = overrides.categories.find((c) => c.id === id);
     const edit = overrides.categoryEdits[id];
@@ -118,7 +115,6 @@ function AdminGalleryPage() {
       builtin: !custom,
     };
   });
-  void trashedCategories;
 
   /* ---------------- photo actions ---------------- */
 
@@ -631,7 +627,7 @@ function AdminGalleryPage() {
               titleEn: patch.titleEn,
               titleZh: patch.titleZh,
               categories: patch.categories,
-              image: patch.image,
+              ...(patch.image ? { image: patch.image } : {}),
             });
             if (cleaned) edits[row.item.id] = cleaned;
             return { ...prev, edits };
