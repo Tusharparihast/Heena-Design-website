@@ -130,6 +130,18 @@ function AdminGalleryPage() {
     });
   };
 
+  const setShared = (id: string, share: boolean) => {
+    update((prev) => ({
+      ...prev,
+      shared: share ? [...prev.shared, id] : prev.shared.filter((x) => x !== id),
+    }));
+    toast.success(share ? "Showing in both sections" : "Back to one section", {
+      description: share
+        ? "The photo now appears in both Designs and Student work."
+        : "The photo only appears in its own section now.",
+    });
+  };
+
   const trashPhoto = (id: string) => {
     update((prev) => ({
       ...prev,
@@ -156,6 +168,7 @@ function AdminGalleryPage() {
         edits,
         added: isCustom ? prev.added.filter((c) => c.id !== id) : prev.added,
         hidden: prev.hidden.filter((x) => x !== id),
+        shared: prev.shared.filter((x) => x !== id),
         deleted: prev.deleted.filter((x) => x !== id),
         purged: isCustom ? prev.purged : [...prev.purged, id],
       };
@@ -325,6 +338,16 @@ function AdminGalleryPage() {
                           Uncategorized
                         </Badge>
                       )}
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[11px] text-muted-foreground">
+                        {row.home === "gallery" ? "Also in student work" : "Also in designs"}
+                      </span>
+                      <Switch
+                        checked={row.mirrored}
+                        onCheckedChange={(checked) => setShared(row.item.id, checked)}
+                        aria-label={`Show ${row.item.en} in both sections`}
+                      />
                     </div>
                     <div className="flex items-center justify-between gap-2 border-t border-border pt-2">
                       <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
