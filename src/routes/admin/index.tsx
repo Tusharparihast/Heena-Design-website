@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 import { StatCard } from "@/components/admin/StatCard";
-import { useBookings } from "@/lib/appointments";
+import { useDbBookings } from "@/lib/bookings-db";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -65,7 +65,8 @@ function statusVariant(status: string) {
 
 function AdminDashboard() {
   // Live booking data from the Appointments manager (falls back to demo rows).
-  const { active: bookings } = useBookings();
+  const { bookings: dbBookings, loading: bookingsLoading } = useDbBookings();
+  const bookings = useMemo(() => dbBookings.filter((b) => !b.trashed), [dbBookings]);
   const pendingCount = bookings.filter((b) => b.status === "pending").length;
   const liveStats = useMemo(
     () =>
@@ -73,15 +74,16 @@ function AdminDashboard() {
         i === 0
           ? {
               ...s,
-              value: String(pendingCount),
-              delta:
-                pendingCount === 0
+              value: bookingsLoading ? "…" : String(pendingCount),
+              delta: bookingsLoading
+                ? "Loading bookings…"
+                : pendingCount === 0
                   ? "No pending requests"
                   : `${pendingCount} awaiting confirmation`,
             }
           : s,
       ),
-    [pendingCount],
+    [pendingCount, bookingsLoading],
   );
   const appointmentRows = useMemo(() => {
     if (bookings.length === 0) return [...appointments];
@@ -188,7 +190,7 @@ function AdminDashboard() {
       </div>
 
       <p className="text-center text-xs text-muted-foreground">
-        Dashboard preview with demo data — live stats arrive once the backend is connected.
+        Booking stats are live. Other tiles show demo data until those sections are connected.
       </p>
     </div>
   );

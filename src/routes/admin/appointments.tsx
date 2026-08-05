@@ -79,7 +79,18 @@ function fmtDate(date: string) {
 }
 
 function AdminAppointmentsPage() {
-  const store = useBookings();
+  const {
+    bookings: dbBookings,
+    loading: bookingsLoading,
+    refresh: refreshBookings,
+  } = useDbBookings();
+  const store = useMemo(
+    () => ({
+      active: dbBookings.filter((b) => !b.trashed),
+      trashed: dbBookings.filter((b) => b.trashed),
+    }),
+    [dbBookings],
+  );
   const settings = useAppointmentSettings();
   const patch = (p: Partial<AppointmentSettings>) =>
     writeAppointmentSettings({ ...settings, ...p });
@@ -247,7 +258,13 @@ function AdminAppointmentsPage() {
             ))}
           </div>
 
-          {filtered.length === 0 ? (
+                {bookingsLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
+                      Loading bookings…
+                    </TableCell>
+                  </TableRow>
+                ) : filtered.length === 0 ? (
             <Card className="shadow-none">
               <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
                 <CalendarCheck className="h-10 w-10 text-muted-foreground/50" />
@@ -553,7 +570,7 @@ function AdminAppointmentsPage() {
         open={editorOpen}
         onOpenChange={setEditorOpen}
         booking={editing}
-        onSave={saveBooking}
+        onSave={(b) => void saveBooking(b)}
       />
     </div>
   );

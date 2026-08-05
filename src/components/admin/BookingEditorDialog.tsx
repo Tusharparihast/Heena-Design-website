@@ -45,6 +45,7 @@ const sourceLabels: Record<BookingSource, string> = {
   wechat: "WeChat",
   phone: "Phone",
   "walk-in": "Walk-in",
+  email: "Email",
   other: "Other",
 };
 
