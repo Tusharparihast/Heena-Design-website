@@ -13,6 +13,7 @@ import {
   Settings,
   ShoppingBag,
   TrendingUp,
+  UsersRound,
   type LucideIcon,
 } from "lucide-react";
 
