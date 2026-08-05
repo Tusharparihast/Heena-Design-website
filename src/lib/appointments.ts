@@ -1,0 +1,407 @@
+import { useEffect, useMemo, useState } from "react";
+
+import { dictionaries, type Locale } from "@/i18n/dictionaries";
+
+/**
+ * Studio-managed appointments: booking log + booking-page settings.
+ *
+ * The public /appointment page sends booking details through WhatsApp,
+ * WeChat or email — nothing is stored automatically. The admin
+ * Appointments dashboard (/admin/appointments) lets the studio owner:
+ *   - log bookings received on any channel, track their status
+ *     (pending → confirmed → completed / cancelled) and manage a trash;
+ *   - control availability: weekly open days, blocked dates, max group size;
+ *   - edit the public booking page text and the service / time-slot
+ *     option lists bilingually.
+ *
+ * Until the backend phase lands, everything persists in localStorage
+ * (this browser only). The storage shape mirrors the future database
+ * schema so the same logic can move to Lovable Cloud unchanged.
+ */
+
+const BOOKINGS_KEY = "nd-appointment-bookings";
+const SETTINGS_KEY = "nd-appointment-settings";
+const BOOKINGS_EVENT = "nd:appointment-bookings";
+const SETTINGS_EVENT = "nd:appointment-settings";
+
+/* ------------------------------------------------------------------ */
+/* Types                                                               */
+/* ------------------------------------------------------------------ */
+
+export type BookingStatus = "pending" | "confirmed" | "completed" | "cancelled";
+export type BookingSource = "whatsapp" | "wechat" | "phone" | "walk-in" | "other";
+
+export const bookingStatuses: BookingStatus[] = [
+  "pending",
+  "confirmed",
+  "completed",
+  "cancelled",
+];
+export const bookingSources: BookingSource[] = [
+  "whatsapp",
+  "wechat",
+  "phone",
+  "walk-in",
+  "other",
+];
+
+/** One booking logged by the studio. */
+export interface Booking {
+  id: string;
+  name: string;
+  /** WeChat ID, phone number, WhatsApp — however the client reached out. */
+  contact: string;
+  service: string;
+  /** Local date, YYYY-MM-DD. */
+  date: string;
+  /** Time-slot label (from the option list or free text). */
+  time: string;
+  people: number;
+  notes: string;
+  source: BookingSource;
+  status: BookingStatus;
+  /** ISO timestamp of when the booking was logged. */
+  createdAt: string;
+}
+
+export interface BookingStore {
+  active: Booking[];
+  trashed: Booking[];
+}
+
+/** A selectable option edited in both languages at once. */
+export interface BilingualOption {
+  id: string;
+  en: string;
+  zh: string;
+}
+
+export interface AppointmentSettings {
+  /** Service options for the public form. undefined = dictionary defaults. */
+  services?: BilingualOption[] | undefined;
+  /** Time-slot options for the public form. undefined = dictionary defaults. */
+  timeSlots?: BilingualOption[] | undefined;
+  /** Weekdays the studio accepts bookings (0 = Sunday … 6 = Saturday). */
+  openDays: number[];
+  /** Specific dates (YYYY-MM-DD) the studio is closed / fully booked. */
+  blockedDates: string[];
+  /** Maximum group size per booking. */
+  maxPeople: number;
+  /** Public page text overrides (undefined keeps the dictionary defaults). */
+  titleEn?: string | undefined;
+  titleZh?: string | undefined;
+  bodyEn?: string | undefined;
+  bodyZh?: string | undefined;
+  noteEn?: string | undefined;
+  noteZh?: string | undefined;
+}
+
+export const emptyBookingStore: BookingStore = { active: [], trashed: [] };
+
+export const defaultAppointmentSettings: AppointmentSettings = {
+  openDays: [0, 1, 2, 3, 4, 5, 6],
+  blockedDates: [],
+  maxPeople: 10,
+};
+
+/* ------------------------------------------------------------------ */
+/* Dictionary defaults                                                 */
+/* ------------------------------------------------------------------ */
+
+/** Service options from the dictionaries, paired EN/中文 by position. */
+export function defaultServiceOptions(): BilingualOption[] {
+  const en = dictionaries.en.appointment.page.form.serviceOptions;
+  const zh = dictionaries.zh.appointment.page.form.serviceOptions;
+  return en.map((label, i) => ({ id: `svc-${i}`, en: label, zh: zh[i] ?? label }));
+}
+
+/** Time-slot options from the dictionaries, paired EN/中文 by position. */
+export function defaultTimeSlots(): BilingualOption[] {
+  const en = dictionaries.en.appointment.page.form.timeOptions;
+  const zh = dictionaries.zh.appointment.page.form.timeOptions;
+  return en.map((label, i) => ({ id: `slot-${i}`, en: label, zh: zh[i] ?? label }));
+}
+
+/** The options the public form shows (admin list wins when customized). */
+export function effectiveServices(s: AppointmentSettings): BilingualOption[] {
+  return s.services && s.services.length > 0 ? s.services : defaultServiceOptions();
+}
+
+export function effectiveTimeSlots(s: AppointmentSettings): BilingualOption[] {
+  return s.timeSlots && s.timeSlots.length > 0 ? s.timeSlots : defaultTimeSlots();
+}
+
+/* ------------------------------------------------------------------ */
+/* Availability                                                        */
+/* ------------------------------------------------------------------ */
+
+export type DateAvailability = "open" | "closed-day" | "blocked";
+
+/** Whether a YYYY-MM-DD date can be booked under the current settings. */
+export function dateAvailability(
+  settings: AppointmentSettings,
+  dateStr: string,
+): DateAvailability {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return "open";
+  if (settings.blockedDates.includes(dateStr)) return "blocked";
+  // Parse as local noon so timezone shifts never move the weekday.
+  const day = new Date(`${dateStr}T12:00:00`).getDay();
+  if (!settings.openDays.includes(day)) return "closed-day";
+  return "open";
+}
+
+/** Today's date in local time, YYYY-MM-DD. */
+export function todayStr(): string {
+  const d = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+/* ------------------------------------------------------------------ */
+/* Sanitizers                                                          */
+/* ------------------------------------------------------------------ */
+
+function cleanText(value: unknown, max = 200): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  return trimmed ? trimmed.slice(0, max) : undefined;
+}
+
+function cleanDate(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const trimmed = value.trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(trimmed) ? trimmed : undefined;
+}
+
+function cleanStatus(value: unknown): BookingStatus {
+  return bookingStatuses.includes(value as BookingStatus)
+    ? (value as BookingStatus)
+    : "pending";
+}
+
+function cleanSource(value: unknown): BookingSource {
+  return bookingSources.includes(value as BookingSource)
+    ? (value as BookingSource)
+    : "other";
+}
+
+function cleanBooking(raw: unknown): Booking | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const b = raw as Record<string, unknown>;
+  const id = cleanText(b["id"], 60);
+  const name = cleanText(b["name"], 80);
+  const date = cleanDate(b["date"]);
+  if (!id || !name || !date) return undefined;
+  const people =
+    typeof b["people"] === "number" && Number.isFinite(b["people"])
+      ? Math.min(50, Math.max(1, Math.round(b["people"])))
+      : 1;
+  return {
+    id,
+    name,
+    contact: cleanText(b["contact"], 120) ?? "",
+    service: cleanText(b["service"], 120) ?? "",
+    date,
+    time: cleanText(b["time"], 120) ?? "",
+    people,
+    notes: cleanText(b["notes"], 500) ?? "",
+    source: cleanSource(b["source"]),
+    status: cleanStatus(b["status"]),
+    createdAt: cleanText(b["createdAt"], 40) ?? new Date().toISOString(),
+  };
+}
+
+function cleanOption(raw: unknown): BilingualOption | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const o = raw as Record<string, unknown>;
+  const id = cleanText(o["id"], 60);
+  const en = cleanText(o["en"], 120);
+  const zh = cleanText(o["zh"], 120);
+  // Keep an option as long as one locale has text — the other falls back.
+  if (!id || (!en && !zh)) return undefined;
+  return { id, en: en ?? zh ?? "", zh: zh ?? "" };
+}
+
+function cleanOptionList(value: unknown): BilingualOption[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const seen = new Set<string>();
+  const list = value
+    .map(cleanOption)
+    .filter((o): o is BilingualOption => {
+      if (!o || seen.has(o.id)) return false;
+      seen.add(o.id);
+      return true;
+    });
+  return list.length > 0 ? list : undefined;
+}
+
+function sanitizeBookings(raw: unknown): BookingStore {
+  if (!raw || typeof raw !== "object") return emptyBookingStore;
+  const obj = raw as Record<string, unknown>;
+  const seen = new Set<string>();
+  const cleanList = (value: unknown): Booking[] =>
+    (Array.isArray(value) ? value : [])
+      .map(cleanBooking)
+      .filter((b): b is Booking => {
+        if (!b || seen.has(b.id)) return false;
+        seen.add(b.id);
+        return true;
+      });
+  return { active: cleanList(obj["active"]), trashed: cleanList(obj["trashed"]) };
+}
+
+function sanitizeSettings(raw: unknown): AppointmentSettings {
+  if (!raw || typeof raw !== "object") return defaultAppointmentSettings;
+  const obj = raw as Record<string, unknown>;
+
+  const rawDays = obj["openDays"];
+  const openDays = Array.isArray(rawDays)
+    ? [...new Set(rawDays.filter((d): d is number => Number.isInteger(d) && d >= 0 && d <= 6))].sort()
+    : defaultAppointmentSettings.openDays;
+
+  const rawBlocked = obj["blockedDates"];
+  const blockedDates = Array.isArray(rawBlocked)
+    ? [...new Set(rawBlocked.map(cleanDate).filter((d): d is string => !!d))].sort()
+    : [];
+
+  const rawMax = obj["maxPeople"];
+  const maxPeople =
+    typeof rawMax === "number" && Number.isFinite(rawMax)
+      ? Math.min(50, Math.max(1, Math.round(rawMax)))
+      : defaultAppointmentSettings.maxPeople;
+
+  return {
+    services: cleanOptionList(obj["services"]),
+    timeSlots: cleanOptionList(obj["timeSlots"]),
+    openDays,
+    blockedDates,
+    maxPeople,
+    titleEn: cleanText(obj["titleEn"], 120),
+    titleZh: cleanText(obj["titleZh"], 120),
+    bodyEn: cleanText(obj["bodyEn"], 400),
+    bodyZh: cleanText(obj["bodyZh"], 400),
+    noteEn: cleanText(obj["noteEn"], 200),
+    noteZh: cleanText(obj["noteZh"], 200),
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/* Persistence                                                         */
+/* ------------------------------------------------------------------ */
+
+export function readBookings(): BookingStore {
+  if (typeof window === "undefined") return emptyBookingStore;
+  try {
+    const raw = window.localStorage.getItem(BOOKINGS_KEY);
+    if (!raw) return emptyBookingStore;
+    return sanitizeBookings(JSON.parse(raw));
+  } catch {
+    return emptyBookingStore;
+  }
+}
+
+export function writeBookings(store: BookingStore) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(BOOKINGS_KEY, JSON.stringify(sanitizeBookings(store)));
+  window.dispatchEvent(new CustomEvent(BOOKINGS_EVENT));
+}
+
+export function readAppointmentSettings(): AppointmentSettings {
+  if (typeof window === "undefined") return defaultAppointmentSettings;
+  try {
+    const raw = window.localStorage.getItem(SETTINGS_KEY);
+    if (!raw) return defaultAppointmentSettings;
+    return sanitizeSettings(JSON.parse(raw));
+  } catch {
+    return defaultAppointmentSettings;
+  }
+}
+
+export function writeAppointmentSettings(settings: AppointmentSettings) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(sanitizeSettings(settings)));
+  window.dispatchEvent(new CustomEvent(SETTINGS_EVENT));
+}
+
+/* ------------------------------------------------------------------ */
+/* Id helpers                                                          */
+/* ------------------------------------------------------------------ */
+
+/** Unique id for a new booking. */
+export function makeBookingId(): string {
+  return `b-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+/** Unique id for a new option in a list. */
+export function makeOptionId(prefix: string, taken: ReadonlySet<string>): string {
+  let n = taken.size + 1;
+  let candidate = `${prefix}-${n}`;
+  while (taken.has(candidate)) {
+    n += 1;
+    candidate = `${prefix}-${n}`;
+  }
+  return candidate;
+}
+
+/* ------------------------------------------------------------------ */
+/* React hooks                                                         */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Client-side stored value. Starts from `empty` so SSR/hydration matches
+ * the static defaults, then syncs from localStorage and live admin edits
+ * (custom event + cross-tab storage event).
+ */
+function useStoredValue<T>(empty: T, event: string, read: () => T): T {
+  const [value, setValue] = useState<T>(empty);
+  useEffect(() => {
+    const sync = () => setValue(read());
+    sync();
+    window.addEventListener(event, sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener(event, sync);
+      window.removeEventListener("storage", sync);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return value;
+}
+
+/** Live booking store (active + trashed), synced with admin edits. */
+export function useBookings(): BookingStore {
+  return useStoredValue(emptyBookingStore, BOOKINGS_EVENT, readBookings);
+}
+
+/** Live appointment settings, synced with admin edits. */
+export function useAppointmentSettings(): AppointmentSettings {
+  return useStoredValue(defaultAppointmentSettings, SETTINGS_EVENT, readAppointmentSettings);
+}
+
+/** Public booking-page content resolved to one locale. */
+export interface ResolvedAppointmentPage {
+  title: string;
+  body: string;
+  note: string;
+  services: string[];
+  timeSlots: string[];
+  maxPeople: number;
+}
+
+export function useEffectiveAppointmentPage(locale: Locale): ResolvedAppointmentPage {
+  const settings = useAppointmentSettings();
+  return useMemo(() => {
+    const pick = (zh: string | undefined, en: string | undefined, fallback: string) =>
+      locale === "zh" ? (zh ?? en ?? fallback) : (en ?? fallback);
+    const dict = dictionaries[locale].appointment.page;
+    const opt = (o: BilingualOption) => (locale === "zh" && o.zh ? o.zh : o.en);
+    return {
+      title: pick(settings.titleZh, settings.titleEn, dict.title),
+      body: pick(settings.bodyZh, settings.bodyEn, dict.body),
+      note: pick(settings.noteZh, settings.noteEn, dict.summary.note),
+      services: effectiveServices(settings).map(opt),
+      timeSlots: effectiveTimeSlots(settings).map(opt),
+      maxPeople: settings.maxPeople,
+    };
+  }, [settings, locale]);
+}

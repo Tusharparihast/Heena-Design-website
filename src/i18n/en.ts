@@ -463,6 +463,10 @@ export const en = {
         copied: "Copied",
         note: "Appointments are confirmed only after talking with the studio.",
       },
+      availability: {
+        closedDay: "The studio is closed on this day of the week — please pick another date.",
+        blocked: "The studio is fully booked or closed on this date — please pick another date.",
+      },
     },
   },
   shopPage: {
