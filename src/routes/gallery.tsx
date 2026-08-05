@@ -26,6 +26,8 @@ export const Route = createFileRoute("/gallery")({
 
 function GalleryPage() {
   const { t } = useLanguage();
+  const items = useEffectiveGalleryItems("gallery");
+  const categories = useEffectiveGalleryCategories();
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
@@ -35,7 +37,10 @@ function GalleryPage() {
       <h1 className="mt-3 text-4xl font-semibold sm:text-5xl">{t.galleryPage.title}</h1>
 
       <div className="mt-6">
-        <GalleryBrowser />
+        <GalleryBrowser
+          items={items}
+          categories={categories.map((c) => ({ id: c.id, en: c.nameEn, zh: c.nameZh }))}
+        />
       </div>
     </main>
   );
