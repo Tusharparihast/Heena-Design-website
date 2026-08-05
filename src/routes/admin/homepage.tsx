@@ -386,7 +386,7 @@ function AdminHomepagePage() {
     });
   };
 
-  const patchSharedMedia = (key: "about" | "video", patch: object) => {
+  const patchSharedMedia = (key: "about" | "video" | "traditional" | "modern", patch: object) => {
     setDraft((prev) => {
       const next = { ...prev };
       for (const locale of LOCALES) {
@@ -432,15 +432,93 @@ function AdminHomepagePage() {
     });
   };
 
+  /** Shared editor for the Traditional and Modern design sections. */
+  const designTab = (blockKey: "traditional" | "modern") => {
+    const defaults = blockKey === "traditional" ? traditionalImages : modernImages;
+    const textEn = draft.en?.[blockKey] ?? {};
+    const textZh = draft.zh?.[blockKey] ?? {};
+    const images = draft.en?.[blockKey]?.images ?? defaults;
+    const hasCustomImages = draft.en?.[blockKey]?.images !== undefined;
+    const base = { en: dictionaries.en[blockKey], zh: dictionaries.zh[blockKey] };
+    const sectionName = blockKey === "traditional" ? "Traditional" : "Modern";
+
+    return (
+      <TabsContent value={blockKey} className="space-y-6">
+        <Card>
+          <CardHeader className="flex flex-row items-start justify-between gap-4">
+            <div>
+              <CardTitle>{sectionName} text</CardTitle>
+              <CardDescription>
+                Heading, body and tags for the {sectionName} section.
+              </CardDescription>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => resetSection(blockKey)}>
+              <RotateCcw className="mr-2 h-4 w-4" />
+              Reset
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <BilingualField
+              label="Label"
+              valueEn={textEn.label ?? base.en.label}
+              valueZh={textZh.label ?? base.zh.label}
+              onChange={(loc, v) => patchSection(loc, blockKey, { label: v })}
+            />
+            <BilingualField
+              label="Title"
+              valueEn={textEn.title ?? base.en.title}
+              valueZh={textZh.title ?? base.zh.title}
+              onChange={(loc, v) => patchSection(loc, blockKey, { title: v })}
+            />
+            <BilingualField
+              label="Body"
+              valueEn={textEn.body ?? base.en.body}
+              valueZh={textZh.body ?? base.zh.body}
+              onChange={(loc, v) => patchSection(loc, blockKey, { body: v })}
+              multiline
+            />
+            <BilingualField
+              label="Tags (comma separated)"
+              valueEn={(textEn.tags ?? base.en.tags).join(", ")}
+              valueZh={(textZh.tags ?? base.zh.tags).join(", ")}
+              onChange={(loc, v) => patchSection(loc, blockKey, { tags: parseTags(v) })}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{sectionName} images</CardTitle>
+            <CardDescription>
+              Shared by both languages. Hover an image to replace or remove it; use the dashed tile
+              to add more.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ImagesManager
+              images={images}
+              onChange={(imgs) => patchSharedMedia(blockKey, { images: imgs })}
+              onReset={
+                hasCustomImages
+                  ? () => patchSharedMedia(blockKey, { images: undefined })
+                  : undefined
+              }
+            />
+          </CardContent>
+        </Card>
+      </TabsContent>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Homepage</h1>
           <p className="text-sm text-muted-foreground">
-            Edit the landing page Hero, About, Why Learn and Watch sections. Every text field shows
-            English first with 中文 below; images and videos are shared across both languages. Save
-            to update the public site.
+            Edit the landing page Hero, About, Why Learn, Traditional, Modern and Watch sections.
+            Every text field shows English first with 中文 below; images and videos are shared
+            across both languages. Save to update the public site.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -462,6 +540,8 @@ function AdminHomepagePage() {
           <TabsTrigger value="hero">Hero</TabsTrigger>
           <TabsTrigger value="about">About</TabsTrigger>
           <TabsTrigger value="why">Why Learn</TabsTrigger>
+          <TabsTrigger value="traditional">Traditional</TabsTrigger>
+          <TabsTrigger value="modern">Modern</TabsTrigger>
           <TabsTrigger value="video">Watch</TabsTrigger>
         </TabsList>
 
