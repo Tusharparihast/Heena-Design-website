@@ -1,5 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { Eye, ImagePlus, RotateCcw, Save, Trash2 } from "lucide-react";
+import { Eye, ImagePlus, Plus, RotateCcw, Save, Trash2 } from "lucide-react";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { type Locale, dictionaries } from "@/i18n/dictionaries";
 import { fileToDataUrl } from "@/lib/image-upload";
+import { modernImages, traditionalImages } from "@/lib/design-images";
 import {
   type HomepageHeroMedia,
   type HomepageOverrides,
@@ -28,6 +29,14 @@ export const Route = createFileRoute("/admin/homepage")({
 });
 
 const LOCALES: Locale[] = ["en", "zh"];
+
+/** Split a comma-separated tag string (English or Chinese commas) into a clean list. */
+function parseTags(value: string): string[] {
+  return value
+    .split(/[,、，]/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
 
 function LangBadge({ children }: { children: React.ReactNode }) {
   return (
@@ -229,6 +238,96 @@ function ImageField({
   );
 }
 
+/** Image grid manager for the Traditional / Modern sections: replace, remove and add tiles. */
+function ImagesManager({
+  images,
+  onChange,
+  onReset,
+}: {
+  images: string[];
+  onChange: (imgs: string[]) => void;
+  onReset?: (() => void) | undefined;
+}) {
+  const fileInput = useRef<HTMLInputElement>(null);
+  const pending = useRef<number | "add" | null>(null);
+
+  const pick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    const target = pending.current;
+    pending.current = null;
+    if (!file || target === null) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file.");
+      return;
+    }
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      if (target === "add") onChange([...images, dataUrl]);
+      else onChange(images.map((img, i) => (i === target ? dataUrl : img)));
+    } catch {
+      toast.error("Could not use that image. Try another one.");
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+        {images.map((src, i) => (
+          <div key={i} className="group relative overflow-hidden rounded-lg border border-border">
+            <img
+              src={src}
+              alt={`Design ${i + 1}`}
+              className="aspect-square h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 flex items-center justify-center gap-1 bg-background/70 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
+              <Button
+                type="button"
+                size="icon"
+                variant="secondary"
+                aria-label={`Replace image ${i + 1}`}
+                onClick={() => {
+                  pending.current = i;
+                  fileInput.current?.click();
+                }}
+              >
+                <ImagePlus className="h-4 w-4" />
+              </Button>
+              <Button
+                type="button"
+                size="icon"
+                variant="secondary"
+                aria-label={`Remove image ${i + 1}`}
+                onClick={() => onChange(images.filter((_, j) => j !== i))}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        ))}
+        <button
+          type="button"
+          aria-label="Add image"
+          onClick={() => {
+            pending.current = "add";
+            fileInput.current?.click();
+          }}
+          className="flex aspect-square items-center justify-center rounded-lg border border-dashed border-border text-muted-foreground transition-colors hover:bg-muted"
+        >
+          <Plus className="h-5 w-5" />
+        </button>
+      </div>
+      <input ref={fileInput} type="file" accept="image/*" className="hidden" onChange={pick} />
+      {onReset && (
+        <Button type="button" variant="ghost" size="sm" onClick={onReset}>
+          <RotateCcw className="mr-2 h-4 w-4" />
+          Restore default images
+        </Button>
+      )}
+    </div>
+  );
+}
+
 function AdminHomepagePage() {
   const { homeOverrides, setHomepageOverrides } = useLanguage();
   const [draft, setDraft] = useState<HomepageOverrides>(homeOverrides);
@@ -287,7 +386,7 @@ function AdminHomepagePage() {
     });
   };
 
-  const patchSharedMedia = (key: "about" | "video", patch: object) => {
+  const patchSharedMedia = (key: "about" | "video" | "traditional" | "modern", patch: object) => {
     setDraft((prev) => {
       const next = { ...prev };
       for (const locale of LOCALES) {
@@ -333,15 +432,93 @@ function AdminHomepagePage() {
     });
   };
 
+  /** Shared editor for the Traditional and Modern design sections. */
+  const designTab = (blockKey: "traditional" | "modern") => {
+    const defaults = blockKey === "traditional" ? traditionalImages : modernImages;
+    const textEn = draft.en?.[blockKey] ?? {};
+    const textZh = draft.zh?.[blockKey] ?? {};
+    const images = draft.en?.[blockKey]?.images ?? defaults;
+    const hasCustomImages = draft.en?.[blockKey]?.images !== undefined;
+    const base = { en: dictionaries.en[blockKey], zh: dictionaries.zh[blockKey] };
+    const sectionName = blockKey === "traditional" ? "Traditional" : "Modern";
+
+    return (
+      <TabsContent value={blockKey} className="space-y-6">
+        <Card>
+          <CardHeader className="flex flex-row items-start justify-between gap-4">
+            <div>
+              <CardTitle>{sectionName} text</CardTitle>
+              <CardDescription>
+                Heading, body and tags for the {sectionName} section.
+              </CardDescription>
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => resetSection(blockKey)}>
+              <RotateCcw className="mr-2 h-4 w-4" />
+              Reset
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <BilingualField
+              label="Label"
+              valueEn={textEn.label ?? base.en.label}
+              valueZh={textZh.label ?? base.zh.label}
+              onChange={(loc, v) => patchSection(loc, blockKey, { label: v })}
+            />
+            <BilingualField
+              label="Title"
+              valueEn={textEn.title ?? base.en.title}
+              valueZh={textZh.title ?? base.zh.title}
+              onChange={(loc, v) => patchSection(loc, blockKey, { title: v })}
+            />
+            <BilingualField
+              label="Body"
+              valueEn={textEn.body ?? base.en.body}
+              valueZh={textZh.body ?? base.zh.body}
+              onChange={(loc, v) => patchSection(loc, blockKey, { body: v })}
+              multiline
+            />
+            <BilingualField
+              label="Tags (comma separated)"
+              valueEn={(textEn.tags ?? base.en.tags).join(", ")}
+              valueZh={(textZh.tags ?? base.zh.tags).join(", ")}
+              onChange={(loc, v) => patchSection(loc, blockKey, { tags: parseTags(v) })}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{sectionName} images</CardTitle>
+            <CardDescription>
+              Shared by both languages. Hover an image to replace or remove it; use the dashed tile
+              to add more.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ImagesManager
+              images={images}
+              onChange={(imgs) => patchSharedMedia(blockKey, { images: imgs })}
+              onReset={
+                hasCustomImages
+                  ? () => patchSharedMedia(blockKey, { images: undefined })
+                  : undefined
+              }
+            />
+          </CardContent>
+        </Card>
+      </TabsContent>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Homepage</h1>
           <p className="text-sm text-muted-foreground">
-            Edit the landing page Hero, About, Why Learn and Watch sections. Every text field shows
-            English first with 中文 below; images and videos are shared across both languages. Save
-            to update the public site.
+            Edit the landing page Hero, About, Why Learn, Traditional, Modern and Watch sections.
+            Every text field shows English first with 中文 below; images and videos are shared
+            across both languages. Save to update the public site.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -363,6 +540,8 @@ function AdminHomepagePage() {
           <TabsTrigger value="hero">Hero</TabsTrigger>
           <TabsTrigger value="about">About</TabsTrigger>
           <TabsTrigger value="why">Why Learn</TabsTrigger>
+          <TabsTrigger value="traditional">Traditional</TabsTrigger>
+          <TabsTrigger value="modern">Modern</TabsTrigger>
           <TabsTrigger value="video">Watch</TabsTrigger>
         </TabsList>
 
@@ -603,6 +782,9 @@ function AdminHomepagePage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {designTab("traditional")}
+        {designTab("modern")}
 
         <TabsContent value="video" className="space-y-6">
           <Card>
