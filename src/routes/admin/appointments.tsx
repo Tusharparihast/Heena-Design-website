@@ -47,14 +47,19 @@ import {
   makeOptionId,
   todayStr,
   useAppointmentSettings,
-  useBookings,
   writeAppointmentSettings,
-  writeBookings,
   type AppointmentSettings,
   type BilingualOption,
   type Booking,
   type BookingStatus,
 } from "@/lib/appointments";
+import {
+  deleteDbBooking,
+  insertDbBooking,
+  setDbBookingTrashed,
+  updateDbBooking,
+  useDbBookings,
+} from "@/lib/bookings-db";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/appointments")({
@@ -131,37 +136,41 @@ function AdminAppointmentsPage() {
   ).length;
   const completedCount = store.active.filter((b) => b.status === "completed").length;
 
-  function saveBooking(b: Booking) {
+  async function saveBooking(b: Booking) {
     const exists = store.active.some((x) => x.id === b.id);
-    const active = exists
-      ? store.active.map((x) => (x.id === b.id ? b : x))
-      : [b, ...store.active];
-    writeBookings({ ...store, active });
+    const ok = exists ? await updateDbBooking(b) : await insertDbBooking(b);
+    if (!ok) {
+      toast.error("Couldn't save the booking. Please try again.");
+      return;
+    }
+    await refreshBookings();
     toast.success(exists ? "Booking updated." : "Booking added.");
   }
 
-  function trashBooking(id: string) {
-    const b = store.active.find((x) => x.id === id);
-    if (!b) return;
-    writeBookings({
-      active: store.active.filter((x) => x.id !== id),
-      trashed: [b, ...store.trashed],
-    });
+  async function trashBooking(id: string) {
+    if (!(await setDbBookingTrashed(id, true))) {
+      toast.error("Couldn't move the booking to trash.");
+      return;
+    }
+    await refreshBookings();
     toast.success("Moved to trash.");
   }
 
-  function restoreBooking(id: string) {
-    const b = store.trashed.find((x) => x.id === id);
-    if (!b) return;
-    writeBookings({
-      active: [b, ...store.active],
-      trashed: store.trashed.filter((x) => x.id !== id),
-    });
+  async function restoreBooking(id: string) {
+    if (!(await setDbBookingTrashed(id, false))) {
+      toast.error("Couldn't restore the booking.");
+      return;
+    }
+    await refreshBookings();
     toast.success("Booking restored.");
   }
 
-  function purgeBooking(id: string) {
-    writeBookings({ ...store, trashed: store.trashed.filter((x) => x.id !== id) });
+  async function purgeBooking(id: string) {
+    if (!(await deleteDbBooking(id))) {
+      toast.error("Couldn't delete the booking.");
+      return;
+    }
+    await refreshBookings();
     toast.success("Deleted permanently.");
   }
 
@@ -258,13 +267,13 @@ function AdminAppointmentsPage() {
             ))}
           </div>
 
-                {bookingsLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="py-10 text-center text-muted-foreground">
-                      Loading bookings…
-                    </TableCell>
-                  </TableRow>
-                ) : filtered.length === 0 ? (
+          {bookingsLoading ? (
+            <Card className="shadow-none">
+              <CardContent className="py-12 text-center text-sm text-muted-foreground">
+                Loading bookings…
+              </CardContent>
+            </Card>
+          ) : filtered.length === 0 ? (
             <Card className="shadow-none">
               <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
                 <CalendarCheck className="h-10 w-10 text-muted-foreground/50" />
