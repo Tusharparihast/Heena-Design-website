@@ -783,6 +783,9 @@ function AdminHomepagePage() {
           </Card>
         </TabsContent>
 
+        {designTab("traditional")}
+        {designTab("modern")}
+
         <TabsContent value="video" className="space-y-6">
           <Card>
             <CardHeader className="flex flex-row items-start justify-between gap-4">
