@@ -138,7 +138,7 @@ function AdminTeamPage() {
         />
         <StatCard
           label="Signed in as"
-          value={self ? self.email.split("@")[0] : "—"}
+          value={self ? (self.email.split("@").at(0) ?? "—") : "—"}
           delta={self?.email ?? ""}
           icon={UserRoundCheck}
         />
