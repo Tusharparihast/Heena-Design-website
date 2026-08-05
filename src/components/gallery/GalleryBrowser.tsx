@@ -7,14 +7,13 @@ import {
   GALLERY_PAGE_SIZE,
   galleryCategories,
   galleryItems,
-  type CategoryId,
   type GalleryItem,
 } from "@/lib/gallery";
 import { cn } from "@/lib/utils";
 
 type GalleryBrowserProps = {
   items?: GalleryItem[];
-  categories?: { id: CategoryId; en: string; zh: string }[];
+  categories?: { id: string; en: string; zh: string }[];
   intro?: string;
 };
 
@@ -23,7 +22,7 @@ export function GalleryBrowser({ items = galleryItems, categories = galleryCateg
   const g = t.galleryPage;
   const displayedIntro = intro ?? t.galleryPage.intro;
 
-  const [category, setCategory] = useState<CategoryId | "all">("all");
+  const [category, setCategory] = useState<string>("all");
   const [query, setQuery] = useState("");
   const [visible, setVisible] = useState(GALLERY_PAGE_SIZE);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
