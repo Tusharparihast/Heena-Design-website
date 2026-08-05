@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { GalleryBrowser } from "@/components/gallery/GalleryBrowser";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { studentWorkItems } from "@/lib/gallery";
+import {
+  useEffectiveGalleryCategories,
+  useEffectiveGalleryItems,
+} from "@/lib/gallery-overrides";
 
 const title = "Student Mehndi Work — Beginner to Bridal Practice | Nagma Designs";
 const description =

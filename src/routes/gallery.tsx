@@ -1,6 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { GalleryBrowser } from "@/components/gallery/GalleryBrowser";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import {
+  useEffectiveGalleryCategories,
+  useEffectiveGalleryItems,
+} from "@/lib/gallery-overrides";
 
 const title = "Mehndi Gallery — Bridal, Arabic & Modern Henna Designs | Nagma Designs";
 const description =
