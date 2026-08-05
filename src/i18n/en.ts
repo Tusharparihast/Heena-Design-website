@@ -39,6 +39,9 @@ export const en = {
     stat1: "Years of practice",
     stat2: "Hands adorned",
     stat3: "Students taught",
+    statValue1: "10+",
+    statValue2: "800+",
+    statValue3: "120+",
   },
   why: {
     label: "Why Learn Mehndi",

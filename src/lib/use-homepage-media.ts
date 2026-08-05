@@ -16,9 +16,14 @@ export function useHeroMedia() {
   };
 }
 
-export function useAboutImage() {
+export function useAboutMedia() {
   const { locale, homeOverrides } = useLanguage();
-  return homeOverrides[locale]?.about?.imageUrl ?? aboutDefault;
+  const about = homeOverrides[locale]?.about;
+  return {
+    imageUrl: about?.imageUrl ?? aboutDefault,
+    videoUrl: about?.videoUrl,
+    posterUrl: about?.posterUrl,
+  };
 }
 
 export function useVideoMedia() {

@@ -16,7 +16,12 @@ export type HomepageHeroMedia = {
 
 export type HomepageHeroOverrides = Partial<Dict["hero"]> & { media?: HomepageHeroMedia };
 
-export type HomepageAboutOverrides = Partial<Dict["about"]> & { imageUrl?: string | undefined };
+export type HomepageAboutOverrides = Partial<Dict["about"]> & {
+  imageUrl?: string | undefined;
+  /** When set, the about section shows this video instead of the image. */
+  videoUrl?: string | undefined;
+  posterUrl?: string | undefined;
+};
 
 export type HomepageVideoOverrides = Partial<Dict["video"]> & {
   videoUrl?: string | undefined;
@@ -107,7 +112,7 @@ export function mergeHomepageDictionary(
     next.hero = mergeSection(dict.hero, heroText);
   }
   if (overrides.about) {
-    const { imageUrl: _, ...aboutText } = overrides.about;
+    const { imageUrl: _, videoUrl: _v, posterUrl: _p, ...aboutText } = overrides.about;
     next.about = mergeSection(dict.about, aboutText);
   }
   if (overrides.video) {

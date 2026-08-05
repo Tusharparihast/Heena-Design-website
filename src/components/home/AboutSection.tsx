@@ -1,30 +1,43 @@
 import { Section, SectionHeading } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { useAboutImage } from "@/lib/use-homepage-media";
+import { useAboutMedia } from "@/lib/use-homepage-media";
 
 
 export function AboutSection() {
   const { t } = useLanguage();
-  const aboutImage = useAboutImage();
+  const media = useAboutMedia();
 
   const stats = [
-    { value: "10+", label: t.about.stat1 },
-    { value: "800+", label: t.about.stat2 },
-    { value: "120+", label: t.about.stat3 },
+    { value: t.about.statValue1, label: t.about.stat1 },
+    { value: t.about.statValue2, label: t.about.stat2 },
+    { value: t.about.statValue3, label: t.about.stat3 },
   ];
 
   return (
     <Section id="about" className="bg-card">
       <div className="grid items-center gap-12 lg:grid-cols-2">
-        <img
-          src={aboutImage}
-          width={1200}
-          height={900}
-          loading="lazy"
-          alt="Henna cones, dried henna leaves and mehndi stencils arranged on cream cloth"
-          className="w-full rounded-2xl object-cover"
-          style={{ boxShadow: "var(--shadow-soft)" }}
-        />
+        {media.videoUrl ? (
+          <video
+            src={media.videoUrl}
+            poster={media.posterUrl}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="w-full rounded-2xl object-cover"
+            style={{ boxShadow: "var(--shadow-soft)" }}
+          />
+        ) : (
+          <img
+            src={media.imageUrl}
+            width={1200}
+            height={900}
+            loading="lazy"
+            alt="Henna cones, dried henna leaves and mehndi stencils arranged on cream cloth"
+            className="w-full rounded-2xl object-cover"
+            style={{ boxShadow: "var(--shadow-soft)" }}
+          />
+        )}
 
         <div>
           <SectionHeading label={t.about.label} title={t.about.title} />

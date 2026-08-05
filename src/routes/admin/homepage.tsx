@@ -503,22 +503,56 @@ function AdminHomepagePage() {
                 valueZh={aboutZh.stat3 ?? dictionaries.zh.about.stat3}
                 onChange={(loc, v) => patchSection(loc, "about", { stat3: v })}
               />
+              <div className="grid gap-4 sm:grid-cols-3">
+                <Field
+                  label="Stat 1 number"
+                  value={aboutEn.statValue1 ?? dictionaries.en.about.statValue1}
+                  onChange={(v) => patchSharedMedia("about", { statValue1: v || undefined })}
+                  placeholder="10+"
+                />
+                <Field
+                  label="Stat 2 number"
+                  value={aboutEn.statValue2 ?? dictionaries.en.about.statValue2}
+                  onChange={(v) => patchSharedMedia("about", { statValue2: v || undefined })}
+                  placeholder="800+"
+                />
+                <Field
+                  label="Stat 3 number"
+                  value={aboutEn.statValue3 ?? dictionaries.en.about.statValue3}
+                  onChange={(v) => patchSharedMedia("about", { statValue3: v || undefined })}
+                  placeholder="120+"
+                />
+              </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>About image</CardTitle>
+              <CardTitle>About media</CardTitle>
               <CardDescription>
-                Shared by both languages — leave blank to keep the bundled default.
+                Shared by both languages — leave blank to keep the bundled default. If a video URL
+                is set, the video is shown instead of the image.
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <ImageField
                 label="Image"
                 value={aboutEn.imageUrl}
                 onChange={(v) => patchSharedMedia("about", { imageUrl: v || undefined })}
               />
+              <Field
+                label="About video URL"
+                value={aboutEn.videoUrl}
+                onChange={(v) => patchSharedMedia("about", { videoUrl: v || undefined })}
+                placeholder="/assets/about-video.mp4 or https://..."
+              />
+              {aboutEn.videoUrl && (
+                <ImageField
+                  label="Video poster"
+                  value={aboutEn.posterUrl}
+                  onChange={(v) => patchSharedMedia("about", { posterUrl: v || undefined })}
+                />
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -613,18 +647,6 @@ function AdminHomepagePage() {
                 valueEn={videoEn.note ?? dictionaries.en.video.note}
                 valueZh={videoZh.note ?? dictionaries.zh.video.note}
                 onChange={(loc, v) => patchSection(loc, "video", { note: v })}
-              />
-              <BilingualField
-                label="Expand label"
-                valueEn={videoEn.expand ?? dictionaries.en.video.expand}
-                valueZh={videoZh.expand ?? dictionaries.zh.video.expand}
-                onChange={(loc, v) => patchSection(loc, "video", { expand: v })}
-              />
-              <BilingualField
-                label="Close label"
-                valueEn={videoEn.close ?? dictionaries.en.video.close}
-                valueZh={videoZh.close ?? dictionaries.zh.video.close}
-                onChange={(loc, v) => patchSection(loc, "video", { close: v })}
               />
             </CardContent>
           </Card>
