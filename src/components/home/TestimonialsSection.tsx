@@ -230,7 +230,7 @@ export function TestimonialsSection() {
 
   return (
     <Section id="testimonials" className="bg-secondary/40">
-      <SectionHeading label={t.testimonials.label} title={t.testimonials.title} align="center" />
+      <SectionHeading label={section.label} title={section.title} align="center" />
       <div className="relative mx-auto mt-12 max-w-6xl">
         <button
           type="button"
