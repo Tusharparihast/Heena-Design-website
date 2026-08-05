@@ -1,32 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Section, SectionHeading } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import bridal1 from "@/assets/gallery/bridal-1.jpg";
-import arabic1 from "@/assets/gallery/arabic-1.jpg";
-import minimal1 from "@/assets/gallery/minimal-1.jpg";
-import modern1 from "@/assets/gallery/modern-1.jpg";
-import festival1 from "@/assets/gallery/festival-1.jpg";
-import floral1 from "@/assets/gallery/floral-1.jpg";
-import finger1 from "@/assets/gallery/finger-1.jpg";
-import feet1 from "@/assets/gallery/feet-1.jpg";
-import person1 from "@/assets/testimonials/person-1.jpg";
-import person2 from "@/assets/testimonials/person-2.jpg";
-import person3 from "@/assets/testimonials/person-3.jpg";
-
-const galleryImages: Record<string, string> = {
-  "bridal-1": bridal1,
-  "arabic-1": arabic1,
-  "minimal-1": minimal1,
-  "modern-1": modern1,
-  "festival-1": festival1,
-  "floral-1": floral1,
-  "finger-1": finger1,
-  "feet-1": feet1,
-  "person-1": person1,
-  "person-2": person2,
-  "person-3": person3,
-};
+import { resolveTestimonialImage } from "@/lib/testimonial-images";
+import {
+  useEffectiveTestimonials,
+  type ResolvedTestimonial,
+} from "@/lib/testimonial-overrides";
+import { ChevronLeft, ChevronRight, Star } from "lucide-react";
 
 const countryFlags: Record<string, string> = {
   Nepal: "🇳🇵",
@@ -37,15 +17,11 @@ const countryFlags: Record<string, string> = {
   中国: "🇨🇳",
 };
 
-function resolveImage(key: string) {
-  return galleryImages[key] ?? key;
-}
-
 function Avatar({ value, name }: { value: string; name: string }) {
   return (
     <div className="h-16 w-16 overflow-hidden rounded-full border-2 border-primary/30 bg-primary/10">
       <img
-        src={resolveImage(value)}
+        src={resolveTestimonialImage(value)}
         alt={name}
         loading="lazy"
         decoding="async"
@@ -95,7 +71,7 @@ function BeforeAfter({ before, after, beforeLabel, afterLabel }: { before: strin
       }}
     >
       <img
-        src={resolveImage(after)}
+        src={resolveTestimonialImage(after)}
         alt={afterLabel}
         loading="lazy"
         decoding="async"
@@ -104,7 +80,7 @@ function BeforeAfter({ before, after, beforeLabel, afterLabel }: { before: strin
       />
       <div className="absolute inset-0" style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}>
         <img
-          src={resolveImage(before)}
+          src={resolveTestimonialImage(before)}
           alt={beforeLabel}
           loading="lazy"
           decoding="async"
@@ -143,7 +119,7 @@ function TestimonialCard({
   beforeLabel,
   afterLabel,
 }: {
-  item: ReturnType<typeof useLanguage>["t"]["testimonials"]["items"][number];
+  item: ResolvedTestimonial;
   beforeLabel: string;
   afterLabel: string;
 }) {
@@ -161,6 +137,14 @@ function TestimonialCard({
           <span className="mx-1">·</span>
           {item.role}
         </p>
+        <p className="mt-2 flex items-center justify-center gap-0.5" aria-label={`${item.rating} out of 5 stars`}>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Star
+              key={i}
+              className={`h-3.5 w-3.5 ${i < item.rating ? "fill-primary text-primary" : "fill-muted text-muted"}`}
+            />
+          ))}
+        </p>
       </div>
       <blockquote className="mt-4 flex-grow text-sm leading-relaxed">{item.review}</blockquote>
       <BeforeAfter
@@ -177,7 +161,8 @@ export function TestimonialsSection() {
   const { t, locale } = useLanguage();
   const beforeLabel = locale === "zh" ? "之前" : "Before";
   const afterLabel = locale === "zh" ? "之后" : "After";
-  const items = t.testimonials.items;
+  const section = useEffectiveTestimonials(locale);
+  const items = section.items;
 
   const [active, setActive] = useState(0);
   const [perPage, setPerPage] = useState(3);
@@ -245,67 +230,73 @@ export function TestimonialsSection() {
 
   return (
     <Section id="testimonials" className="bg-secondary/40">
-      <SectionHeading label={t.testimonials.label} title={t.testimonials.title} align="center" />
-      <div className="relative mx-auto mt-12 max-w-6xl">
-        <button
-          type="button"
-          onClick={prev}
-          aria-label={t.testimonials.prev}
-          className="absolute -left-2 top-1/2 z-10 hidden -translate-y-1/2 rounded-full border border-border bg-background p-2 text-primary shadow-sm transition hover:bg-primary/10 hover:shadow-md md:-left-5 md:block md:p-3"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-
-        <button
-          type="button"
-          onClick={next}
-          aria-label={t.testimonials.next}
-          className="absolute -right-2 top-1/2 z-10 hidden -translate-y-1/2 rounded-full border border-border bg-background p-2 text-primary shadow-sm transition hover:bg-primary/10 hover:shadow-md md:-right-5 md:block md:p-3"
-        >
-          <ChevronRight className="h-5 w-5" />
-        </button>
-
-        <div
-          className="overflow-hidden"
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={handlePointerCancel}
-        >
-          <div
-            ref={trackRef}
-            className="flex touch-pan-y transition-transform duration-500 ease-out will-change-transform"
-            style={{ transform: `translateX(-${active * (100 / perPage)}%)` }}
+      <SectionHeading label={section.label} title={section.title} align="center" />
+      {items.length === 0 ? (
+        <p className="mt-12 text-center text-sm text-muted-foreground">
+          {locale === "zh" ? "新的评价即将到来。" : "New reviews are on the way."}
+        </p>
+      ) : (
+        <div className="relative mx-auto mt-12 max-w-6xl">
+          <button
+            type="button"
+            onClick={prev}
+            aria-label={t.testimonials.prev}
+            className="absolute -left-2 top-1/2 z-10 hidden -translate-y-1/2 rounded-full border border-border bg-background p-2 text-primary shadow-sm transition hover:bg-primary/10 hover:shadow-md md:-left-5 md:block md:p-3"
           >
-            {items.map((item) => (
-              <div
-                key={item.name}
-                className="w-full shrink-0 px-3 md:w-1/3"
-              >
-                <TestimonialCard item={item} beforeLabel={beforeLabel} afterLabel={afterLabel} />
-              </div>
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+
+          <button
+            type="button"
+            onClick={next}
+            aria-label={t.testimonials.next}
+            className="absolute -right-2 top-1/2 z-10 hidden -translate-y-1/2 rounded-full border border-border bg-background p-2 text-primary shadow-sm transition hover:bg-primary/10 hover:shadow-md md:-right-5 md:block md:p-3"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+
+          <div
+            className="overflow-hidden"
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerCancel}
+          >
+            <div
+              ref={trackRef}
+              className="flex touch-pan-y transition-transform duration-500 ease-out will-change-transform"
+              style={{ transform: `translateX(-${active * (100 / perPage)}%)` }}
+            >
+              {items.map((item) => (
+                <div
+                  key={item.id}
+                  className="w-full shrink-0 px-3 md:w-1/3"
+                >
+                  <TestimonialCard item={item} beforeLabel={beforeLabel} afterLabel={afterLabel} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-6 flex items-center justify-center gap-2">
+            {Array.from({ length: maxIndex + 1 }).map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setActive(i)}
+                aria-label={`${t.testimonials.slide} ${i + 1}`}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  i === active ? "w-6 bg-primary" : "w-2 bg-primary/30 hover:bg-primary/50"
+                }`}
+              />
             ))}
           </div>
-        </div>
 
-        <div className="mt-6 flex items-center justify-center gap-2">
-          {Array.from({ length: maxIndex + 1 }).map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => setActive(i)}
-              aria-label={`${t.testimonials.slide} ${i + 1}`}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                i === active ? "w-6 bg-primary" : "w-2 bg-primary/30 hover:bg-primary/50"
-              }`}
-            />
-          ))}
+          <div className="mt-4 text-center text-xs text-muted-foreground md:hidden">
+            {t.testimonials.swipeHint}
+          </div>
         </div>
-
-        <div className="mt-4 text-center text-xs text-muted-foreground md:hidden">
-          {t.testimonials.swipeHint}
-        </div>
-      </div>
+      )}
     </Section>
   );
 }

@@ -24,6 +24,7 @@ import { Route as AdminSectionRouteImport } from './routes/admin/$section'
 import { Route as AdminGalleryRouteImport } from './routes/admin/gallery'
 import { Route as AdminHomepageRouteImport } from './routes/admin/homepage'
 import { Route as AdminProductsRouteImport } from './routes/admin/products'
+import { Route as AdminTestimonialsRouteImport } from './routes/admin/testimonials'
 import { Route as ShopIndexRouteImport } from './routes/shop.index'
 import { Route as ShopProductIdRouteImport } from './routes/shop.$productId'
 
@@ -102,6 +103,11 @@ const AdminProductsRoute = AdminProductsRouteImport.update({
   path: '/products',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminTestimonialsRoute = AdminTestimonialsRouteImport.update({
+  id: '/testimonials',
+  path: '/testimonials',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const ShopIndexRoute = ShopIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -128,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/admin/gallery': typeof AdminGalleryRoute
   '/admin/homepage': typeof AdminHomepageRoute
   '/admin/products': typeof AdminProductsRoute
+  '/admin/testimonials': typeof AdminTestimonialsRoute
   '/shop/$productId': typeof ShopProductIdRoute
   '/admin/': typeof AdminIndexRoute
   '/shop/': typeof ShopIndexRoute
@@ -145,6 +152,7 @@ export interface FileRoutesByTo {
   '/admin/gallery': typeof AdminGalleryRoute
   '/admin/homepage': typeof AdminHomepageRoute
   '/admin/products': typeof AdminProductsRoute
+  '/admin/testimonials': typeof AdminTestimonialsRoute
   '/shop/$productId': typeof ShopProductIdRoute
   '/admin': typeof AdminIndexRoute
   '/shop': typeof ShopIndexRoute
@@ -165,6 +173,7 @@ export interface FileRoutesById {
   '/admin/gallery': typeof AdminGalleryRoute
   '/admin/homepage': typeof AdminHomepageRoute
   '/admin/products': typeof AdminProductsRoute
+  '/admin/testimonials': typeof AdminTestimonialsRoute
   '/shop/$productId': typeof ShopProductIdRoute
   '/admin/': typeof AdminIndexRoute
   '/shop/': typeof ShopIndexRoute
@@ -186,6 +195,7 @@ export interface FileRouteTypes {
     | '/admin/gallery'
     | '/admin/homepage'
     | '/admin/products'
+    | '/admin/testimonials'
     | '/shop/$productId'
     | '/admin/'
     | '/shop/'
@@ -203,6 +213,7 @@ export interface FileRouteTypes {
     | '/admin/gallery'
     | '/admin/homepage'
     | '/admin/products'
+    | '/admin/testimonials'
     | '/shop/$productId'
     | '/admin'
     | '/shop'
@@ -222,6 +233,7 @@ export interface FileRouteTypes {
     | '/admin/gallery'
     | '/admin/homepage'
     | '/admin/products'
+    | '/admin/testimonials'
     | '/shop/$productId'
     | '/admin/'
     | '/shop/'
@@ -347,6 +359,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminProductsRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/testimonials': {
+      id: '/admin/testimonials'
+      path: '/testimonials'
+      fullPath: '/admin/testimonials'
+      preLoaderRoute: typeof AdminTestimonialsRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/shop/': {
       id: '/shop/'
       path: '/'
@@ -369,6 +388,7 @@ interface AdminRouteRouteChildren {
   AdminGalleryRoute: typeof AdminGalleryRoute
   AdminHomepageRoute: typeof AdminHomepageRoute
   AdminProductsRoute: typeof AdminProductsRoute
+  AdminTestimonialsRoute: typeof AdminTestimonialsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -377,6 +397,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminGalleryRoute: AdminGalleryRoute,
   AdminHomepageRoute: AdminHomepageRoute,
   AdminProductsRoute: AdminProductsRoute,
+  AdminTestimonialsRoute: AdminTestimonialsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
