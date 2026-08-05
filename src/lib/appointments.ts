@@ -29,7 +29,7 @@ const SETTINGS_EVENT = "nd:appointment-settings";
 /* ------------------------------------------------------------------ */
 
 export type BookingStatus = "pending" | "confirmed" | "completed" | "cancelled";
-export type BookingSource = "whatsapp" | "wechat" | "phone" | "walk-in" | "other";
+export type BookingSource = "whatsapp" | "wechat" | "phone" | "walk-in" | "email" | "other";
 
 export const bookingStatuses: BookingStatus[] = [
   "pending",
@@ -42,6 +42,7 @@ export const bookingSources: BookingSource[] = [
   "wechat",
   "phone",
   "walk-in",
+  "email",
   "other",
 ];
 

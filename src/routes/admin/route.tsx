@@ -1,6 +1,7 @@
 import { Outlet, createFileRoute, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
 
+import { AdminAuthGate } from "@/components/admin/AdminAuthGate";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { AdminTopbar } from "@/components/admin/AdminTopbar";
 import { adminNavItems } from "@/components/admin/admin-nav";
@@ -27,6 +28,9 @@ function AdminLayout() {
       : adminNavItems.find((item) => !item.exact && pathname.startsWith(item.to));
   const title = current?.label ?? "Admin";
 
+  // The login page renders bare, without the dashboard chrome.
+  if (pathname === "/admin/login") return <Outlet />;
+
   return (
     <div className="min-h-screen bg-background">
       <AdminSidebar
@@ -47,7 +51,9 @@ function AdminLayout() {
           onToggleCollapse={() => setCollapsed((v) => !v)}
         />
         <main className="flex-1 p-4 sm:p-6 lg:p-8">
-          <Outlet />
+          <AdminAuthGate>
+            <Outlet />
+          </AdminAuthGate>
         </main>
       </div>
     </div>

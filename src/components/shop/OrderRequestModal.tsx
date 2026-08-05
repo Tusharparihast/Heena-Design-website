@@ -7,6 +7,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { MAX_ORDER_QTY, formatCny, formatNpr, unitPriceNpr } from "@/lib/shop";
 import { effectiveProducts, resolveCopy, useCatalogOverrides } from "@/lib/catalog-overrides";
 import { useCnyRate } from "@/lib/use-cny-rate";
+import { logOrderRequest } from "@/lib/bookings-db";
 import { cn } from "@/lib/utils";
 import { ShopPrice } from "./DiscountBadge";
 import { QuantityStepper } from "./QuantityStepper";
@@ -129,8 +130,9 @@ export function OrderRequestModal({
   const set = (key: keyof Fields) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setFields((prev) => ({ ...prev, [key]: e.target.value }));
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (status === "sending") return;
     const result = schema.safeParse({ ...fields, contact });
     if (!result.success) {
       const next: Partial<Record<keyof Fields, string>> = {};
@@ -143,15 +145,33 @@ export function OrderRequestModal({
     }
     setErrors({});
     setStatus("sending");
-    // No backend yet — the request is prepared for a future server function.
-    window.setTimeout(() => {
-      setStatus("done");
-      toast.success(f.toast?.title ?? "Order submitted", {
-        description: f.toast?.description ?? "We will contact you shortly to confirm your order.",
-        duration: 5000,
-      });
-    }, 900);
-
+    const ok = await logOrderRequest({
+      name: fields.name,
+      phone: fields.phone,
+      wechat: fields.wechat,
+      whatsapp: fields.whatsapp,
+      email: fields.email,
+      address: fields.address,
+      notes: fields.notes,
+      contactMethod: contact,
+      items: [{ id: product.id, name: copy.name, qty, unitPriceNpr: unitPriceNpr(product) }],
+      totalNpr: total,
+      locale,
+    });
+    if (!ok) {
+      setStatus("idle");
+      toast.error(
+        locale === "zh"
+          ? "提交失败，请重试或直接通过微信联系我们。"
+          : "Couldn't submit the request. Please try again or reach us on WeChat."
+      );
+      return;
+    }
+    setStatus("done");
+    toast.success(f.toast?.title ?? "Order submitted", {
+      description: f.toast?.description ?? "We will contact you shortly to confirm your order.",
+      duration: 5000,
+    });
   };
 
   return (
@@ -227,7 +247,7 @@ export function OrderRequestModal({
           </div>
         ) : (
           <>
-            <form id="order-request-form" onSubmit={submit} className="flex-1 space-y-5 overflow-y-auto p-5" noValidate>
+            <form id="order-request-form" onSubmit={(e) => void submit(e)} className="flex-1 space-y-5 overflow-y-auto p-5" noValidate>
               {/* Selected product summary */}
               <div className="rounded-xl border border-border bg-secondary/40 p-4">
                 <div className="flex items-center gap-3">
