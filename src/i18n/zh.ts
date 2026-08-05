@@ -37,6 +37,9 @@ export const zh: Dict = {
     stat1: "年经验",
     stat2: "位客人",
     stat3: "名学员",
+    statValue1: "10+",
+    statValue2: "800+",
+    statValue3: "120+",
   },
   why: {
     label: "为什么学习海娜",
