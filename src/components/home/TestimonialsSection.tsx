@@ -119,7 +119,7 @@ function TestimonialCard({
   beforeLabel,
   afterLabel,
 }: {
-  item: ReturnType<typeof useLanguage>["t"]["testimonials"]["items"][number];
+  item: ResolvedTestimonial;
   beforeLabel: string;
   afterLabel: string;
 }) {
@@ -136,6 +136,14 @@ function TestimonialCard({
           </span>
           <span className="mx-1">·</span>
           {item.role}
+        </p>
+        <p className="mt-2 flex items-center justify-center gap-0.5" aria-label={`${item.rating} out of 5 stars`}>
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Star
+              key={i}
+              className={`h-3.5 w-3.5 ${i < item.rating ? "fill-primary text-primary" : "fill-muted text-muted"}`}
+            />
+          ))}
         </p>
       </div>
       <blockquote className="mt-4 flex-grow text-sm leading-relaxed">{item.review}</blockquote>
