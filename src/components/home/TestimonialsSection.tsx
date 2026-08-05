@@ -161,7 +161,8 @@ export function TestimonialsSection() {
   const { t, locale } = useLanguage();
   const beforeLabel = locale === "zh" ? "之前" : "Before";
   const afterLabel = locale === "zh" ? "之后" : "After";
-  const items = t.testimonials.items;
+  const section = useEffectiveTestimonials(locale);
+  const items = section.items;
 
   const [active, setActive] = useState(0);
   const [perPage, setPerPage] = useState(3);
