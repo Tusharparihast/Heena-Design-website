@@ -1,4 +1,5 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { useMemo } from "react";
 import {
   ArrowUpRight,
   CalendarCheck,
@@ -10,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { StatCard } from "@/components/admin/StatCard";
+import { useBookings } from "@/lib/appointments";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -57,10 +59,46 @@ const quickActions = [
 function statusVariant(status: string) {
   if (status === "Confirmed") return "default" as const;
   if (status === "Completed") return "secondary" as const;
+  if (status === "Cancelled") return "destructive" as const;
   return "outline" as const;
 }
 
 function AdminDashboard() {
+  // Live booking data from the Appointments manager (falls back to demo rows).
+  const { active: bookings } = useBookings();
+  const pendingCount = bookings.filter((b) => b.status === "pending").length;
+  const liveStats = useMemo(
+    () =>
+      stats.map((s, i) =>
+        i === 0
+          ? {
+              ...s,
+              value: String(pendingCount),
+              delta:
+                pendingCount === 0
+                  ? "No pending requests"
+                  : `${pendingCount} awaiting confirmation`,
+            }
+          : s,
+      ),
+    [pendingCount],
+  );
+  const appointmentRows = useMemo(() => {
+    if (bookings.length === 0) return [...appointments];
+    return [...bookings]
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .slice(0, 5)
+      .map((b) => ({
+        name: b.name,
+        service: b.service || "Appointment",
+        date: new Date(`${b.date}T12:00:00`).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        }),
+        status: b.status.charAt(0).toUpperCase() + b.status.slice(1),
+      }));
+  }, [bookings]);
+
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       {/* Greeting */}
@@ -85,7 +123,7 @@ function AdminDashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {stats.map((stat) => (
+        {liveStats.map((stat) => (
           <StatCard key={stat.label} {...stat} />
         ))}
       </div>
@@ -112,7 +150,7 @@ function AdminDashboard() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {appointments.map((a) => (
+                {appointmentRows.map((a) => (
                   <TableRow key={`${a.name}-${a.date}`}>
                     <TableCell className="pl-6 font-medium">{a.name}</TableCell>
                     <TableCell className="whitespace-nowrap text-muted-foreground">
