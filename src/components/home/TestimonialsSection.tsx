@@ -1,32 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Section, SectionHeading } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import bridal1 from "@/assets/gallery/bridal-1.jpg";
-import arabic1 from "@/assets/gallery/arabic-1.jpg";
-import minimal1 from "@/assets/gallery/minimal-1.jpg";
-import modern1 from "@/assets/gallery/modern-1.jpg";
-import festival1 from "@/assets/gallery/festival-1.jpg";
-import floral1 from "@/assets/gallery/floral-1.jpg";
-import finger1 from "@/assets/gallery/finger-1.jpg";
-import feet1 from "@/assets/gallery/feet-1.jpg";
-import person1 from "@/assets/testimonials/person-1.jpg";
-import person2 from "@/assets/testimonials/person-2.jpg";
-import person3 from "@/assets/testimonials/person-3.jpg";
-
-const galleryImages: Record<string, string> = {
-  "bridal-1": bridal1,
-  "arabic-1": arabic1,
-  "minimal-1": minimal1,
-  "modern-1": modern1,
-  "festival-1": festival1,
-  "floral-1": floral1,
-  "finger-1": finger1,
-  "feet-1": feet1,
-  "person-1": person1,
-  "person-2": person2,
-  "person-3": person3,
-};
+import { resolveTestimonialImage } from "@/lib/testimonial-images";
+import {
+  useEffectiveTestimonials,
+  type ResolvedTestimonial,
+} from "@/lib/testimonial-overrides";
+import { ChevronLeft, ChevronRight, Star } from "lucide-react";
 
 const countryFlags: Record<string, string> = {
   Nepal: "🇳🇵",
@@ -37,15 +17,11 @@ const countryFlags: Record<string, string> = {
   中国: "🇨🇳",
 };
 
-function resolveImage(key: string) {
-  return galleryImages[key] ?? key;
-}
-
 function Avatar({ value, name }: { value: string; name: string }) {
   return (
     <div className="h-16 w-16 overflow-hidden rounded-full border-2 border-primary/30 bg-primary/10">
       <img
-        src={resolveImage(value)}
+        src={resolveTestimonialImage(value)}
         alt={name}
         loading="lazy"
         decoding="async"
