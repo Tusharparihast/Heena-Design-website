@@ -61,6 +61,8 @@ export interface GalleryOverrides {
   added: CustomGalleryItem[];
   /** Ids of photos (built-in or custom) temporarily hidden from the public galleries. */
   hidden: string[];
+  /** Ids of photos shown in BOTH the Designs and Student work galleries. */
+  shared: string[];
   /** Ids of photos (built-in or custom) in the trash — restorable. */
   deleted: string[];
   /** Ids of built-in photos permanently deleted from the trash. */
@@ -79,6 +81,7 @@ export const emptyGalleryOverrides: GalleryOverrides = {
   edits: {},
   added: [],
   hidden: [],
+  shared: [],
   deleted: [],
   purged: [],
   categories: [],
@@ -203,6 +206,10 @@ function sanitize(raw: unknown): GalleryOverrides {
   const hidden = Array.isArray(rawHidden)
     ? rawHidden.filter((id): id is string => typeof id === "string" && knownIds.has(id))
     : [];
+  const rawShared = obj["shared"];
+  const shared = Array.isArray(rawShared)
+    ? rawShared.filter((id): id is string => typeof id === "string" && knownIds.has(id))
+    : [];
   const rawDeleted = obj["deleted"];
   const deleted = Array.isArray(rawDeleted)
     ? rawDeleted.filter((id): id is string => typeof id === "string" && knownIds.has(id))
@@ -244,6 +251,7 @@ function sanitize(raw: unknown): GalleryOverrides {
     edits,
     added: dedupedAdded,
     hidden,
+    shared,
     deleted,
     purged,
     categories,
@@ -279,6 +287,7 @@ export function isGalleryPristine(overrides: GalleryOverrides): boolean {
     Object.keys(overrides.edits).length === 0 &&
     overrides.added.length === 0 &&
     overrides.hidden.length === 0 &&
+    overrides.shared.length === 0 &&
     overrides.deleted.length === 0 &&
     overrides.purged.length === 0 &&
     overrides.categories.length === 0 &&
@@ -368,21 +377,23 @@ export function effectiveGalleryItems(
     ...item,
     categories: item.categories.filter((id) => validCategories.has(id)),
   });
+  const live = (id: string) =>
+    !overrides.hidden.includes(id) && !overrides.deleted.includes(id) && !overrides.purged.includes(id);
   const base = baseItems(collection)
-    .filter(
-      (item) =>
-        !overrides.hidden.includes(item.id) &&
-        !overrides.deleted.includes(item.id) &&
-        !overrides.purged.includes(item.id),
-    )
+    .filter((item) => live(item.id))
     .map((item) => keep(applyGalleryEdit(item, overrides.edits[item.id])));
   const custom = overrides.added
-    .filter(
-      (c) =>
-        c.collection === collection && !overrides.hidden.includes(c.id) && !overrides.deleted.includes(c.id),
-    )
+    .filter((c) => c.collection === collection && live(c.id))
     .map((c) => keep(toGalleryItem(c)));
-  return [...base, ...custom];
+  // Photos flagged "show in both sections" that live in the other collection.
+  const other: GalleryCollection = collection === "student" ? "gallery" : "student";
+  const mirroredBase = baseItems(other)
+    .filter((item) => overrides.shared.includes(item.id) && live(item.id))
+    .map((item) => keep(applyGalleryEdit(item, overrides.edits[item.id])));
+  const mirroredCustom = overrides.added
+    .filter((c) => c.collection === other && overrides.shared.includes(c.id) && live(c.id))
+    .map((c) => keep(toGalleryItem(c)));
+  return [...base, ...custom, ...mirroredBase, ...mirroredCustom];
 }
 
 /** One row of the admin photo list (includes hidden photos, excludes trashed). */
@@ -390,6 +401,10 @@ export interface AdminGalleryRow {
   item: GalleryItem;
   hidden: boolean;
   custom: boolean;
+  /** The collection the photo belongs to originally. */
+  home: GalleryCollection;
+  /** True when the photo is shown in both sections. */
+  mirrored: boolean;
 }
 
 /** The admin dashboard list for one collection: visible + hidden photos with edits applied. */
@@ -408,6 +423,8 @@ export function adminGalleryItems(
       item: keep(applyGalleryEdit(item, overrides.edits[item.id])),
       hidden: overrides.hidden.includes(item.id),
       custom: false,
+      home: collection,
+      mirrored: overrides.shared.includes(item.id),
     }));
   const custom = overrides.added
     .filter((c) => c.collection === collection && !overrides.deleted.includes(c.id))
@@ -415,8 +432,38 @@ export function adminGalleryItems(
       item: keep(toGalleryItem(c)),
       hidden: overrides.hidden.includes(c.id),
       custom: true,
+      home: collection,
+      mirrored: overrides.shared.includes(c.id),
     }));
-  return [...base, ...custom];
+  // Mirrored photos from the other collection, so their toggle is editable in both tabs.
+  const other: GalleryCollection = collection === "student" ? "gallery" : "student";
+  const mirroredBase = baseItems(other)
+    .filter(
+      (item) =>
+        overrides.shared.includes(item.id) &&
+        !overrides.deleted.includes(item.id) &&
+        !overrides.purged.includes(item.id),
+    )
+    .map((item) => ({
+      item: keep(applyGalleryEdit(item, overrides.edits[item.id])),
+      hidden: overrides.hidden.includes(item.id),
+      custom: false,
+      home: other,
+      mirrored: true,
+    }));
+  const mirroredCustom = overrides.added
+    .filter(
+      (c) =>
+        c.collection === other && overrides.shared.includes(c.id) && !overrides.deleted.includes(c.id),
+    )
+    .map((c) => ({
+      item: keep(toGalleryItem(c)),
+      hidden: overrides.hidden.includes(c.id),
+      custom: true,
+      home: other,
+      mirrored: true,
+    }));
+  return [...base, ...custom, ...mirroredBase, ...mirroredCustom];
 }
 
 /** Photos currently in the trash (both collections), newest edits applied. */
@@ -429,12 +476,14 @@ export function trashedGalleryItems(overrides: GalleryOverrides): AdminGalleryRo
         item: applyGalleryEdit(item, overrides.edits[item.id]),
         hidden: false,
         custom: false,
+        home: collection,
+        mirrored: false,
       });
     }
   }
   for (const c of overrides.added) {
     if (!overrides.deleted.includes(c.id)) continue;
-    rows.push({ item: toGalleryItem(c), hidden: false, custom: true });
+    rows.push({ item: toGalleryItem(c), hidden: false, custom: true, home: c.collection, mirrored: false });
   }
   return rows;
 }
