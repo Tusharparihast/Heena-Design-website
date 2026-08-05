@@ -3,13 +3,14 @@ import { Maximize2, Minimize2, Play, X } from "lucide-react";
 import { useState } from "react";
 import { Section, SectionHeading } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { galleryItems } from "@/lib/gallery";
+import { useEffectiveGalleryItems } from "@/lib/gallery-overrides";
 import { useVideoMedia } from "@/lib/use-homepage-media";
 
 
 
 export function GalleryPreview() {
   const { t } = useLanguage();
+  const galleryItems = useEffectiveGalleryItems("gallery");
 
   return (
     <Section id="gallery">

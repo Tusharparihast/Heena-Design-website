@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { GalleryBrowser } from "@/components/gallery/GalleryBrowser";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { studentWorkItems } from "@/lib/gallery";
+import {
+  useEffectiveGalleryCategories,
+  useEffectiveGalleryItems,
+} from "@/lib/gallery-overrides";
 
 const title = "Student Mehndi Work — Beginner to Bridal Practice | Nagma Designs";
 const description =
@@ -23,6 +26,8 @@ export const Route = createFileRoute("/student-work")({
 
 function StudentWorkPage() {
   const { t } = useLanguage();
+  const items = useEffectiveGalleryItems("student");
+  const categories = useEffectiveGalleryCategories();
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
@@ -32,7 +37,11 @@ function StudentWorkPage() {
       <h1 className="mt-3 text-4xl font-semibold sm:text-5xl">{t.studentWorkPage.title}</h1>
 
       <div className="mt-6">
-        <GalleryBrowser items={studentWorkItems} intro={t.studentWorkPage.intro} />
+        <GalleryBrowser
+          items={items}
+          categories={categories.map((c) => ({ id: c.id, en: c.nameEn, zh: c.nameZh }))}
+          intro={t.studentWorkPage.intro}
+        />
       </div>
     </main>
   );
