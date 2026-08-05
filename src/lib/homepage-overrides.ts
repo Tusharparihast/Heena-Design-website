@@ -36,11 +36,18 @@ export type HomepageWhyOverrides = {
   items?: HomepageWhyItemOverride[];
 };
 
+export type HomepageDesignBlockOverrides = Partial<Dict["traditional"]> & {
+  /** Replacement image list (URLs or data URLs). Undefined keeps the bundled defaults. */
+  images?: string[] | undefined;
+};
+
 export type HomepageSectionOverrides = {
   hero?: HomepageHeroOverrides;
   about?: HomepageAboutOverrides;
   video?: HomepageVideoOverrides;
   why?: HomepageWhyOverrides;
+  traditional?: HomepageDesignBlockOverrides;
+  modern?: HomepageDesignBlockOverrides;
 };
 
 export type HomepageOverrides = Record<Locale, HomepageSectionOverrides>;
@@ -100,6 +107,18 @@ function mergeWhySection(
   return result;
 }
 
+function mergeDesignBlock(
+  base: Dict["traditional"],
+  override: HomepageDesignBlockOverrides,
+): Dict["traditional"] {
+  const result = { ...base };
+  if (override.label !== undefined) result.label = override.label;
+  if (override.title !== undefined) result.title = override.title;
+  if (override.body !== undefined) result.body = override.body;
+  if (override.tags !== undefined) result.tags = override.tags;
+  return result;
+}
+
 /** Apply homepage text overrides to a base dictionary. */
 export function mergeHomepageDictionary(
   dict: Dict,
@@ -121,6 +140,12 @@ export function mergeHomepageDictionary(
   }
   if (overrides.why) {
     next.why = mergeWhySection(dict.why, overrides.why);
+  }
+  if (overrides.traditional) {
+    next.traditional = mergeDesignBlock(dict.traditional, overrides.traditional);
+  }
+  if (overrides.modern) {
+    next.modern = mergeDesignBlock(dict.modern, overrides.modern);
   }
   return next;
 }
