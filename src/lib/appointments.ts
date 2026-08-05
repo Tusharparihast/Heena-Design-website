@@ -216,8 +216,10 @@ function cleanOption(raw: unknown): BilingualOption | undefined {
   const o = raw as Record<string, unknown>;
   const id = cleanText(o["id"], 60);
   const en = cleanText(o["en"], 120);
-  if (!id || !en) return undefined;
-  return { id, en, zh: cleanText(o["zh"], 120) ?? "" };
+  const zh = cleanText(o["zh"], 120);
+  // Keep an option as long as one locale has text — the other falls back.
+  if (!id || (!en && !zh)) return undefined;
+  return { id, en: en ?? zh ?? "", zh: zh ?? "" };
 }
 
 function cleanOptionList(value: unknown): BilingualOption[] | undefined {
@@ -345,8 +347,13 @@ export function makeOptionId(prefix: string, taken: ReadonlySet<string>): string
 /* React hooks                                                         */
 /* ------------------------------------------------------------------ */
 
-function useStoredValue<T>(key: string, event: string, read: () => T): T {
-  const [value, setValue] = useState<T>(read);
+/**
+ * Client-side stored value. Starts from `empty` so SSR/hydration matches
+ * the static defaults, then syncs from localStorage and live admin edits
+ * (custom event + cross-tab storage event).
+ */
+function useStoredValue<T>(empty: T, event: string, read: () => T): T {
+  const [value, setValue] = useState<T>(empty);
   useEffect(() => {
     const sync = () => setValue(read());
     sync();
@@ -363,12 +370,12 @@ function useStoredValue<T>(key: string, event: string, read: () => T): T {
 
 /** Live booking store (active + trashed), synced with admin edits. */
 export function useBookings(): BookingStore {
-  return useStoredValue(BOOKINGS_KEY, BOOKINGS_EVENT, readBookings);
+  return useStoredValue(emptyBookingStore, BOOKINGS_EVENT, readBookings);
 }
 
 /** Live appointment settings, synced with admin edits. */
 export function useAppointmentSettings(): AppointmentSettings {
-  return useStoredValue(SETTINGS_KEY, SETTINGS_EVENT, readAppointmentSettings);
+  return useStoredValue(defaultAppointmentSettings, SETTINGS_EVENT, readAppointmentSettings);
 }
 
 /** Public booking-page content resolved to one locale. */

@@ -1,0 +1,639 @@
+import { createFileRoute } from "@tanstack/react-router";
+import {
+  CalendarCheck,
+  CalendarDays,
+  CheckCircle2,
+  Clock,
+  Pencil,
+  Plus,
+  RotateCcw,
+  Trash2,
+  X,
+} from "lucide-react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
+
+import {
+  BookingEditorDialog,
+  sourceLabels,
+  statusLabels,
+} from "@/components/admin/BookingEditorDialog";
+import { BilingualField, LangBadge } from "@/components/admin/BilingualField";
+import { StatCard } from "@/components/admin/StatCard";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { dictionaries } from "@/i18n/dictionaries";
+import {
+  bookingStatuses,
+  effectiveServices,
+  effectiveTimeSlots,
+  makeOptionId,
+  todayStr,
+  useAppointmentSettings,
+  useBookings,
+  writeAppointmentSettings,
+  writeBookings,
+  type AppointmentSettings,
+  type BilingualOption,
+  type Booking,
+  type BookingStatus,
+} from "@/lib/appointments";
+import { cn } from "@/lib/utils";
+
+export const Route = createFileRoute("/admin/appointments")({
+  component: AdminAppointmentsPage,
+});
+
+const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function statusVariant(status: BookingStatus) {
+  if (status === "confirmed") return "default" as const;
+  if (status === "completed") return "secondary" as const;
+  if (status === "cancelled") return "destructive" as const;
+  return "outline" as const;
+}
+
+function fmtDate(date: string) {
+  return new Date(`${date}T12:00:00`).toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function AdminAppointmentsPage() {
+  const store = useBookings();
+  const settings = useAppointmentSettings();
+  const patch = (p: Partial<AppointmentSettings>) =>
+    writeAppointmentSettings({ ...settings, ...p });
+
+  const [filter, setFilter] = useState<BookingStatus | "all">("all");
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editing, setEditing] = useState<Booking | undefined>(undefined);
+  const [blockedInput, setBlockedInput] = useState("");
+
+  const today = todayStr();
+
+  const weekEnd = useMemo(() => {
+    const d = new Date(`${today}T12:00:00`);
+    d.setDate(d.getDate() + 7);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }, [today]);
+
+  /** Upcoming first (soonest on top), then past bookings newest-first. */
+  const sorted = useMemo(() => {
+    const upcoming = store.active
+      .filter((b) => b.date >= today)
+      .sort((a, b) => a.date.localeCompare(b.date));
+    const past = store.active
+      .filter((b) => b.date < today)
+      .sort((a, b) => b.date.localeCompare(a.date));
+    return [...upcoming, ...past];
+  }, [store.active, today]);
+
+  const filtered = filter === "all" ? sorted : sorted.filter((b) => b.status === filter);
+
+  const upcomingCount = store.active.filter(
+    (b) => b.date >= today && (b.status === "pending" || b.status === "confirmed"),
+  ).length;
+  const pendingCount = store.active.filter((b) => b.status === "pending").length;
+  const weekCount = store.active.filter(
+    (b) => b.date >= today && b.date <= weekEnd && b.status !== "cancelled",
+  ).length;
+  const completedCount = store.active.filter((b) => b.status === "completed").length;
+
+  function saveBooking(b: Booking) {
+    const exists = store.active.some((x) => x.id === b.id);
+    const active = exists
+      ? store.active.map((x) => (x.id === b.id ? b : x))
+      : [b, ...store.active];
+    writeBookings({ ...store, active });
+    toast.success(exists ? "Booking updated." : "Booking added.");
+  }
+
+  function trashBooking(id: string) {
+    const b = store.active.find((x) => x.id === id);
+    if (!b) return;
+    writeBookings({
+      active: store.active.filter((x) => x.id !== id),
+      trashed: [b, ...store.trashed],
+    });
+    toast.success("Moved to trash.");
+  }
+
+  function restoreBooking(id: string) {
+    const b = store.trashed.find((x) => x.id === id);
+    if (!b) return;
+    writeBookings({
+      active: [b, ...store.active],
+      trashed: store.trashed.filter((x) => x.id !== id),
+    });
+    toast.success("Booking restored.");
+  }
+
+  function purgeBooking(id: string) {
+    writeBookings({ ...store, trashed: store.trashed.filter((x) => x.id !== id) });
+    toast.success("Deleted permanently.");
+  }
+
+  function toggleDay(d: number) {
+    const open = settings.openDays.includes(d);
+    const next = open
+      ? settings.openDays.filter((x) => x !== d)
+      : [...settings.openDays, d].sort();
+    patch({ openDays: next });
+  }
+
+  function addBlockedDate() {
+    if (!blockedInput) return;
+    if (settings.blockedDates.includes(blockedInput)) {
+      toast.error("That date is already blocked.");
+      return;
+    }
+    patch({ blockedDates: [...settings.blockedDates, blockedInput].sort() });
+    setBlockedInput("");
+    toast.success("Date blocked.");
+  }
+
+  return (
+    <div className="mx-auto max-w-6xl space-y-6">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="font-display text-2xl font-bold sm:text-3xl">Appointments</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Log bookings from WhatsApp, WeChat and phone — and control the public booking
+            page.
+          </p>
+        </div>
+        <Button
+          onClick={() => {
+            setEditing(undefined);
+            setEditorOpen(true);
+          }}
+        >
+          <Plus className="mr-1.5 h-4 w-4" /> Log a booking
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          label="Upcoming"
+          value={String(upcomingCount)}
+          delta="pending + confirmed"
+          icon={CalendarCheck}
+        />
+        <StatCard
+          label="Pending"
+          value={String(pendingCount)}
+          delta="awaiting confirmation"
+          icon={Clock}
+        />
+        <StatCard
+          label="This week"
+          value={String(weekCount)}
+          delta="next 7 days"
+          icon={CalendarDays}
+        />
+        <StatCard
+          label="Completed"
+          value={String(completedCount)}
+          delta="all time"
+          icon={CheckCircle2}
+        />
+      </div>
+
+      <Tabs defaultValue="bookings">
+        <TabsList>
+          <TabsTrigger value="bookings">Bookings</TabsTrigger>
+          <TabsTrigger value="availability">Availability</TabsTrigger>
+          <TabsTrigger value="content">Page content</TabsTrigger>
+        </TabsList>
+
+        {/* ------------------------------------------------ Bookings */}
+        <TabsContent value="bookings" className="space-y-4 pt-4">
+          <div className="flex flex-wrap gap-2">
+            {(["all", ...bookingStatuses] as const).map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setFilter(s)}
+                className={cn(
+                  "rounded-full border px-3.5 py-1.5 text-sm transition-colors",
+                  filter === s
+                    ? "border-primary bg-primary/10 font-medium text-primary"
+                    : "border-border hover:bg-accent",
+                )}
+              >
+                {s === "all" ? "All" : statusLabels[s]}
+              </button>
+            ))}
+          </div>
+
+          {filtered.length === 0 ? (
+            <Card className="shadow-none">
+              <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
+                <CalendarCheck className="h-10 w-10 text-muted-foreground/50" />
+                <div>
+                  <p className="font-medium">No bookings yet</p>
+                  <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
+                    Clients book through WhatsApp, WeChat or email — log each request here
+                    to keep track of confirmations.
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setEditing(undefined);
+                    setEditorOpen(true);
+                  }}
+                >
+                  <Plus className="mr-1.5 h-4 w-4" /> Log the first booking
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="shadow-none">
+              <CardContent className="overflow-x-auto p-0 pb-2">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="pl-6">Date</TableHead>
+                      <TableHead>Client</TableHead>
+                      <TableHead>Service</TableHead>
+                      <TableHead>Time</TableHead>
+                      <TableHead>People</TableHead>
+                      <TableHead>Via</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="pr-6 text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filtered.map((b) => (
+                      <TableRow key={b.id}>
+                        <TableCell className="pl-6 font-medium whitespace-nowrap">
+                          {fmtDate(b.date)}
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">{b.name}</div>
+                          <div className="text-xs text-muted-foreground">{b.contact}</div>
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap text-muted-foreground">
+                          {b.service || "—"}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap text-muted-foreground">
+                          {b.time || "—"}
+                        </TableCell>
+                        <TableCell>{b.people}</TableCell>
+                        <TableCell className="whitespace-nowrap text-muted-foreground">
+                          {sourceLabels[b.source]}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={statusVariant(b.status)}>
+                            {statusLabels[b.status]}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="pr-6 text-right">
+                          <div className="flex justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label={`Edit booking for ${b.name}`}
+                              onClick={() => {
+                                setEditing(b);
+                                setEditorOpen(true);
+                              }}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              aria-label={`Move booking for ${b.name} to trash`}
+                              onClick={() => trashBooking(b.id)}
+                            >
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
+
+          {store.trashed.length > 0 && (
+            <Card className="shadow-none">
+              <CardHeader>
+                <CardTitle className="font-display text-lg">Trash</CardTitle>
+                <CardDescription>
+                  Restore a booking or delete it permanently.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {store.trashed.map((b) => (
+                  <div
+                    key={b.id}
+                    className="flex flex-wrap items-center gap-3 rounded-lg border border-border px-4 py-3"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium">
+                        {b.name} · {fmtDate(b.date)}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {b.service || "Appointment"} · {statusLabels[b.status]}
+                      </p>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => restoreBooking(b.id)}>
+                      <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Restore
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => purgeBooking(b.id)}
+                    >
+                      <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Delete permanently
+                    </Button>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        {/* --------------------------------------------- Availability */}
+        <TabsContent value="availability" className="space-y-4 pt-4">
+          <Card className="shadow-none">
+            <CardHeader>
+              <CardTitle className="font-display text-lg">Weekly schedule</CardTitle>
+              <CardDescription>
+                Days the studio accepts bookings. Closed days show a warning on the public
+                booking form.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-2">
+              {dayNames.map((name, d) => {
+                const open = settings.openDays.includes(d);
+                return (
+                  <button
+                    key={name}
+                    type="button"
+                    aria-pressed={open}
+                    onClick={() => toggleDay(d)}
+                    className={cn(
+                      "rounded-full border px-4 py-2 text-sm font-medium transition-colors",
+                      open
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground hover:bg-accent",
+                    )}
+                  >
+                    {name}
+                  </button>
+                );
+              })}
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-none">
+            <CardHeader>
+              <CardTitle className="font-display text-lg">Blocked dates</CardTitle>
+              <CardDescription>
+                Holidays, fully-booked days or personal time off.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <Input
+                  type="date"
+                  className="w-auto"
+                  value={blockedInput}
+                  onChange={(e) => setBlockedInput(e.target.value)}
+                />
+                <Button variant="outline" onClick={addBlockedDate} disabled={!blockedInput}>
+                  <Plus className="mr-1.5 h-4 w-4" /> Block date
+                </Button>
+              </div>
+              {settings.blockedDates.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {settings.blockedDates.map((d) => (
+                    <span
+                      key={d}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-3 py-1.5 text-sm"
+                    >
+                      {fmtDate(d)}
+                      <button
+                        type="button"
+                        aria-label={`Unblock ${d}`}
+                        onClick={() =>
+                          patch({
+                            blockedDates: settings.blockedDates.filter((x) => x !== d),
+                          })
+                        }
+                        className="text-muted-foreground transition-colors hover:text-destructive"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No blocked dates.</p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-none">
+            <CardHeader>
+              <CardTitle className="font-display text-lg">Group size</CardTitle>
+              <CardDescription>
+                Maximum number of people per booking on the public form.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex items-center gap-3">
+              <Input
+                type="number"
+                min={1}
+                max={50}
+                className="w-24"
+                value={settings.maxPeople}
+                onChange={(e) => {
+                  const v = Math.round(Number(e.target.value));
+                  if (v >= 1 && v <= 50) patch({ maxPeople: v });
+                }}
+              />
+              <span className="text-sm text-muted-foreground">people max</span>
+            </CardContent>
+          </Card>
+
+          <p className="text-xs text-muted-foreground">
+            Changes save automatically and apply to the public booking page right away.
+          </p>
+        </TabsContent>
+
+        {/* -------------------------------------------- Page content */}
+        <TabsContent value="content" className="space-y-4 pt-4">
+          <Card className="shadow-none">
+            <CardHeader>
+              <CardTitle className="font-display text-lg">Page text</CardTitle>
+              <CardDescription>
+                The heading, intro and confirmation note on the public /appointment page.
+                Leave a field empty to use the built-in default.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              <BilingualField
+                label="Page title"
+                valueEn={settings.titleEn}
+                valueZh={settings.titleZh}
+                placeholder={dictionaries.en.appointment.page.title}
+                onChange={(locale, v) =>
+                  patch(locale === "en" ? { titleEn: v || undefined } : { titleZh: v || undefined })
+                }
+              />
+              <BilingualField
+                label="Intro text"
+                multiline
+                valueEn={settings.bodyEn}
+                valueZh={settings.bodyZh}
+                placeholder={dictionaries.en.appointment.page.body}
+                onChange={(locale, v) =>
+                  patch(locale === "en" ? { bodyEn: v || undefined } : { bodyZh: v || undefined })
+                }
+              />
+              <BilingualField
+                label="Confirmation note"
+                valueEn={settings.noteEn}
+                valueZh={settings.noteZh}
+                placeholder={dictionaries.en.appointment.page.summary.note}
+                onChange={(locale, v) =>
+                  patch(locale === "en" ? { noteEn: v || undefined } : { noteZh: v || undefined })
+                }
+              />
+            </CardContent>
+          </Card>
+
+          <OptionListEditor
+            title="Service options"
+            description="Choices shown for “What is it for?” on the public form."
+            options={effectiveServices(settings)}
+            prefix="svc"
+            onChange={(next) => patch({ services: next })}
+          />
+          <OptionListEditor
+            title="Time slots"
+            description="Choices shown for “Preferred time” on the public form."
+            options={effectiveTimeSlots(settings)}
+            prefix="slot"
+            onChange={(next) => patch({ timeSlots: next })}
+          />
+        </TabsContent>
+      </Tabs>
+
+      <BookingEditorDialog
+        open={editorOpen}
+        onOpenChange={setEditorOpen}
+        booking={editing}
+        onSave={saveBooking}
+      />
+    </div>
+  );
+}
+
+/** Bilingual list editor for service / time-slot options. */
+function OptionListEditor({
+  title,
+  description,
+  options,
+  prefix,
+  onChange,
+}: {
+  title: string;
+  description: string;
+  options: BilingualOption[];
+  prefix: string;
+  onChange: (next: BilingualOption[]) => void;
+}) {
+  return (
+    <Card className="shadow-none">
+      <CardHeader>
+        <CardTitle className="font-display text-lg">{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {options.map((opt) => (
+          <div key={opt.id} className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <div className="flex flex-1 items-center gap-2">
+              <LangBadge>EN</LangBadge>
+              <Input
+                value={opt.en}
+                placeholder="English"
+                onChange={(e) =>
+                  onChange(
+                    options.map((o) => (o.id === opt.id ? { ...o, en: e.target.value } : o)),
+                  )
+                }
+              />
+            </div>
+            <div className="flex flex-1 items-center gap-2">
+              <LangBadge>中文</LangBadge>
+              <Input
+                value={opt.zh}
+                placeholder="中文 (optional)"
+                onChange={(e) =>
+                  onChange(
+                    options.map((o) => (o.id === opt.id ? { ...o, zh: e.target.value } : o)),
+                  )
+                }
+              />
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Remove option"
+              disabled={options.length <= 1}
+              onClick={() => onChange(options.filter((o) => o.id !== opt.id))}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        ))}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() =>
+            onChange([
+              ...options,
+              {
+                id: makeOptionId(prefix, new Set(options.map((o) => o.id))),
+                en: "New option",
+                zh: "",
+              },
+            ])
+          }
+        >
+          <Plus className="mr-1.5 h-4 w-4" /> Add option
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}

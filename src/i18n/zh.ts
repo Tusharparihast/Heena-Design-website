@@ -405,6 +405,10 @@ export const zh: Dict = {
         copied: "已复制",
         note: "预约需与工作室沟通后确认。",
       },
+      availability: {
+        closedDay: "工作室每周这一天休息，请选择其他日期。",
+        blocked: "当天预约已满或工作室休息，请选择其他日期。",
+      },
     },
   },
   shopPage: {
