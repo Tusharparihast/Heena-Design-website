@@ -15,7 +15,7 @@ export function StatCard({ label, value, delta, icon: Icon }: StatCardProps) {
       <CardContent className="flex items-start justify-between gap-3 p-5">
         <div className="min-w-0">
           <p className="truncate text-sm text-muted-foreground">{label}</p>
-          <p className="mt-1 font-display text-3xl font-bold">{value}</p>
+          <p className="mt-1 text-3xl font-bold tabular-nums">{value}</p>
           <p className="mt-2 inline-flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-xs font-medium text-accent-foreground">
             <TrendingUp className="h-3 w-3" />
             {delta}
