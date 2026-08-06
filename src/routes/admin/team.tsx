@@ -155,24 +155,32 @@ function AdminTeamPage() {
             Add an admin
           </CardTitle>
           <CardDescription>
-            The person must first sign in once at <code>/admin/login</code>{" "}
-            (Google or email). After that, enter their email here to give them
-            full admin access.
+            There's no public sign-up, so accounts are created here. Enter the
+            person's email and a password for them — they can sign in at{" "}
+            <code>/admin/login</code> straight away. If the email already has
+            an account, the role is granted and the password field is ignored.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form
-            onSubmit={handleGrant}
-            className="flex flex-col gap-3 sm:flex-row"
-          >
-            <Input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="friend@example.com"
-              className="sm:max-w-sm"
-            />
+          <form onSubmit={handleGrant} className="space-y-3">
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <Input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="friend@example.com"
+                className="sm:max-w-sm"
+              />
+              <Input
+                type="text"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password for new accounts (min. 6 chars)"
+                autoComplete="off"
+                className="sm:max-w-sm"
+              />
+            </div>
             <Button type="submit" disabled={adding || !email.trim()}>
               {adding ? (
                 <LoaderCircle className="h-4 w-4 animate-spin" />
