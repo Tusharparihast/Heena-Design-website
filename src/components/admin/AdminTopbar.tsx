@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
+import { getInitials, useCurrentAdmin } from "@/lib/use-current-admin";
 
 interface AdminTopbarProps {
   title: string;
@@ -30,6 +31,7 @@ const notifications = [
 export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopbarProps) {
   const { theme, toggleTheme, mounted } = useTheme();
   const navigate = useNavigate();
+  const { name, email } = useCurrentAdmin();
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -106,15 +108,15 @@ export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopb
             >
               <Avatar className="h-9 w-9 border border-border">
                 <AvatarFallback className="bg-primary font-display text-xs font-bold text-primary-foreground">
-                  ND
+                  {getInitials(name)}
                 </AvatarFallback>
               </Avatar>
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>
-              <p className="text-sm font-semibold">Nagma</p>
-              <p className="text-xs font-normal text-muted-foreground">Studio admin</p>
+              <p className="text-sm font-semibold">{name}</p>
+              <p className="text-xs font-normal text-muted-foreground">{email}</p>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="cursor-pointer">

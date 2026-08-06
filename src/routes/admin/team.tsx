@@ -58,6 +58,7 @@ function fmtSince(iso: string) {
 function AdminTeamPage() {
   const [members, setMembers] = useState<AdminMember[] | null>(null);
   const [loadError, setLoadError] = useState("");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [adding, setAdding] = useState(false);
@@ -88,7 +89,7 @@ function AdminTeamPage() {
     setAdding(true);
     try {
       const res = await grantAdminRole({
-        data: { email: value, password },
+        data: { email: value, password, name: name.trim() },
       });
       if (!res.ok) {
         toast.error(res.error);
@@ -97,6 +98,7 @@ function AdminTeamPage() {
       toast.success(`${res.email} now has admin access.`);
       setEmail("");
       setPassword("");
+      setName("");
       refresh();
     } catch {
       toast.error("Something went wrong. Please try again.");
@@ -142,7 +144,7 @@ function AdminTeamPage() {
         />
         <StatCard
           label="Signed in as"
-          value={self ? (self.email.split("@").at(0) ?? "—") : "—"}
+          value={self ? (self.name : "—"}
           delta={self?.email ?? ""}
           icon={UserRoundCheck}
         />
@@ -164,6 +166,13 @@ function AdminTeamPage() {
         <CardContent>
           <form onSubmit={handleGrant} className="space-y-3">
             <div className="flex flex-col gap-3 sm:flex-row">
+                <Input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Full name (e.g. Nagma Sharma)"
+                  className="sm:max-w-sm"
+                />
               <Input
                 type="email"
                 required
@@ -218,6 +227,7 @@ function AdminTeamPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Name</TableHead>
                     <TableHead>Email</TableHead>
                     <TableHead>Member since</TableHead>
                     <TableHead>Role</TableHead>
@@ -229,12 +239,13 @@ function AdminTeamPage() {
                     <TableRow key={m.userId}>
                       <TableCell className="font-medium">
                         <span className="flex flex-wrap items-center gap-2">
-                          {m.email}
+                          {m.name}
                           {m.isSelf && (
                             <Badge variant="secondary">You</Badge>
                           )}
                         </span>
                       </TableCell>
+                      <TableCell className="text-muted-foreground">{m.email}</TableCell>
                       <TableCell className="text-muted-foreground">
                         {fmtSince(m.since)}
                       </TableCell>

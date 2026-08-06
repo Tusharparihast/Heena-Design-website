@@ -15,14 +15,8 @@ import { useDbBookings } from "@/lib/bookings-db";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useCurrentAdmin } from "@/lib/use-current-admin";
 
 export const Route = createFileRoute("/admin/")({
   component: AdminDashboard,
@@ -65,6 +59,7 @@ function statusVariant(status: string) {
 
 function AdminDashboard() {
   // Live booking data from the Appointments manager (falls back to demo rows).
+  const { name } = useCurrentAdmin();
   const { bookings: dbBookings, loading: bookingsLoading } = useDbBookings();
   const bookings = useMemo(() => dbBookings.filter((b) => !b.trashed), [dbBookings]);
   const pendingCount = bookings.filter((b) => b.status === "pending").length;
@@ -106,10 +101,8 @@ function AdminDashboard() {
       {/* Greeting */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="font-display text-2xl font-bold sm:text-3xl">Welcome back, Nagma</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Here's what's happening at the studio today.
-          </p>
+          <h2 className="font-display text-2xl font-bold sm:text-3xl">Welcome back, {name || "Admin"}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Here's what's happening at the studio today.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {quickActions.map((action) => (
@@ -155,9 +148,7 @@ function AdminDashboard() {
                 {appointmentRows.map((a) => (
                   <TableRow key={`${a.name}-${a.date}`}>
                     <TableCell className="pl-6 font-medium">{a.name}</TableCell>
-                    <TableCell className="whitespace-nowrap text-muted-foreground">
-                      {a.service}
-                    </TableCell>
+                    <TableCell className="whitespace-nowrap text-muted-foreground">{a.service}</TableCell>
                     <TableCell className="whitespace-nowrap">{a.date}</TableCell>
                     <TableCell className="pr-6 text-right">
                       <Badge variant={statusVariant(a.status)}>{a.status}</Badge>
