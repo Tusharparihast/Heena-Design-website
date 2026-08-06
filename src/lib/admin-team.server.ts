@@ -11,9 +11,7 @@ export interface AdminMember {
   isSelf: boolean;
 }
 
-export type TeamResult =
-  | { ok: true; email?: string }
-  | { ok: false; error: string };
+export type TeamResult = { ok: true; email?: string } | { ok: false; error: string };
 
 type UserClient = SupabaseClient<Database>;
 type AdminClient = SupabaseClient<Database>;
@@ -23,10 +21,7 @@ type AdminClient = SupabaseClient<Database>;
  * client, and only then hands back the privileged admin client.
  * Throws "Forbidden" for non-admins.
  */
-export async function getAdminClientIfCallerIsAdmin(
-  userClient: UserClient,
-  userId: string,
-): Promise<AdminClient> {
+export async function getAdminClientIfCallerIsAdmin(userClient: UserClient, userId: string): Promise<AdminClient> {
   const { data, error } = await userClient.rpc("has_role", {
     _user_id: userId,
     _role: "admin",
@@ -34,44 +29,34 @@ export async function getAdminClientIfCallerIsAdmin(
   if (error || data !== true) {
     throw new Error("Forbidden: admin role required");
   }
-  const { supabaseAdmin } = await import(
-    "@/integrations/supabase/client.server"
-  );
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   return supabaseAdmin as unknown as AdminClient;
 }
 
-export async function listAdminMembers(
-  admin: AdminClient,
-  selfId: string,
-): Promise<AdminMember[]> {
-  const { data: roles, error } = await admin
-    .from("user_roles")
-    .select("user_id")
-    .eq("role", "admin");
+export async function listAdminMembers(admin: AdminClient, selfId: string): Promise<AdminMember[]> {
+  const { data: roles, error } = await admin.from("user_roles").select("user_id").eq("role", "admin");
   if (error) throw new Error(error.message);
 
   const members: AdminMember[] = [];
   for (const row of roles ?? []) {
     const { data: userData } = await admin.auth.admin.getUserById(row.user_id);
     const email = userData.user?.email ?? "Unknown account";
-    const metaName = userData.user?.user_metadata?.full_name as string | undefined)?.trim();
-    
+
+    // Fixed: Added the opening parenthesis for the type assertion and safe navigation
+    const metaName = (userData.user?.user_metadata?.full_name as string | undefined)?.trim();
+
     members.push({
-      userId: row.user_id,email,
+      userId: row.user_id,
+      email,
       name: metaName || email.split("@").at(0) || "Admin",
       since: userData.user?.created_at ?? "",
       isSelf: row.user_id === selfId,
     });
   }
-  return members.sort((a, b) =>
-    a.isSelf ? -1 : b.isSelf ? 1 : a.email.localeCompare(b.email),
-  );
+  return members.sort((a, b) => (a.isSelf ? -1 : b.isSelf ? 1 : a.email.localeCompare(b.email)));
 }
 
-export async function grantAdminByEmail(
-  admin: AdminClient,
-  email: string,
-): Promise<TeamResult> {
+export async function grantAdminByEmail(admin: AdminClient, email: string): Promise<TeamResult> {
   const normalized = email.trim().toLowerCase();
   if (!normalized) return { ok: false, error: "Enter an email address." };
 
@@ -104,9 +89,9 @@ export async function createAdminAccount(
 
   const existing = await findUserByEmail(admin, normalized);
   if (existing) {
-    if (trimmedName){
+    if (trimmedName) {
       await admin.auth.admin.updateUserById(existing.id, {
-        user_metadata: {...existing.user_metadata, full_name: trimmedName},
+        user_metadata: { ...existing.user_metadata, full_name: trimmedName },
       });
     }
     return grantRole(admin, existing.id, existing.email ?? normalized);
@@ -115,8 +100,7 @@ export async function createAdminAccount(
   if (password.length < 6) {
     return {
       ok: false,
-      error:
-        "This email has no account yet — set a password of at least 6 characters to create one.",
+      error: "This email has no account yet — set a password of at least 6 characters to create one.",
     };
   }
 
@@ -132,14 +116,8 @@ export async function createAdminAccount(
   return grantRole(admin, data.user.id, normalized);
 }
 
-async function grantRole(
-  admin: AdminClient,
-  userId: string,
-  email: string,
-): Promise<TeamResult> {
-  const { error } = await admin
-    .from("user_roles")
-    .insert({ user_id: userId, role: "admin" });
+async function grantRole(admin: AdminClient, userId: string, email: string): Promise<TeamResult> {
+  const { error } = await admin.from("user_roles").insert({ user_id: userId, role: "admin" });
   if (error) {
     if (error.code === "23505") {
       return { ok: false, error: `${email} is already an admin.` };
@@ -149,11 +127,7 @@ async function grantRole(
   return { ok: true, email };
 }
 
-export async function revokeAdminMember(
-  admin: AdminClient,
-  targetUserId: string,
-  selfId: string,
-): Promise<TeamResult> {
+export async function revokeAdminMember(admin: AdminClient, targetUserId: string, selfId: string): Promise<TeamResult> {
   if (targetUserId === selfId) {
     return {
       ok: false,
@@ -173,11 +147,7 @@ export async function revokeAdminMember(
     };
   }
 
-  const { error } = await admin
-    .from("user_roles")
-    .delete()
-    .eq("user_id", targetUserId)
-    .eq("role", "admin");
+  const { error } = await admin.from("user_roles").delete().eq("user_id", targetUserId).eq("role", "admin");
   if (error) return { ok: false, error: error.message };
   return { ok: true };
 }

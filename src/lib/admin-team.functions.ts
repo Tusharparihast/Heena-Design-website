@@ -13,8 +13,15 @@ import {
 export const listTeamAdmins = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const admin = await getAdminClientIfCallerIsAdmin(context.supabase, context.userId);
-    return listAdminMembers(admin, context.userId);
+    try {
+      const admin = await getAdminClientIfCallerIsAdmin(context.supabase, context.userId);
+      return await listAdminMembers(admin, context.userId);
+    } catch (error) {
+      console.error("[listTeamAdmins] Error:", error);
+      // Throwing an error here allows your client-side .catch() to handle it
+      // without crashing the entire server route.
+      throw new Error("Failed to load team members");
+    }
   });
 
 /**
@@ -34,8 +41,14 @@ export const grantAdminRole = createServerFn({ method: "POST" })
       .parse(data),
   )
   .handler(async ({ context, data }) => {
-    const admin = await getAdminClientIfCallerIsAdmin(context.supabase, context.userId);
-    return createAdminAccount(admin, data.email, data.password, data.name);
+    try {
+      const admin = await getAdminClientIfCallerIsAdmin(context.supabase, context.userId);
+      return await createAdminAccount(admin, data.email, data.password, data.name);
+    } catch (error: any) {
+      console.error("[grantAdminRole] Error:", error);
+      // Returning this object format ensures your frontend toast.error(res.error) works correctly.
+      return { ok: false, error: error.message || "Failed to grant admin role." };
+    }
   });
 
 /** Removes the admin role from an account (never yourself or the last admin). */
@@ -43,6 +56,11 @@ export const revokeAdminRole = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => z.object({ userId: z.string().uuid() }).parse(data))
   .handler(async ({ context, data }) => {
-    const admin = await getAdminClientIfCallerIsAdmin(context.supabase, context.userId);
-    return revokeAdminMember(admin, data.userId, context.userId);
+    try {
+      const admin = await getAdminClientIfCallerIsAdmin(context.supabase, context.userId);
+      return await revokeAdminMember(admin, data.userId, context.userId);
+    } catch (error: any) {
+      console.error("[revokeAdminRole] Error:", error);
+      return { ok: false, error: error.message || "Failed to revoke admin role." };
+    }
   });
