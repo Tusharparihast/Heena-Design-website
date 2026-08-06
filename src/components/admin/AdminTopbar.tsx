@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
   Bell,
   ExternalLink,
@@ -24,6 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AdminTopbarProps {
   title: string;
@@ -39,6 +40,12 @@ const notifications = [
 
 export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopbarProps) {
   const { theme, toggleTheme, mounted } = useTheme();
+  const navigate = useNavigate();
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    void navigate({ to: "/admin/login"});
+  }
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-border bg-background/85 px-4 backdrop-blur-md sm:gap-3 sm:px-6">
@@ -153,8 +160,10 @@ export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopb
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild className="cursor-pointer">
-              <Link to="/" className="text-destructive focus:text-destructive">
+            <DropdownMenuItem 
+              className="cursor-pointer text-destructive focus:text-destructive"
+              onClick={() => void handleLogout()}
+              >
                 <LogOut className="mr-2 h-4 w-4" /> Logout
               </Link>
             </DropdownMenuItem>

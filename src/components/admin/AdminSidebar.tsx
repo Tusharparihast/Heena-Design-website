@@ -1,8 +1,9 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { LogOut, X } from "lucide-react";
 
 import { adminNavItems } from "./admin-nav";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AdminSidebarProps {
   /** Desktop icon-strip collapse state. */
@@ -13,6 +14,13 @@ interface AdminSidebarProps {
 }
 
 export function AdminSidebar({ collapsed, mobileOpen, onCloseMobile }: AdminSidebarProps) {
+  const navigate = useNavigate();
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    onCloseMobile();
+    void navigate({ to: "/admin/login" });
+  }
   return (
     <>
       {/* Mobile/tablet overlay */}
@@ -38,9 +46,7 @@ export function AdminSidebar({ collapsed, mobileOpen, onCloseMobile }: AdminSide
             ND
           </div>
           <div className={cn("min-w-0", collapsed && "lg:hidden")}>
-            <p className="truncate font-display text-base font-semibold leading-tight">
-              Nagma Designs
-            </p>
+            <p className="truncate font-display text-base font-semibold leading-tight">Nagma Designs</p>
             <p className="text-xs text-muted-foreground">Admin Studio</p>
           </div>
           <button
@@ -64,8 +70,7 @@ export function AdminSidebar({ collapsed, mobileOpen, onCloseMobile }: AdminSide
                   onClick={onCloseMobile}
                   title={item.label}
                   activeProps={{
-                    className:
-                      "bg-sidebar-accent text-sidebar-accent-foreground font-semibold",
+                    className: "bg-sidebar-accent text-sidebar-accent-foreground font-semibold",
                   }}
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/70 hover:text-sidebar-accent-foreground",
@@ -73,9 +78,7 @@ export function AdminSidebar({ collapsed, mobileOpen, onCloseMobile }: AdminSide
                   )}
                 >
                   <item.icon className="h-5 w-5 shrink-0" />
-                  <span className={cn("truncate", collapsed && "lg:hidden")}>
-                    {item.label}
-                  </span>
+                  <span className={cn("truncate", collapsed && "lg:hidden")}>{item.label}</span>
                 </Link>
               </li>
             ))}
@@ -84,25 +87,18 @@ export function AdminSidebar({ collapsed, mobileOpen, onCloseMobile }: AdminSide
 
         {/* Logout */}
         <div className="shrink-0 border-t border-sidebar-border p-3">
-          <Link
-            to="/"
+          <button
+            type="button"
             title="Logout"
+            onClick={() => void handleLogout()}
             className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-destructive/10 hover:text-destructive",
+              "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-sidebar-foreground/70 transition-colors hover:bg-destructive/10 hover:text-destructive",
               collapsed && "lg:justify-center lg:px-0",
             )}
           >
             <LogOut className="h-5 w-5 shrink-0" />
             <span className={cn(collapsed && "lg:hidden")}>Logout</span>
-          </Link>
-          <p
-            className={cn(
-              "mt-2 px-3 text-[11px] leading-snug text-muted-foreground",
-              collapsed && "lg:hidden",
-            )}
-          >
-            UI preview — authentication arrives with the backend phase.
-          </p>
+          </button>
         </div>
       </aside>
     </>
