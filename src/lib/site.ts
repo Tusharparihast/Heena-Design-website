@@ -4,7 +4,7 @@ export const site = {
   shortName: "Nagma Designs",
   city: "Maitidevi, Kathmandu",
   hours: "9:00 AM – 9:00 PM",
-  phone: "+977 9706734471",
+  phone: "+977 98XXXXXXXX",
   email: "hello@nagmadesigns.com",
   wechatId: "nagma-designs",
   whatsapp: "+9779800000000",
