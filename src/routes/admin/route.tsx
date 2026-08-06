@@ -28,8 +28,10 @@ function AdminLayout() {
       : adminNavItems.find((item) => !item.exact && pathname.startsWith(item.to));
   const title = current?.label ?? "Admin";
 
-  // The login page renders bare, without the dashboard chrome.
-  if (pathname === "/admin/login") return <Outlet />;
+  // The login and password-reset pages render bare, without dashboard chrome.
+  if (pathname === "/admin/login" || pathname === "/admin/reset-password") {
+    return <Outlet />;
+  }
 
   return (
     <div className="min-h-screen bg-background">

@@ -26,6 +26,7 @@ import { Route as AdminGalleryRouteImport } from './routes/admin/gallery'
 import { Route as AdminHomepageRouteImport } from './routes/admin/homepage'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminProductsRouteImport } from './routes/admin/products'
+import { Route as AdminResetPasswordRouteImport } from './routes/admin/reset-password'
 import { Route as AdminTeamRouteImport } from './routes/admin/team'
 import { Route as AdminTestimonialsRouteImport } from './routes/admin/testimonials'
 import { Route as ShopIndexRouteImport } from './routes/shop.index'
@@ -116,6 +117,11 @@ const AdminProductsRoute = AdminProductsRouteImport.update({
   path: '/products',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminResetPasswordRoute = AdminResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminTeamRoute = AdminTeamRouteImport.update({
   id: '/team',
   path: '/team',
@@ -154,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/admin/homepage': typeof AdminHomepageRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/products': typeof AdminProductsRoute
+  '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/team': typeof AdminTeamRoute
   '/admin/testimonials': typeof AdminTestimonialsRoute
   '/shop/$productId': typeof ShopProductIdRoute
@@ -175,6 +182,7 @@ export interface FileRoutesByTo {
   '/admin/homepage': typeof AdminHomepageRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/products': typeof AdminProductsRoute
+  '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/team': typeof AdminTeamRoute
   '/admin/testimonials': typeof AdminTestimonialsRoute
   '/shop/$productId': typeof ShopProductIdRoute
@@ -199,6 +207,7 @@ export interface FileRoutesById {
   '/admin/homepage': typeof AdminHomepageRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/products': typeof AdminProductsRoute
+  '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/team': typeof AdminTeamRoute
   '/admin/testimonials': typeof AdminTestimonialsRoute
   '/shop/$productId': typeof ShopProductIdRoute
@@ -224,6 +233,7 @@ export interface FileRouteTypes {
     | '/admin/homepage'
     | '/admin/login'
     | '/admin/products'
+    | '/admin/reset-password'
     | '/admin/team'
     | '/admin/testimonials'
     | '/shop/$productId'
@@ -245,6 +255,7 @@ export interface FileRouteTypes {
     | '/admin/homepage'
     | '/admin/login'
     | '/admin/products'
+    | '/admin/reset-password'
     | '/admin/team'
     | '/admin/testimonials'
     | '/shop/$productId'
@@ -268,6 +279,7 @@ export interface FileRouteTypes {
     | '/admin/homepage'
     | '/admin/login'
     | '/admin/products'
+    | '/admin/reset-password'
     | '/admin/team'
     | '/admin/testimonials'
     | '/shop/$productId'
@@ -409,6 +421,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminProductsRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/reset-password': {
+      id: '/admin/reset-password'
+      path: '/reset-password'
+      fullPath: '/admin/reset-password'
+      preLoaderRoute: typeof AdminResetPasswordRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/team': {
       id: '/admin/team'
       path: '/team'
@@ -447,6 +466,7 @@ interface AdminRouteRouteChildren {
   AdminHomepageRoute: typeof AdminHomepageRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AdminProductsRoute: typeof AdminProductsRoute
+  AdminResetPasswordRoute: typeof AdminResetPasswordRoute
   AdminTeamRoute: typeof AdminTeamRoute
   AdminTestimonialsRoute: typeof AdminTestimonialsRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -459,6 +479,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminHomepageRoute: AdminHomepageRoute,
   AdminLoginRoute: AdminLoginRoute,
   AdminProductsRoute: AdminProductsRoute,
+  AdminResetPasswordRoute: AdminResetPasswordRoute,
   AdminTeamRoute: AdminTeamRoute,
   AdminTestimonialsRoute: AdminTestimonialsRoute,
   AdminIndexRoute: AdminIndexRoute,
