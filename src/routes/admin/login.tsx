@@ -29,6 +29,21 @@ function AdminLoginPage() {
     return () => sub.subscription.unsubscribe();
   }, [navigate]);
 
+  async function handleForgotPassword() {
+    if (!email.trim()) {
+      toast.error("Enter your email first, then click “Forgot password”.");
+      return;
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${window.location.origin}/admin/reset-password`,
+    });
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Password reset link sent — check your email (and spam folder).");
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (busy) return;
