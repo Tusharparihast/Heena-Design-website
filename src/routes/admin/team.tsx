@@ -59,6 +59,7 @@ function AdminTeamPage() {
   const [members, setMembers] = useState<AdminMember[] | null>(null);
   const [loadError, setLoadError] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [adding, setAdding] = useState(false);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
@@ -86,13 +87,16 @@ function AdminTeamPage() {
     if (!value || adding) return;
     setAdding(true);
     try {
-      const res = await grantAdminRole({ data: { email: value } });
+      const res = await grantAdminRole({
+        data: { email: value, password },
+      });
       if (!res.ok) {
         toast.error(res.error);
         return;
       }
       toast.success(`${res.email} now has admin access.`);
       setEmail("");
+      setPassword("");
       refresh();
     } catch {
       toast.error("Something went wrong. Please try again.");
