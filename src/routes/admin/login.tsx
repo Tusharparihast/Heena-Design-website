@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, LoaderCircle, LockKeyhole } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, LoaderCircle, LockKeyhole } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ function AdminLoginPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
 
   // Already signed in? Go to the dashboard (the gate there decides access).
@@ -73,9 +74,7 @@ function AdminLoginPage() {
               N
             </span>
             <h1 className="mt-4 font-display text-2xl font-bold">Admin sign in</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Nagma Designs studio dashboard
-            </p>
+            <p className="mt-1 text-sm text-muted-foreground">Nagma Designs studio dashboard</p>
           </div>
 
           <form onSubmit={(e) => void handleSubmit(e)} className="mt-6 space-y-4">
@@ -101,14 +100,25 @@ function AdminLoginPage() {
                   Forgot password?
                 </button>
               </div>
-              <Input
-                id="adm-pass"
-                type="password"
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-              />
+              <div className="relative">
+                <Input
+                  id="adm-pass"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Hide Password" : "Show Password"}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
             <Button type="submit" className="w-full" disabled={busy}>
               {busy && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
@@ -119,9 +129,8 @@ function AdminLoginPage() {
           <div className="mt-6 flex items-start gap-2.5 rounded-lg bg-secondary/60 px-3.5 py-3 text-xs leading-relaxed text-muted-foreground">
             <LockKeyhole className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             <p>
-              This area is private. Only accounts given the admin role by the
-              studio owner can open the dashboard — there is no public
-              registration.
+              This area is private. Only accounts given the admin role by the studio owner can open the dashboard —
+              there is no public registration.
             </p>
           </div>
         </div>
