@@ -29,7 +29,6 @@ export interface ProductFormValues {
   discount?: number | undefined;
   featured: boolean;
   image?: string | undefined;
-  // EDIT HERE: Form output arrays
   featuresEn?: string[];
   featuresZh?: string[];
   usageEn?: string[];
@@ -53,7 +52,6 @@ export interface ProductEditorInitial {
   stock: StockStatus;
   discount?: number | undefined;
   featured: boolean;
-  // EDIT HERE: Initial arrays
   featuresEn?: string[];
   featuresZh?: string[];
   usageEn?: string[];
@@ -209,11 +207,13 @@ function ProductEditorForm({
       setNewCatOpen(false);
     }
   };
+
   const parseLines = (text: string): string[] =>
     text
       .split("\n")
       .map((line) => line.trim())
       .filter(Boolean);
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const next: FormErrors = {};
@@ -358,55 +358,61 @@ function ProductEditorForm({
             />
           </div>
 
-          {/* Step 3: Features / What's Included */}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <Label htmlFor="pe-features-en">What's included (English, 1 per line)</Label>
-              <Textarea
-                id="pe-features-en"
-                className="mt-1.5"
-                rows={3}
-                value={featuresEn}
-                onChange={(e) => setFeaturesEn(e.target.value)}
-                placeholder={"Five fresh cones\n100% natural organic henna\nFine tip applicator"}
-              />
-            </div>
-            <div>
-              <Label htmlFor="pe-features-zh">What's included (中文, 每行一项)</Label>
-              <Textarea
-                id="pe-features-zh"
-                className="mt-1.5"
-                rows={3}
-                value={featuresZh}
-                onChange={(e) => setFeaturesZh(e.target.value)}
-                placeholder={"5支新鲜海娜膏\n100%纯天然有机成分\n细尖针嘴设计"}
-              />
+          {/* Section 1: What's Included */}
+          <div className="space-y-3 rounded-lg border border-border/60 bg-muted/20 p-3.5">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">What's Included</h4>
+            <div className="space-y-3">
+              <div>
+                <Label htmlFor="pe-features-en">English (1 item per line)</Label>
+                <Textarea
+                  id="pe-features-en"
+                  className="mt-1.5"
+                  rows={3}
+                  value={featuresEn}
+                  onChange={(e) => setFeaturesEn(e.target.value)}
+                  placeholder={"Five fresh cones\n100% natural organic henna\nFine tip applicator"}
+                />
+              </div>
+              <div>
+                <Label htmlFor="pe-features-zh">中文（每行一项）</Label>
+                <Textarea
+                  id="pe-features-zh"
+                  className="mt-1.5"
+                  rows={3}
+                  value={featuresZh}
+                  onChange={(e) => setFeaturesZh(e.target.value)}
+                  placeholder={"5支新鲜海娜膏\n100%纯天然有机成分\n细尖针嘴设计"}
+                />
+              </div>
             </div>
           </div>
 
-          {/* Step 3: How to Use / Instructions */}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <Label htmlFor="pe-usage-en">How to use (English, 1 step per line)</Label>
-              <Textarea
-                id="pe-usage-en"
-                className="mt-1.5"
-                rows={3}
-                value={usageEn}
-                onChange={(e) => setUsageEn(e.target.value)}
-                placeholder={"Refrigerate unused cones immediately.\nAllow paste to dry for 20-30 minutes."}
-              />
-            </div>
-            <div>
-              <Label htmlFor="pe-usage-zh">How to use (中文, 每行一步)</Label>
-              <Textarea
-                id="pe-usage-zh"
-                className="mt-1.5"
-                rows={3}
-                value={usageZh}
-                onChange={(e) => setUsageZh(e.target.value)}
-                placeholder={"未使用的软膏请立即冷藏。\n绘制后静置20-30分钟至干燥。"}
-              />
+          {/* Section 2: How to Use */}
+          <div className="space-y-3 rounded-lg border border-border/60 bg-muted/20 p-3.5">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">How to Use</h4>
+            <div className="space-y-3">
+              <div>
+                <Label htmlFor="pe-usage-en">English (1 step per line)</Label>
+                <Textarea
+                  id="pe-usage-en"
+                  className="mt-1.5"
+                  rows={3}
+                  value={usageEn}
+                  onChange={(e) => setUsageEn(e.target.value)}
+                  placeholder={"Refrigerate unused cones immediately.\nAllow paste to dry for 20-30 minutes."}
+                />
+              </div>
+              <div>
+                <Label htmlFor="pe-usage-zh">中文（每行一步）</Label>
+                <Textarea
+                  id="pe-usage-zh"
+                  className="mt-1.5"
+                  rows={3}
+                  value={usageZh}
+                  onChange={(e) => setUsageZh(e.target.value)}
+                  placeholder={"未使用的软膏请立即冷藏。\n绘制后静置20-30分钟至干燥。"}
+                />
+              </div>
             </div>
           </div>
 
