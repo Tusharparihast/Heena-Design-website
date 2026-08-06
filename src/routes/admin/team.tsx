@@ -1,47 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  LoaderCircle,
-  ShieldCheck,
-  UserPlus,
-  UserRoundCheck,
-  UserRoundX,
-  UsersRound,
-} from "lucide-react";
+import { LoaderCircle, ShieldCheck, UserPlus, UserRoundCheck, UserRoundX, UsersRound } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 
 import { StatCard } from "@/components/admin/StatCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  grantAdminRole,
-  listTeamAdmins,
-  revokeAdminRole,
-} from "@/lib/admin-team.functions";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { grantAdminRole, listTeamAdmins, revokeAdminRole } from "@/lib/admin-team.functions";
 import type { AdminMember } from "@/lib/admin-team.server";
 
 export const Route = createFileRoute("/admin/team")({
   head: () => ({
-    meta: [
-      { title: "Team & Access — Admin — Nagma Designs" },
-      { name: "robots", content: "noindex, nofollow" },
-    ],
+    meta: [{ title: "Team & Access — Admin — Nagma Designs" }, { name: "robots", content: "noindex, nofollow" }],
   }),
   component: AdminTeamPage,
 });
@@ -70,9 +43,7 @@ function AdminTeamPage() {
     setLoadError("");
     listTeamAdmins()
       .then((list) => setMembers(list))
-      .catch(() =>
-        setLoadError("Couldn't load the team list. Please refresh the page."),
-      );
+      .catch(() => setLoadError("Couldn't load the team list. Please refresh the page."));
   }, []);
 
   useEffect(() => {
@@ -142,12 +113,7 @@ function AdminTeamPage() {
           delta="Full dashboard access"
           icon={ShieldCheck}
         />
-        <StatCard
-          label="Signed in as"
-          value={self ? (self.name : "—"}
-          delta={self?.email ?? ""}
-          icon={UserRoundCheck}
-        />
+        <StatCard label="Signed in as" value={self ? self.name : "—"} delta={self?.email ?? ""} icon={UserRoundCheck} />
       </div>
 
       <Card className="shadow-none">
@@ -157,22 +123,21 @@ function AdminTeamPage() {
             Add an admin
           </CardTitle>
           <CardDescription>
-            There's no public sign-up, so accounts are created here. Enter the
-            person's email and a password for them — they can sign in at{" "}
-            <code>/admin/login</code> straight away. If the email already has
-            an account, the role is granted and the password field is ignored.
+            There's no public sign-up, so accounts are created here. Enter the person's email and a password for them —
+            they can sign in at <code>/admin/login</code> straight away. If the email already has an account, the role
+            is granted and the password field is ignored.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleGrant} className="space-y-3">
             <div className="flex flex-col gap-3 sm:flex-row">
-                <Input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Full name (e.g. Nagma Sharma)"
-                  className="sm:max-w-sm"
-                />
+              <Input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Full name (e.g. Nagma Sharma)"
+                className="sm:max-w-sm"
+              />
               <Input
                 type="email"
                 required
@@ -191,11 +156,7 @@ function AdminTeamPage() {
               />
             </div>
             <Button type="submit" disabled={adding || !email.trim()}>
-              {adding ? (
-                <LoaderCircle className="h-4 w-4 animate-spin" />
-              ) : (
-                <UserPlus className="h-4 w-4" />
-              )}
+              {adding ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
               Grant admin access
             </Button>
           </form>
@@ -209,15 +170,12 @@ function AdminTeamPage() {
             People with access
           </CardTitle>
           <CardDescription>
-            Everyone below can open the admin dashboard, manage content and see
-            bookings &amp; orders.
+            Everyone below can open the admin dashboard, manage content and see bookings &amp; orders.
           </CardDescription>
         </CardHeader>
         <CardContent>
           {loadError ? (
-            <p className="py-6 text-center text-sm text-destructive">
-              {loadError}
-            </p>
+            <p className="py-6 text-center text-sm text-destructive">{loadError}</p>
           ) : !members ? (
             <div className="flex justify-center py-10">
               <LoaderCircle className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -240,28 +198,20 @@ function AdminTeamPage() {
                       <TableCell className="font-medium">
                         <span className="flex flex-wrap items-center gap-2">
                           {m.name}
-                          {m.isSelf && (
-                            <Badge variant="secondary">You</Badge>
-                          )}
+                          {m.isSelf && <Badge variant="secondary">You</Badge>}
                         </span>
                       </TableCell>
                       <TableCell className="text-muted-foreground">{m.email}</TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {fmtSince(m.since)}
-                      </TableCell>
+                      <TableCell className="text-muted-foreground">{fmtSince(m.since)}</TableCell>
                       <TableCell>
                         <Badge>Admin</Badge>
                       </TableCell>
                       <TableCell className="text-right">
                         {m.isSelf ? (
-                          <span className="text-xs text-muted-foreground">
-                            —
-                          </span>
+                          <span className="text-xs text-muted-foreground">—</span>
                         ) : (
                           <Button
-                            variant={
-                              confirmId === m.userId ? "destructive" : "outline"
-                            }
+                            variant={confirmId === m.userId ? "destructive" : "outline"}
                             size="sm"
                             disabled={removingId === m.userId}
                             onClick={() => void handleRevoke(m)}
@@ -271,9 +221,7 @@ function AdminTeamPage() {
                             ) : (
                               <UserRoundX className="h-3.5 w-3.5" />
                             )}
-                            {confirmId === m.userId
-                              ? "Click again to confirm"
-                              : "Remove access"}
+                            {confirmId === m.userId ? "Click again to confirm" : "Remove access"}
                           </Button>
                         )}
                       </TableCell>
@@ -284,9 +232,8 @@ function AdminTeamPage() {
             </div>
           )}
           <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-            Removing access only revokes the admin role — the person's sign-in
-            account stays active. You can't remove yourself or the last
-            remaining admin.
+            Removing access only revokes the admin role — the person's sign-in account stays active. You can't remove
+            yourself or the last remaining admin.
           </p>
         </CardContent>
       </Card>
