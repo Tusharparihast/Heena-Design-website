@@ -43,6 +43,11 @@ export interface ProductEdit {
   featured?: boolean;
   /** Uploaded photo as a (compressed) data URL. */
   image?: string | undefined;
+  // Edit: Added features and usage
+  featuresEn?: string[];
+  featuresZh?: string[];
+  usageEn?: string[];
+  usageZh?: string[];
 }
 
 /** A studio-created product category (in addition to the built-in ones). */
@@ -71,6 +76,11 @@ export interface CustomProduct {
   nameZh: string;
   bodyEn: string;
   bodyZh: string;
+  //added features and usage arrays
+  featuresEn?: string[];
+  featuresZh?: string[];
+  usageEn?: string[];
+  usageZh?: string[];
 }
 
 export interface CatalogOverrides {
@@ -170,6 +180,13 @@ export function cleanEdit(edit: ProductEdit): ProductEdit | undefined {
   if (category && category.length <= 40) out.category = category;
   if (typeof edit.featured === "boolean") out.featured = edit.featured;
   if (image) out.image = image;
+
+  //Edit: added array inputs
+  if (Array.isArray(edit.featuresEn)) out.featuresEn = edit.featuresEn.map((s) => s.trim()).filter(Boolean);
+  if (Array.isArray(edit.featuresZh)) out.featuresZh = edit.featuresZh.map((s) => s.trim()).filter(Boolean);
+  if (Array.isArray(edit.usageEn)) out.usageEn = edit.usageEn.map((s) => s.trim()).filter(Boolean);
+  if (Array.isArray(edit.usageZh)) out.usageZh = edit.usageZh.map((s) => s.trim()).filter(Boolean);
+
   if (edit.discount === null) out.discount = null;
   else {
     const pct = cleanPercent(edit.discount);
@@ -187,9 +204,7 @@ function cleanCustomProduct(raw: unknown): CustomProduct | undefined {
   const image = cleanImage(c["image"]);
   if (!id || !nameEn || priceNpr === undefined || !image) return undefined;
   const category = cleanText(c["category"]) ?? "cones";
-  const stock = STOCK_STATUSES.includes(c["stock"] as StockStatus)
-    ? (c["stock"] as StockStatus)
-    : "in";
+  const stock = STOCK_STATUSES.includes(c["stock"] as StockStatus) ? (c["stock"] as StockStatus) : "in";
   const discount = cleanPercent(c["discount"]);
   return {
     id,
@@ -203,6 +218,31 @@ function cleanCustomProduct(raw: unknown): CustomProduct | undefined {
     nameZh: cleanText(c["nameZh"]) ?? "",
     bodyEn: cleanText(c["bodyEn"]) ?? "",
     bodyZh: cleanText(c["bodyZh"]) ?? "",
+    // EDIT HERE: Sanitize features & usage for custom products
+    featuresEn: Array.isArray(c["featuresEn"])
+      ? c["featuresEn"]
+          .map(String)
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [],
+    featuresZh: Array.isArray(c["featuresZh"])
+      ? c["featuresZh"]
+          .map(String)
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [],
+    usageEn: Array.isArray(c["usageEn"])
+      ? c["usageEn"]
+          .map(String)
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [],
+    usageZh: Array.isArray(c["usageZh"])
+      ? c["usageZh"]
+          .map(String)
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [],
   };
 }
 
@@ -277,8 +317,7 @@ function sanitize(raw: unknown): CatalogOverrides {
   const rawPurgedCategories = obj["purgedCategories"];
   const purgedCategories = Array.isArray(rawPurgedCategories)
     ? rawPurgedCategories.filter(
-        (id): id is string =>
-          typeof id === "string" && (DEFAULT_CATEGORY_IDS as readonly string[]).includes(id),
+        (id): id is string => typeof id === "string" && (DEFAULT_CATEGORY_IDS as readonly string[]).includes(id),
       )
     : [];
   const rawTrashMap = obj["trashCategoryProducts"];
@@ -425,10 +464,7 @@ function toShopProduct(c: CustomProduct): ShopProduct {
 export function effectiveProducts(overrides: CatalogOverrides): ShopProduct[] {
   const base = shopProducts
     .filter(
-      (p) =>
-        !overrides.hidden.includes(p.id) &&
-        !overrides.deleted.includes(p.id) &&
-        !overrides.purged.includes(p.id),
+      (p) => !overrides.hidden.includes(p.id) && !overrides.deleted.includes(p.id) && !overrides.purged.includes(p.id),
     )
     .map((p) => applyEdit(p, overrides.edits[p.id]));
   const custom = overrides.added
@@ -475,11 +511,17 @@ export function resolveCopy(
   if (!edit) return localeItem;
   const nameOverride = locale === "zh" ? edit.nameZh : edit.nameEn;
   const bodyOverride = locale === "zh" ? edit.bodyZh : edit.bodyEn;
+  // EDIT HERE: Merge override features/usage -> fallback to i18n/base product features/usage
+  const featuresOverride = locale === "zh" ? edit.featuresZh : edit.featuresEn;
+  const usageOverride = locale === "zh" ? edit.usageZh : edit.usageEn;
+
   return {
     ...localeItem,
     name: nameOverride ?? localeItem.name,
     body: bodyOverride ?? localeItem.body,
     price: edit.priceNpr !== undefined ? formatNpr(edit.priceNpr) : localeItem.price,
+    features: featuresOverride ?? localeItem.features ?? product.features ?? [],
+    usage: usageOverride ?? localeItem.usage ?? product.usage ?? [],
   };
 }
 
@@ -555,8 +597,7 @@ export function effectiveCategories(
   dictLabels: Record<string, string>,
 ): EffectiveCategory[] {
   const builtins = DEFAULT_CATEGORY_IDS.filter(
-    (id) =>
-      !overrides.deletedCategories.includes(id) && !overrides.purgedCategories.includes(id),
+    (id) => !overrides.deletedCategories.includes(id) && !overrides.purgedCategories.includes(id),
   ).map((id) => {
     const edit = overrides.categoryEdits[id];
     return {

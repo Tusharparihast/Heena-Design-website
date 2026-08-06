@@ -12,13 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import type { ShopCategory, StockStatus } from "@/lib/shop";
@@ -35,6 +29,11 @@ export interface ProductFormValues {
   discount?: number | undefined;
   featured: boolean;
   image?: string | undefined;
+  // EDIT HERE: Form output arrays
+  featuresEn?: string[];
+  featuresZh?: string[];
+  usageEn?: string[];
+  usageZh?: string[];
 }
 
 /** Current values used to prefill the form. */
@@ -54,6 +53,11 @@ export interface ProductEditorInitial {
   stock: StockStatus;
   discount?: number | undefined;
   featured: boolean;
+  // EDIT HERE: Initial arrays
+  featuresEn?: string[];
+  featuresZh?: string[];
+  usageEn?: string[];
+  usageZh?: string[];
 }
 
 /** A selectable category option (built-in or studio-created). */
@@ -153,6 +157,10 @@ function ProductEditorForm({
   const [nameZh, setNameZh] = useState(initial.nameZh);
   const [bodyEn, setBodyEn] = useState(initial.bodyEn);
   const [bodyZh, setBodyZh] = useState(initial.bodyZh);
+  const [featuresEn, setFeaturesEn] = useState(initial.featuresEn?.join("\n") ?? "");
+  const [featuresZh, setFeaturesZh] = useState(initial.featuresZh?.join("\n") ?? "");
+  const [usageEn, setUsageEn] = useState(initial.usageEn?.join("\n") ?? "");
+  const [usageZh, setUsageZh] = useState(initial.usageZh?.join("\n") ?? "");
   const [price, setPrice] = useState(String(initial.priceNpr || ""));
   const [category, setCategory] = useState<ShopCategory>(initial.category);
   const [stock, setStock] = useState<StockStatus>(initial.stock);
@@ -201,7 +209,11 @@ function ProductEditorForm({
       setNewCatOpen(false);
     }
   };
-
+  const parseLines = (text: string): string[] =>
+    text
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const next: FormErrors = {};
@@ -228,6 +240,10 @@ function ProductEditorForm({
       discount: pct,
       featured,
       image: imageChanged ? image : undefined,
+      featuresEn: parseLines(featuresEn),
+      featuresZh: parseLines(featuresZh),
+      usageEn: parseLines(usageEn),
+      usageZh: parseLines(usageZh),
     });
   };
 
@@ -252,9 +268,7 @@ function ProductEditorForm({
             {image ? (
               <img src={image} alt="" className="h-full w-full object-cover" />
             ) : (
-              <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-                No photo
-              </div>
+              <div className="flex h-full items-center justify-center text-xs text-muted-foreground">No photo</div>
             )}
           </div>
           <input ref={fileInput} type="file" accept="image/*" className="hidden" onChange={pickImage} />
@@ -342,6 +356,58 @@ function ProductEditorForm({
               placeholder="显示在商品卡片上的一两句介绍。"
               maxLength={300}
             />
+          </div>
+
+          {/* Step 3: Features / What's Included */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <Label htmlFor="pe-features-en">What's included (English, 1 per line)</Label>
+              <Textarea
+                id="pe-features-en"
+                className="mt-1.5"
+                rows={3}
+                value={featuresEn}
+                onChange={(e) => setFeaturesEn(e.target.value)}
+                placeholder={"Five fresh cones\n100% natural organic henna\nFine tip applicator"}
+              />
+            </div>
+            <div>
+              <Label htmlFor="pe-features-zh">What's included (中文, 每行一项)</Label>
+              <Textarea
+                id="pe-features-zh"
+                className="mt-1.5"
+                rows={3}
+                value={featuresZh}
+                onChange={(e) => setFeaturesZh(e.target.value)}
+                placeholder={"5支新鲜海娜膏\n100%纯天然有机成分\n细尖针嘴设计"}
+              />
+            </div>
+          </div>
+
+          {/* Step 3: How to Use / Instructions */}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <Label htmlFor="pe-usage-en">How to use (English, 1 step per line)</Label>
+              <Textarea
+                id="pe-usage-en"
+                className="mt-1.5"
+                rows={3}
+                value={usageEn}
+                onChange={(e) => setUsageEn(e.target.value)}
+                placeholder={"Refrigerate unused cones immediately.\nAllow paste to dry for 20-30 minutes."}
+              />
+            </div>
+            <div>
+              <Label htmlFor="pe-usage-zh">How to use (中文, 每行一步)</Label>
+              <Textarea
+                id="pe-usage-zh"
+                className="mt-1.5"
+                rows={3}
+                value={usageZh}
+                onChange={(e) => setUsageZh(e.target.value)}
+                placeholder={"未使用的软膏请立即冷藏。\n绘制后静置20-30分钟至干燥。"}
+              />
+            </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-3">
@@ -463,15 +529,10 @@ function ProductEditorForm({
                 onChange={(e) => setDiscount(e.target.value.replace(/[^0-9]/g, "").slice(0, 2))}
                 placeholder="—"
               />
-              {errors.discount ? (
-                <p className="mt-1 text-xs text-destructive">{errors.discount}</p>
-              ) : null}
+              {errors.discount ? <p className="mt-1 text-xs text-destructive">{errors.discount}</p> : null}
             </div>
             <div className="flex items-end pb-1">
-              <label
-                htmlFor="pe-featured"
-                className="flex cursor-pointer items-center gap-2.5 text-sm select-none"
-              >
+              <label htmlFor="pe-featured" className="flex cursor-pointer items-center gap-2.5 text-sm select-none">
                 <Switch id="pe-featured" checked={featured} onCheckedChange={setFeatured} />
                 Show “Popular” badge
               </label>
