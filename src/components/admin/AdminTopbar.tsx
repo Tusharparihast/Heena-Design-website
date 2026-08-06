@@ -1,16 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import {
-  Bell,
-  ExternalLink,
-  LogOut,
-  Menu,
-  Moon,
-  PanelLeft,
-  Search,
-  Settings,
-  Sun,
-  User,
-} from "lucide-react";
+import { Bell, ExternalLink, LogOut, Menu, Moon, PanelLeft, Search, Settings, Sun, User } from "lucide-react";
 
 import { useTheme } from "@/hooks/use-theme";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -44,19 +33,13 @@ export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopb
 
   async function handleLogout() {
     await supabase.auth.signOut();
-    void navigate({ to: "/admin/login"});
+    void navigate({ to: "/admin/login" });
   }
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-border bg-background/85 px-4 backdrop-blur-md sm:gap-3 sm:px-6">
       {/* Mobile hamburger */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={onOpenMobile}
-        aria-label="Open menu"
-        className="lg:hidden"
-      >
+      <Button variant="ghost" size="icon" onClick={onOpenMobile} aria-label="Open menu" className="lg:hidden">
         <Menu className="h-5 w-5" />
       </Button>
 
@@ -96,10 +79,7 @@ export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopb
             <DropdownMenuLabel>Notifications</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {notifications.map((n) => (
-              <DropdownMenuItem
-                key={n.title}
-                className="flex cursor-pointer flex-col items-start gap-0.5 py-2.5"
-              >
+              <DropdownMenuItem key={n.title} className="flex cursor-pointer flex-col items-start gap-0.5 py-2.5">
                 <span className="text-sm font-medium leading-snug">{n.title}</span>
                 <span className="text-xs text-muted-foreground">{n.time}</span>
               </DropdownMenuItem>
@@ -112,17 +92,8 @@ export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopb
         </DropdownMenu>
 
         {/* Theme toggle */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleTheme}
-          aria-label="Toggle dark mode"
-        >
-          {mounted && theme === "dark" ? (
-            <Sun className="h-5 w-5" />
-          ) : (
-            <Moon className="h-5 w-5" />
-          )}
+        <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle dark mode">
+          {mounted && theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </Button>
 
         {/* Admin profile */}
@@ -160,12 +131,11 @@ export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopb
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem 
+            <DropdownMenuItem
               className="cursor-pointer text-destructive focus:text-destructive"
               onClick={() => void handleLogout()}
-              >
-                <LogOut className="mr-2 h-4 w-4" /> Logout
-              </Link>
+            >
+              <LogOut className="mr-2 h-4 w-4" /> Logout
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
