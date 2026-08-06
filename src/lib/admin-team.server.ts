@@ -75,21 +75,66 @@ export async function grantAdminByEmail(
   if (!found) {
     return {
       ok: false,
-      error:
-        "No account found for that email. Ask them to sign in once at /admin/login first, then try again.",
+      error: "No account found for that email.",
     };
   }
 
+  return grantRole(admin, found.id, found.email ?? normalized);
+}
+
+/**
+ * Creates a brand-new admin account (email + password, pre-confirmed) and
+ * grants the role in one step — used now that public sign-up is disabled.
+ * If the email already has an account, the password is ignored and only the
+ * role is granted.
+ */
+export async function createAdminAccount(
+  admin: AdminClient,
+  email: string,
+  password: string,
+): Promise<TeamResult> {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) return { ok: false, error: "Enter an email address." };
+
+  const existing = await findUserByEmail(admin, normalized);
+  if (existing) {
+    return grantRole(admin, existing.id, existing.email ?? normalized);
+  }
+
+  if (password.length < 6) {
+    return {
+      ok: false,
+      error:
+        "This email has no account yet — set a password of at least 6 characters to create one.",
+    };
+  }
+
+  const { data, error } = await admin.auth.admin.createUser({
+    email: normalized,
+    password,
+    email_confirm: true,
+  });
+  if (error || !data.user) {
+    return { ok: false, error: error?.message ?? "Couldn't create the account." };
+  }
+  return grantRole(admin, data.user.id, normalized);
+}
+
+async function grantRole(
+  admin: AdminClient,
+  userId: string,
+  email: string,
+): Promise<TeamResult> {
   const { error } = await admin
     .from("user_roles")
-    .insert({ user_id: found.id, role: "admin" });
+    .insert({ user_id: userId, role: "admin" });
   if (error) {
     if (error.code === "23505") {
-      return { ok: false, error: `${normalized} is already an admin.` };
+      return { ok: false, error: `${email} is already an admin.` };
     }
     return { ok: false, error: error.message };
   }
-  return { ok: true, email: found.email ?? normalized };
+  return { ok: true, email };
 }
 
 export async function revokeAdminMember(

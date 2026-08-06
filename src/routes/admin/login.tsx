@@ -1,15 +1,12 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, LoaderCircle } from "lucide-react";
+import { ArrowLeft, LoaderCircle, LockKeyhole } from "lucide-react";
 import { toast } from "sonner";
 
-import { GoogleIcon } from "@/components/site/BrandIcons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { lovable } from "@/integrations/lovable/index";
 import { supabase } from "@/integrations/supabase/client";
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/login")({
   component: AdminLoginPage,
@@ -17,12 +14,11 @@ export const Route = createFileRoute("/admin/login")({
 
 function AdminLoginPage() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"sign-in" | "sign-up">("sign-in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
 
-  // Already signed in (or just returned from Google)? Go to the dashboard.
+  // Already signed in? Go to the dashboard (the gate there decides access).
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) void navigate({ to: "/admin" });
@@ -33,6 +29,21 @@ function AdminLoginPage() {
     return () => sub.subscription.unsubscribe();
   }, [navigate]);
 
+  async function handleForgotPassword() {
+    if (!email.trim()) {
+      toast.error("Enter your email first, then click “Forgot password”.");
+      return;
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${window.location.origin}/admin/reset-password`,
+    });
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Password reset link sent — check your email (and spam folder).");
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (busy) return;
@@ -41,38 +52,16 @@ function AdminLoginPage() {
       return;
     }
     setBusy(true);
-    if (mode === "sign-in") {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
-      setBusy(false);
-      if (error) {
-        toast.error(error.message);
-        return;
-      }
-      void navigate({ to: "/admin" });
-    } else {
-      const { error } = await supabase.auth.signUp({ email: email.trim(), password });
-      setBusy(false);
-      if (error) {
-        toast.error(error.message);
-        return;
-      }
-      toast.success("Account created — confirm your email, then sign in.");
-      setMode("sign-in");
-    }
-  }
-
-  async function handleGoogle() {
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: `${window.location.origin}/admin/login`,
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim(),
+      password,
     });
-    if (result.error) {
-      toast.error(result.error.message);
+    setBusy(false);
+    if (error) {
+      toast.error("Invalid email or password. This area is for studio admins only.");
       return;
     }
-    // On success the browser returns here with a session; the effect navigates on.
+    void navigate({ to: "/admin" });
   }
 
   return (
@@ -89,30 +78,7 @@ function AdminLoginPage() {
             </p>
           </div>
 
-          <div className="mt-6 grid grid-cols-2 rounded-lg bg-secondary p-1 text-sm font-medium">
-            <button
-              type="button"
-              onClick={() => setMode("sign-in")}
-              className={cn(
-                "rounded-md py-1.5 transition",
-                mode === "sign-in" ? "bg-card shadow-sm" : "text-muted-foreground",
-              )}
-            >
-              Sign in
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode("sign-up")}
-              className={cn(
-                "rounded-md py-1.5 transition",
-                mode === "sign-up" ? "bg-card shadow-sm" : "text-muted-foreground",
-              )}
-            >
-              Create account
-            </button>
-          </div>
-
-          <form onSubmit={(e) => void handleSubmit(e)} className="mt-5 space-y-4">
+          <form onSubmit={(e) => void handleSubmit(e)} className="mt-6 space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="adm-email">Email</Label>
               <Input
@@ -125,41 +91,39 @@ function AdminLoginPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="adm-pass">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="adm-pass">Password</Label>
+                <button
+                  type="button"
+                  onClick={() => void handleForgotPassword()}
+                  className="text-xs text-primary hover:underline"
+                >
+                  Forgot password?
+                </button>
+              </div>
               <Input
                 id="adm-pass"
                 type="password"
-                autoComplete={mode === "sign-in" ? "current-password" : "new-password"}
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder={mode === "sign-up" ? "At least 6 characters" : "••••••••"}
+                placeholder="••••••••"
               />
             </div>
             <Button type="submit" className="w-full" disabled={busy}>
               {busy && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />}
-              {mode === "sign-in" ? "Sign in" : "Create account"}
+              Sign in
             </Button>
           </form>
 
-          <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
-            <span className="h-px flex-1 bg-border" />
-            or
-            <span className="h-px flex-1 bg-border" />
+          <div className="mt-6 flex items-start gap-2.5 rounded-lg bg-secondary/60 px-3.5 py-3 text-xs leading-relaxed text-muted-foreground">
+            <LockKeyhole className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            <p>
+              This area is private. Only accounts given the admin role by the
+              studio owner can open the dashboard — there is no public
+              registration.
+            </p>
           </div>
-
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            onClick={() => void handleGoogle()}
-          >
-            <GoogleIcon className="mr-2 h-4 w-4" />
-            Continue with Google
-          </Button>
-
-          <p className="mt-5 text-center text-xs leading-relaxed text-muted-foreground">
-            Only accounts granted the admin role can open the dashboard.
-          </p>
         </div>
 
         <Link
