@@ -13,10 +13,7 @@ import {
 export const listTeamAdmins = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const admin = await getAdminClientIfCallerIsAdmin(
-      context.supabase,
-      context.userId,
-    );
+    const admin = await getAdminClientIfCallerIsAdmin(context.supabase, context.userId);
     return listAdminMembers(admin, context.userId);
   });
 
@@ -29,27 +26,23 @@ export const grantAdminRole = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) =>
     z
-      .object({ email: z.string().email(), password: z.string().default("") })
+      .object({
+        email: z.string().email(),
+        password: z.string().default(""),
+        name: z.string().default(""),
+      })
       .parse(data),
   )
   .handler(async ({ context, data }) => {
-    const admin = await getAdminClientIfCallerIsAdmin(
-      context.supabase,
-      context.userId,
-    );
-    return createAdminAccount(admin, data.email, data.password);
+    const admin = await getAdminClientIfCallerIsAdmin(context.supabase, context.userId);
+    return createAdminAccount(admin, data.email, data.password, data.name);
   });
 
 /** Removes the admin role from an account (never yourself or the last admin). */
 export const revokeAdminRole = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) =>
-    z.object({ userId: z.string().uuid() }).parse(data),
-  )
+  .inputValidator((data) => z.object({ userId: z.string().uuid() }).parse(data))
   .handler(async ({ context, data }) => {
-    const admin = await getAdminClientIfCallerIsAdmin(
-      context.supabase,
-      context.userId,
-    );
+    const admin = await getAdminClientIfCallerIsAdmin(context.supabase, context.userId);
     return revokeAdminMember(admin, data.userId, context.userId);
   });

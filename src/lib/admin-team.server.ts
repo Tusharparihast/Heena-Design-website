@@ -5,6 +5,7 @@ import type { Database } from "@/integrations/supabase/types";
 export interface AdminMember {
   userId: string;
   email: string;
+  name: string;
   /** ISO timestamp of when the account was created. */
   since: string;
   isSelf: boolean;
@@ -52,9 +53,12 @@ export async function listAdminMembers(
   const members: AdminMember[] = [];
   for (const row of roles ?? []) {
     const { data: userData } = await admin.auth.admin.getUserById(row.user_id);
+    const email = userData.user?.email ?? "Unknown account";
+    const metaName = userData.user?.user_metadata?.full_name as string | undefined)?.trim();
+    
     members.push({
-      userId: row.user_id,
-      email: userData.user?.email ?? "Unknown account",
+      userId: row.user_id,email,
+      name: metaName || email.split("@").at(0) || "Admin",
       since: userData.user?.created_at ?? "",
       isSelf: row.user_id === selfId,
     });
@@ -92,12 +96,19 @@ export async function createAdminAccount(
   admin: AdminClient,
   email: string,
   password: string,
+  name: string,
 ): Promise<TeamResult> {
   const normalized = email.trim().toLowerCase();
   if (!normalized) return { ok: false, error: "Enter an email address." };
+  const trimmedName = name.trim();
 
   const existing = await findUserByEmail(admin, normalized);
   if (existing) {
+    if (trimmedName){
+      await admin.auth.admin.updateUserById(existing.id, {
+        user_metadata: {...existing.user_metadata, full_name: trimmedName},
+      });
+    }
     return grantRole(admin, existing.id, existing.email ?? normalized);
   }
 
@@ -113,6 +124,7 @@ export async function createAdminAccount(
     email: normalized,
     password,
     email_confirm: true,
+    user_metadata: trimmedName ? { full_name: trimmedName } : undefined,
   });
   if (error || !data.user) {
     return { ok: false, error: error?.message ?? "Couldn't create the account." };
