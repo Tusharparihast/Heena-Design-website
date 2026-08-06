@@ -399,7 +399,13 @@ export const en = {
       placement: "Placement",
       placementOptions: ["Front hand", "Back hand", "Both hands", "Feet", "Arms", "Other"],
       budget: "Budget",
-      budgetOptions: ["Under NPR 3,000", "NPR 3,000 – 7,000", "NPR 7,000 – 15,000", "NPR 15,000+", "Not sure yet"],
+      budgetOptions: [
+        "Under NPR 3,000",
+        "NPR 3,000 – 7,000",
+        "NPR 7,000 – 15,000",
+        "NPR 15,000+",
+        "Not sure yet",
+      ],
       budgetCustom: "Custom amount",
       budgetCustomPh: "e.g. NPR 5,000",
       notes: "Anything else?",
@@ -500,7 +506,7 @@ export const en = {
       paymentBody:
         "There is no online checkout here — every order is confirmed personally by the studio first. Once confirmed, we send payment instructions through your preferred contact method.",
       paymentMethodsLabel: "QR payments supported after confirmation",
-      paymentMethods: ["Bank QR", "eSewa QR", "Khalti QR", "WeChat Pay QR"],
+      paymentMethods: ["Bank QR", "eSewa QR", "Khalti QR", "WeChat Pay QR", "Alipay QR"],
       notFoundTitle: "Product not found",
       notFoundBody: "This product is no longer listed. Browse the shop to see what is available now.",
     },
@@ -533,7 +539,7 @@ export const en = {
         email: "Email",
       },
       paymentHint:
-        "No payment now — the studio confirms availability first, then shares payment instructions (bank QR, eSewa, Khalti, WeChat Pay).",
+        "No payment now — the studio confirms availability first, then shares payment instructions (bank QR, eSewa, Khalti, WeChat Pay or Alipay).",
       submit: "Send order request",
       sending: "Sending…",
       errors: {
@@ -555,6 +561,7 @@ export const en = {
         title: "Order request sent",
         description: "We will review availability and contact you to confirm.",
       },
+
     },
     items: [
       {

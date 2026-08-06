@@ -7,7 +7,7 @@ export const site = {
   phone: "+977 9706734471",
   email: "hello@nagmadesigns.com",
   wechatId: "nagma-designs",
-  whatsapp: "+977 9706734471",
+  whatsapp: "+9779800000000",
   instagram: "https://instagram.com/",
   facebook: "https://facebook.com/",
   mapUrl: "https://maps.google.com/?q=Maitidevi,Kathmandu",
