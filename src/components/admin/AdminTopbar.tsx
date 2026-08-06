@@ -143,7 +143,7 @@ export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopb
               <User className="mr-2 h-4 w-4" /> Profile
             </DropdownMenuItem>
             <DropdownMenuItem asChild className="cursor-pointer">
-              <Link to="/admin/settings">
+              <Link to="/admin/$section" params={{ section: "settings" }}>
                 <Settings className="mr-2 h-4 w-4" /> Settings
               </Link>
             </DropdownMenuItem>
