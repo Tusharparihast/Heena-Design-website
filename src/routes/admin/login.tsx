@@ -91,7 +91,16 @@ function AdminLoginPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="adm-pass">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="adm-pass">Password</Label>
+                <button
+                  type="button"
+                  onClick={() => void handleForgotPassword()}
+                  className="text-xs text-primary hover:underline"
+                >
+                  Forgot password?
+                </button>
+              </div>
               <Input
                 id="adm-pass"
                 type="password"
