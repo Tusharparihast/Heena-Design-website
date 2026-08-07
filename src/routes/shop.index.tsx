@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { MessageCircle, ShoppingBag } from "lucide-react";
+import { MessageCircle, ShoppingBag, LoaderCircle } from "lucide-react";
 import { Section, SectionHeading } from "@/components/site/Section";
 import { MehndiPattern } from "@/components/site/MehndiPattern";
 import { DiscountBadge, ShopPrice } from "@/components/shop/DiscountBadge";
@@ -38,6 +38,9 @@ function ShopPage() {
   const [order, setOrder] = useState<{ id: string; qty: number } | null>(null);
   const { products, categories } = usePublicCatalog();
 
+  // 2. Destructure 'loading' from the hook
+  const { products, categories, loading } = usePublicCatalog();
+  
   /** Filter chips: All + every active category (built-ins can be renamed or removed). */
   const chips = useMemo(() => {
     const cats = categories.map((c) => ({ id: c.id, label: catLabel(c, locale) }));
@@ -106,6 +109,13 @@ function ShopPage() {
             </button>
           ))}
         </div>
+
+        {/* 3. Wrap the product grid in the loading ternary check */}
+        {loading ? (
+          <div className="flex min-h-[40vh] items-center justify-center">
+            <LoaderCircle className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
 
         <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {items.map(({ product, copy }) => (

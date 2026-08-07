@@ -54,7 +54,6 @@ import {
   type StockStatus,
 } from "@/lib/shop-catalog-db";
 import { DEFAULT_CATEGORY_IDS, formatNpr } from "@/lib/shop";
-import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/products")({
   head: () => ({
@@ -74,7 +73,6 @@ interface Row {
   stock: StockStatus;
   featured: boolean;
   discount?: number | undefined;
-  hidden: boolean;
 }
 
 /** Generates a URL-safe, unique id from a name (used for new products/categories). */
@@ -135,7 +133,6 @@ function AdminProductsPage() {
           stock: p.stock,
           featured: p.featured,
           discount: p.discountPct ?? undefined,
-          hidden: !p.visible,
         })),
     [products],
   );
@@ -165,11 +162,6 @@ function AdminProductsPage() {
 
   const setFeatured = async (row: Row, featured: boolean) => {
     await updateProduct(row.id, { featured });
-    await refresh();
-  };
-
-  const setVisible = async (row: Row, visible: boolean) => {
-    await updateProduct(row.id, { visible });
     await refresh();
   };
 
@@ -462,13 +454,12 @@ function AdminProductsPage() {
                 <TableHead>Stock</TableHead>
                 <TableHead>Discount %</TableHead>
                 <TableHead>Featured</TableHead>
-                <TableHead>Visible</TableHead>
                 <TableHead className="pr-6 text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {visibleRows.map((row) => (
-                <TableRow key={row.id} className={cn(row.hidden && "opacity-50")}>
+                <TableRow key={row.id}>
                   <TableCell className="pl-6">
                     <div className="flex items-center gap-3">
                       <img
@@ -480,14 +471,7 @@ function AdminProductsPage() {
                         className="h-10 w-10 shrink-0 rounded-lg object-cover"
                       />
                       <div className="min-w-0">
-                        <p className="flex items-center gap-2 truncate font-medium">
-                          {row.name}
-                          {row.hidden ? (
-                            <Badge variant="secondary" className="text-[10px]">
-                              Hidden
-                            </Badge>
-                          ) : null}
-                        </p>
+                        <p className="flex items-center gap-2 truncate font-medium">{row.name}</p>
                         <p className="text-xs text-muted-foreground">{categoryName(row.category)}</p>
                       </div>
                     </div>
@@ -544,14 +528,6 @@ function AdminProductsPage() {
                       aria-label={`Featured badge for ${row.name}`}
                     />
                   </TableCell>
-                  <TableCell>
-                    <Switch
-                      checked={!row.hidden}
-                      onCheckedChange={(v) => setVisible(row, v)}
-                      disabled={!loaded}
-                      aria-label={`Shop visibility for ${row.name}`}
-                    />
-                  </TableCell>
                   <TableCell className="pr-6 text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -578,7 +554,7 @@ function AdminProductsPage() {
               ))}
               {visibleRows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-10 text-center text-sm text-muted-foreground">
+                  <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
                     No products match "{query}".
                   </TableCell>
                 </TableRow>
@@ -817,8 +793,8 @@ function AdminProductsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this category permanently?</AlertDialogTitle>
             <AlertDialogDescription>
-              This cannot be undone — the category and any of its products still in the trash will never appear in the
-              shop again.
+              This cannot be undone. Any products still in the trash under this category will also be permanently
+              deleted.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -827,47 +803,6 @@ function AdminProductsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      <Dialog open={renameCategory !== null} onOpenChange={(open) => !open && setRenameCategory(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Rename category</DialogTitle>
-            <DialogDescription>
-              The new name shows everywhere — shop filters, product pages and the editor.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <Input
-              value={renameEn}
-              onChange={(e) => setRenameEn(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") void saveRenameCategory();
-              }}
-              placeholder="Category name (English)"
-              aria-label="Category name in English"
-              maxLength={40}
-            />
-            <Input
-              value={renameZh}
-              onChange={(e) => setRenameZh(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") void saveRenameCategory();
-              }}
-              placeholder="类别名称（中文，可选）"
-              aria-label="Category name in Chinese (optional)"
-              maxLength={40}
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setRenameCategory(null)}>
-              Cancel
-            </Button>
-            <Button onClick={() => void saveRenameCategory()} disabled={!renameEn.trim()}>
-              Save
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

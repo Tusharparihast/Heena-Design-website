@@ -62,6 +62,10 @@ interface CategoryRow {
   deleted: boolean;
 }
 
+let publicCache: { products: DbProduct[]; categories: DbCategory[] } | null = null;
+let adminCache: { products: DbProduct[]; categories: DbCategory[] } | null = null;
+let seedChecked = false;
+
 function rowToProduct(r: ProductRow): DbProduct {
   return {
     id: r.id,
@@ -91,9 +95,9 @@ function rowToCategory(r: CategoryRow): DbCategory {
 /* ---------------- Public storefront (RLS already filters to visible+live rows) ---------------- */
 
 export function usePublicCatalog() {
-  const [products, setProducts] = useState<DbProduct[]>([]);
-  const [categories, setCategories] = useState<DbCategory[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<DbProduct[]>(publicCache?.products ?? []);
+  const [categories, setCategories] = useState<DbCategory[]>(publicCache?.categories ?? []);
+  const [loading, setLoading] = useState(!publicCache);
 
   useEffect(() => {
     let cancelled = false;
@@ -103,8 +107,13 @@ export function usePublicCatalog() {
         supabase.from("product_categories").select("*"),
       ]);
       if (cancelled) return;
-      setProducts((p ?? []).map((r) => rowToProduct(r as ProductRow)));
-      setCategories((c ?? []).map((r) => rowToCategory(r as CategoryRow)));
+      const nextProducts = (p ?? [])
+        .map((r) => rowToProduct(r as ProductRow))
+        .filter((prod) => prod.visible && !prod.deleted);
+      const nextCategories = (c ?? []).map((r) => rowToCategory(r as CategoryRow)).filter((cat) => !cat.deleted);
+      publicCache = { products: nextProducts, categories: nextCategories };
+      setProducts(nextProducts);
+      setCategories(nextCategories);
       setLoading(false);
     })();
     return () => {
@@ -118,17 +127,20 @@ export function usePublicCatalog() {
 /* ---------------- Admin dashboard (RLS grants admins every row) ---------------- */
 
 export function useAdminCatalog() {
-  const [products, setProducts] = useState<DbProduct[]>([]);
-  const [categories, setCategories] = useState<DbCategory[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [products, setProducts] = useState<DbProduct[]>(adminCache?.products ?? []);
+  const [categories, setCategories] = useState<DbCategory[]>(adminCache?.categories ?? []);
+  const [loading, setLoading] = useState(!adminCache);
 
   const refresh = useCallback(async () => {
     const [{ data: p }, { data: c }] = await Promise.all([
       supabase.from("products").select("*").order("created_at", { ascending: true }),
       supabase.from("product_categories").select("*").order("created_at", { ascending: true }),
     ]);
-    setProducts((p ?? []).map((r) => rowToProduct(r as ProductRow)));
-    setCategories((c ?? []).map((r) => rowToCategory(r as CategoryRow)));
+    const nextProducts = (p ?? []).map((r) => rowToProduct(r as ProductRow));
+    const nextCategories = (c ?? []).map((r) => rowToCategory(r as CategoryRow));
+    adminCache = { products: nextProducts, categories: nextCategories };
+    setProducts(nextProducts);
+    setCategories(nextCategories);
     setLoading(false);
   }, []);
 
@@ -301,6 +313,8 @@ export function relatedFrom(products: DbProduct[], id: string, limit = 3): DbPro
 
 /** Runs once — no-ops once the products table already has rows. */
 export async function seedCatalogIfEmpty(): Promise<void> {
+  if (seedChecked) return;
+  seedChecked = true;
   const { count } = await supabase.from("products").select("id", { count: "exact", head: true });
   if ((count ?? 0) > 0) return;
 
