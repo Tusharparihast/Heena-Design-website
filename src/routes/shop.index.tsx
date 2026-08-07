@@ -36,11 +36,9 @@ function ShopPage() {
   const s = t.shopPage;
   const [filter, setFilter] = useState<string>("all");
   const [order, setOrder] = useState<{ id: string; qty: number } | null>(null);
-  const { products, categories } = usePublicCatalog();
-
   // 2. Destructure 'loading' from the hook
   const { products, categories, loading } = usePublicCatalog();
-  
+
   /** Filter chips: All + every active category (built-ins can be renamed or removed). */
   const chips = useMemo(() => {
     const cats = categories.map((c) => ({ id: c.id, label: catLabel(c, locale) }));
@@ -116,12 +114,17 @@ function ShopPage() {
             <LoaderCircle className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : (
-
-        <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map(({ product, copy }) => (
-            <ProductCard key={product.id} product={product} copy={copy} onOrder={(id, qty) => setOrder({ id, qty })} />
-          ))}
-        </ul>
+          <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {items.map(({ product, copy }) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                copy={copy}
+                onOrder={(id, qty) => setOrder({ id, qty })}
+              />
+            ))}
+          </ul>
+        )}
 
         <p className="mt-8 text-xs text-muted-foreground italic">{s.note}</p>
       </Section>
