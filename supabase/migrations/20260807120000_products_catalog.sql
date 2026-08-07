@@ -39,19 +39,19 @@ create policy "Public can view live products"
 
 create policy "Admins can view all products"
   on public.products for select
-  using (public.has_role(auth.uid(), 'admin'));
+  using (public.has_role(auth.uid(), 'admin'::public.app_role));
 
 create policy "Admins can insert products"
   on public.products for insert
-  with check (public.has_role(auth.uid(), 'admin'));
+  with check (public.has_role(auth.uid(), 'admin'::public.app_role));
 
 create policy "Admins can update products"
   on public.products for update
-  using (public.has_role(auth.uid(), 'admin'));
+  using (public.has_role(auth.uid(), 'admin'::public.app_role));
 
 create policy "Admins can delete products"
   on public.products for delete
-  using (public.has_role(auth.uid(), 'admin'));
+  using (public.has_role(auth.uid(), 'admin'::public.app_role));
 
 create policy "Public can view live categories"
   on public.product_categories for select
@@ -59,16 +59,16 @@ create policy "Public can view live categories"
 
 create policy "Admins can view all categories"
   on public.product_categories for select
-  using (public.has_role(auth.uid(), 'admin'));
+  using (public.has_role(auth.uid(), 'admin'::public.app_role));
 
 create policy "Admins can insert categories"
   on public.product_categories for insert
-  with check (public.has_role(auth.uid(), 'admin'));
+  with check (public.has_role(auth.uid(), 'admin'::public.app_role));
 
 create policy "Admins can update categories"
   on public.product_categories for update
-  using (public.has_role(auth.uid(), 'admin'));
+  using (public.has_role(auth.uid(), 'admin'::public.app_role));
 
 create policy "Admins can delete categories"
   on public.product_categories for delete
-  using (public.has_role(auth.uid(), 'admin'));
+  using (public.has_role(auth.uid(), 'admin'::public.app_role));
