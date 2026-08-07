@@ -35,6 +35,12 @@ export interface ProductFormValues {
   discount?: number | undefined;
   featured: boolean;
   image?: string | undefined;
+  /** "What's included" bullet points shown on the product details page. */
+  featuresEn: string[];
+  featuresZh: string[];
+  /** "How to use" steps shown on the product details page. */
+  usageEn: string[];
+  usageZh: string[];
 }
 
 /** Current values used to prefill the form. */
@@ -54,6 +60,10 @@ export interface ProductEditorInitial {
   stock: StockStatus;
   discount?: number | undefined;
   featured: boolean;
+  featuresEn: string[];
+  featuresZh: string[];
+  usageEn: string[];
+  usageZh: string[];
 }
 
 /** A selectable category option (built-in or studio-created). */
@@ -158,6 +168,11 @@ function ProductEditorForm({
   const [stock, setStock] = useState<StockStatus>(initial.stock);
   const [discount, setDiscount] = useState(initial.discount ? String(initial.discount) : "");
   const [featured, setFeatured] = useState(initial.featured);
+  // List fields are edited as plain text — one bullet/step per line.
+  const [featuresEnText, setFeaturesEnText] = useState(initial.featuresEn.join("\n"));
+  const [featuresZhText, setFeaturesZhText] = useState(initial.featuresZh.join("\n"));
+  const [usageEnText, setUsageEnText] = useState(initial.usageEn.join("\n"));
+  const [usageZhText, setUsageZhText] = useState(initial.usageZh.join("\n"));
   const [errors, setErrors] = useState<FormErrors>({});
   const [newCatOpen, setNewCatOpen] = useState(false);
   const [newCatEn, setNewCatEn] = useState("");
