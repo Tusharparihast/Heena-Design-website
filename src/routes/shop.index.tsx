@@ -9,13 +9,7 @@ import { QuantityStepper } from "@/components/shop/QuantityStepper";
 import { StockBadge } from "@/components/shop/StockBadge";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { MAX_ORDER_QTY, type ShopProduct } from "@/lib/shop";
-import {
-  effectiveCategories,
-  effectiveProducts,
-  resolveCopy,
-  useCatalogOverrides,
-  type ProductCopy,
-} from "@/lib/catalog-overrides";
+import { catLabel, productCopy, toShopProduct, usePublicCatalog, type ProductCopy } from "@/lib/shop-catalog-db";
 import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -42,30 +36,25 @@ function ShopPage() {
   const s = t.shopPage;
   const [filter, setFilter] = useState<string>("all");
   const [order, setOrder] = useState<{ id: string; qty: number } | null>(null);
-  const overrides = useCatalogOverrides();
+  const { products, categories } = usePublicCatalog();
 
   /** Filter chips: All + every active category (built-ins can be renamed or removed). */
   const chips = useMemo(() => {
-    const cats = effectiveCategories(overrides, s.filters).map((c) => ({
-      id: c.id,
-      label: (locale === "zh" ? c.nameZh : "") || c.nameEn,
-    }));
+    const cats = categories.map((c) => ({ id: c.id, label: catLabel(c, locale) }));
     return [{ id: "all", label: s.filters.all }, ...cats];
-  }, [s.filters, overrides, locale]);
+  }, [s.filters, categories, locale]);
 
   // Fall back to "all" if the active chip was a custom category that got deleted.
   const activeFilter = chips.some((c) => c.id === filter) ? filter : "all";
 
   const items = useMemo(() => {
-    const byId = new Map(s.items.map((i) => [i.id, i]));
-    return effectiveProducts(overrides)
+    return products
       .filter((p) => activeFilter === "all" || p.category === activeFilter)
-      .map((product) => ({ product, copy: resolveCopy(product, byId.get(product.id), overrides, locale) }))
-      .filter((x): x is { product: ShopProduct; copy: ProductCopy } => x.copy !== null);
-  }, [activeFilter, s.items, overrides, locale]);
+      .map((p) => ({ product: toShopProduct(p), copy: productCopy(p, locale) }));
+  }, [activeFilter, products, locale]);
 
   const waLink = `https://wa.me/${site.whatsapp.replace(/[^\d]/g, "")}?text=${encodeURIComponent(
-    `Hello ${site.name}, I would like to order from your shop.`
+    `Hello ${site.name}, I would like to order from your shop.`,
   )}`;
 
   return (
@@ -108,7 +97,9 @@ function ShopPage() {
               aria-pressed={activeFilter === chip.id}
               className={cn(
                 "rounded-full border px-4 py-2 text-sm transition-colors",
-                activeFilter === chip.id ? "border-primary bg-primary text-primary-foreground" : "border-border hover:bg-accent"
+                activeFilter === chip.id
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border hover:bg-accent",
               )}
             >
               {chip.label}
@@ -118,23 +109,14 @@ function ShopPage() {
 
         <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {items.map(({ product, copy }) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              copy={copy}
-              onOrder={(id, qty) => setOrder({ id, qty })}
-            />
+            <ProductCard key={product.id} product={product} copy={copy} onOrder={(id, qty) => setOrder({ id, qty })} />
           ))}
         </ul>
 
         <p className="mt-8 text-xs text-muted-foreground italic">{s.note}</p>
       </Section>
 
-      <OrderRequestModal
-        productId={order?.id ?? null}
-        initialQty={order?.qty ?? 1}
-        onClose={() => setOrder(null)}
-      />
+      <OrderRequestModal productId={order?.id ?? null} initialQty={order?.qty ?? 1} onClose={() => setOrder(null)} />
     </main>
   );
 }

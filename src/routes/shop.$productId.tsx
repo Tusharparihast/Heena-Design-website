@@ -10,14 +10,13 @@ import { en } from "@/i18n/dictionaries";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { MAX_ORDER_QTY, type ShopProduct } from "@/lib/shop";
 import {
-  categoryLabel,
-  effectiveProducts,
+  catLabel,
+  productCopy,
   relatedFrom,
-  resolveCopy,
-  useCatalogOverrides,
-  useCatalogOverridesLoaded,
+  toShopProduct,
+  usePublicCatalog,
   type ProductCopy,
-} from "@/lib/catalog-overrides";
+} from "@/lib/shop-catalog-db";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/shop/$productId")({
@@ -47,15 +46,10 @@ function ProductPage() {
   const s = t.shopPage;
   const d = s.detailsPage;
 
-  const overrides = useCatalogOverrides();
-  // Studio-created products live in localStorage overrides, which are only
-  // read AFTER the first client render — never judge "not found" before that.
-  const overridesLoaded = useCatalogOverridesLoaded();
-  const catalog = useMemo(() => effectiveProducts(overrides), [overrides]);
-  const baseProduct = catalog.find((p) => p.id === productId);
-  const copy = baseProduct
-    ? resolveCopy(baseProduct, s.items.find((i) => i.id === productId), overrides, locale)
-    : null;
+  const { products, categories, loading } = usePublicCatalog();
+  const dbProduct = products.find((p) => p.id === productId);
+  const baseProduct = dbProduct ? toShopProduct(dbProduct) : null;
+  const copy = dbProduct ? productCopy(dbProduct, locale) : null;
 
   const [imgIdx, setImgIdx] = useState(0);
   const [qty, setQty] = useState(1);
@@ -69,8 +63,7 @@ function ProductPage() {
   }, [productId]);
 
   if (!baseProduct || !copy) {
-    if (!overridesLoaded) {
-      // Overrides are still being read — show a loader instead of a wrong 404.
+    if (loading) {
       return (
         <main className="flex min-h-[60vh] items-center justify-center">
           <LoaderCircle className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -83,9 +76,11 @@ function ProductPage() {
 
   const images = product.gallery.length > 0 ? product.gallery : [product.image];
   const out = product.stock === "out";
-  const related = relatedFrom(catalog, product.id, 3)
-    .map((p) => ({ ...p, copy: resolveCopy(p, s.items.find((i) => i.id === p.id), overrides, locale) }))
-    .filter((p): p is ShopProduct & { copy: ProductCopy } => p.copy !== null);
+  const category = categories.find((c) => c.id === dbProduct!.category);
+  const related = relatedFrom(products, product.id, 3).map((p) => ({
+    ...toShopProduct(p),
+    copy: productCopy(p, locale),
+  }));
 
   return (
     <main className="relative">
@@ -126,10 +121,19 @@ function ProductPage() {
                     aria-pressed={imgIdx === i}
                     className={cn(
                       "h-20 w-20 overflow-hidden rounded-xl border transition-all",
-                      imgIdx === i ? "border-primary ring-2 ring-primary/30" : "border-border opacity-70 hover:opacity-100"
+                      imgIdx === i
+                        ? "border-primary ring-2 ring-primary/30"
+                        : "border-border opacity-70 hover:opacity-100",
                     )}
                   >
-                    <img src={img} alt="" width={160} height={160} loading="lazy" className="h-full w-full object-cover" />
+                    <img
+                      src={img}
+                      alt=""
+                      width={160}
+                      height={160}
+                      loading="lazy"
+                      className="h-full w-full object-cover"
+                    />
                   </button>
                 ))}
               </div>
@@ -138,7 +142,9 @@ function ProductPage() {
 
           {/* Details */}
           <div className="flex flex-col">
-            <p className="text-xs font-semibold tracking-[0.2em] text-primary uppercase">{categoryLabel(product.category, overrides, locale, s.filters)}</p>
+            <p className="text-xs font-semibold tracking-[0.2em] text-primary uppercase">
+              {category ? catLabel(category, locale) : product.category}
+            </p>
             <h1 className="mt-3 text-3xl font-semibold sm:text-4xl">{copy.name}</h1>
 
             <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -265,7 +271,11 @@ function ProductPage() {
         ) : null}
       </Section>
 
-      <OrderRequestModal productId={orderOpen ? product.id : null} initialQty={qty} onClose={() => setOrderOpen(false)} />
+      <OrderRequestModal
+        productId={orderOpen ? product.id : null}
+        initialQty={qty}
+        onClose={() => setOrderOpen(false)}
+      />
     </main>
   );
 }
