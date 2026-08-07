@@ -10,8 +10,16 @@ function deriveIdentity(
   user: { email?: string | null; user_metadata?: Record<string, unknown> } | null | undefined,
 ): CurrentAdmin {
   const email = user?.email ?? "";
-  const metaName = (user?.user_metadata?.full_name as string | undefined)?.trim();
+  const metaName = (user?.user_metadata?.["full_name"] as string | undefined)?.trim();
   return { name: metaName || email.split("@").at(0) || "Admin", email };
+}
+
+export function getInitials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "A";
+  const first = parts[0]!;
+  if (parts.length === 1) return first.slice(0, 2).toUpperCase();
+  return (first[0]! + parts[1]![0]!).toUpperCase();
 }
 
 export function getInitials(name: string) {
