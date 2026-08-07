@@ -43,6 +43,12 @@ export interface ProductEdit {
   featured?: boolean;
   /** Uploaded photo as a (compressed) data URL. */
   image?: string | undefined;
+  /** "What's included" bullet points (details page). */
+  featuresEn?: string[];
+  featuresZh?: string[];
+  /** "How to use" steps (details page). */
+  usageEn?: string[];
+  usageZh?: string[];
 }
 
 /** A studio-created product category (in addition to the built-in ones). */
@@ -71,6 +77,10 @@ export interface CustomProduct {
   nameZh: string;
   bodyEn: string;
   bodyZh: string;
+  featuresEn: string[];
+  featuresZh: string[];
+  usageEn: string[];
+  usageZh: string[];
 }
 
 export interface CatalogOverrides {
@@ -149,6 +159,19 @@ function cleanPercent(value: unknown): number | undefined {
 function cleanImage(value: unknown): string | undefined {
   if (typeof value !== "string") return undefined;
   return value.startsWith("data:image/") ? value : undefined;
+}
+
+const MAX_LIST_ITEMS = 12;
+
+/** Sanitize a bullet/step list: strings only, trimmed, capped. Undefined when empty. */
+function cleanTextList(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const items = value
+    .filter((v): v is string => typeof v === "string")
+    .map((v) => v.trim().slice(0, 200))
+    .filter(Boolean)
+    .slice(0, MAX_LIST_ITEMS);
+  return items.length > 0 ? items : undefined;
 }
 
 /** Remove invalid/empty fields; returns undefined when nothing is left. */
