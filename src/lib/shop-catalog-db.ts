@@ -35,23 +35,53 @@ export interface DbCategory {
 }
 
 interface ProductRow {
-  id: string; image: string; gallery: string[]; category: string; price_npr: number;
-  stock: string; discount_pct: number | null; featured: boolean; visible: boolean; deleted: boolean;
-  name_en: string; name_zh: string; body_en: string; body_zh: string;
-  features_en: string[]; features_zh: string[]; usage_en: string[]; usage_zh: string[];
+  id: string;
+  image: string;
+  gallery: string[];
+  category: string;
+  price_npr: number;
+  stock: string;
+  discount_pct: number | null;
+  featured: boolean;
+  visible: boolean;
+  deleted: boolean;
+  name_en: string;
+  name_zh: string;
+  body_en: string;
+  body_zh: string;
+  features_en: string[];
+  features_zh: string[];
+  usage_en: string[];
+  usage_zh: string[];
 }
 interface CategoryRow {
-  id: string; name_en: string; name_zh: string; builtin: boolean; deleted: boolean;
+  id: string;
+  name_en: string;
+  name_zh: string;
+  builtin: boolean;
+  deleted: boolean;
 }
 
 function rowToProduct(r: ProductRow): DbProduct {
   return {
-    id: r.id, image: r.image, gallery: r.gallery ?? [], category: r.category, priceNpr: r.price_npr,
+    id: r.id,
+    image: r.image,
+    gallery: r.gallery ?? [],
+    category: r.category,
+    priceNpr: r.price_npr,
     stock: (["in", "low", "out"] as const).includes(r.stock as StockStatus) ? (r.stock as StockStatus) : "in",
-    discountPct: r.discount_pct, featured: r.featured, visible: r.visible, deleted: r.deleted,
-    nameEn: r.name_en, nameZh: r.name_zh, bodyEn: r.body_en, bodyZh: r.body_zh,
-    featuresEn: r.features_en ?? [], featuresZh: r.features_zh ?? [],
-    usageEn: r.usage_en ?? [], usageZh: r.usage_zh ?? [],
+    discountPct: r.discount_pct,
+    featured: r.featured,
+    visible: r.visible,
+    deleted: r.deleted,
+    nameEn: r.name_en,
+    nameZh: r.name_zh,
+    bodyEn: r.body_en,
+    bodyZh: r.body_zh,
+    featuresEn: r.features_en ?? [],
+    featuresZh: r.features_zh ?? [],
+    usageEn: r.usage_en ?? [],
+    usageZh: r.usage_zh ?? [],
   };
 }
 function rowToCategory(r: CategoryRow): DbCategory {
@@ -77,7 +107,9 @@ export function usePublicCatalog() {
       setCategories((c ?? []).map((r) => rowToCategory(r as CategoryRow)));
       setLoading(false);
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return { products, categories, loading };
@@ -100,7 +132,9 @@ export function useAdminCatalog() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
 
   return { products, categories, loading, refresh };
 }
@@ -108,26 +142,55 @@ export function useAdminCatalog() {
 /* ---------------- Product mutations ---------------- */
 
 export interface ProductInput {
-  id: string; image: string; gallery?: string[]; category: string; priceNpr: number;
-  stock: StockStatus; discountPct?: number | null; featured: boolean; visible?: boolean;
-  nameEn: string; nameZh: string; bodyEn: string; bodyZh: string;
-  featuresEn: string[]; featuresZh: string[]; usageEn: string[]; usageZh: string[];
+  id: string;
+  image: string;
+  gallery?: string[];
+  category: string;
+  priceNpr: number;
+  stock: StockStatus;
+  discountPct?: number | null;
+  featured: boolean;
+  visible?: boolean;
+  nameEn: string;
+  nameZh: string;
+  bodyEn: string;
+  bodyZh: string;
+  featuresEn: string[];
+  featuresZh: string[];
+  usageEn: string[];
+  usageZh: string[];
 }
 
 export async function insertProduct(p: ProductInput): Promise<boolean> {
   const { error } = await supabase.from("products").insert({
-    id: p.id, image: p.image, gallery: p.gallery ?? [p.image], category: p.category,
-    price_npr: Math.round(p.priceNpr), stock: p.stock, discount_pct: p.discountPct ?? null,
-    featured: p.featured, visible: p.visible ?? true,
-    name_en: p.nameEn, name_zh: p.nameZh, body_en: p.bodyEn, body_zh: p.bodyZh,
-    features_en: p.featuresEn, features_zh: p.featuresZh, usage_en: p.usageEn, usage_zh: p.usageZh,
+    id: p.id,
+    image: p.image,
+    gallery: p.gallery ?? [p.image],
+    category: p.category,
+    price_npr: Math.round(p.priceNpr),
+    stock: p.stock,
+    discount_pct: p.discountPct ?? null,
+    featured: p.featured,
+    visible: p.visible ?? true,
+    name_en: p.nameEn,
+    name_zh: p.nameZh,
+    body_en: p.bodyEn,
+    body_zh: p.bodyZh,
+    features_en: p.featuresEn,
+    features_zh: p.featuresZh,
+    usage_en: p.usageEn,
+    usage_zh: p.usageZh,
   });
+  if (error) console.error("insertProduct failed:", error);
   return !error;
 }
 
 export async function updateProduct(id: string, patch: Partial<ProductInput>): Promise<boolean> {
   const payload: Record<string, unknown> = { updated_at: new Date().toISOString() };
-  if (patch.image !== undefined) { payload.image = patch.image; payload.gallery = [patch.image]; }
+  if (patch.image !== undefined) {
+    payload.image = patch.image;
+    payload.gallery = [patch.image];
+  }
   if (patch.category !== undefined) payload.category = patch.category;
   if (patch.priceNpr !== undefined) payload.price_npr = Math.round(patch.priceNpr);
   if (patch.stock !== undefined) payload.stock = patch.stock;
@@ -143,34 +206,43 @@ export async function updateProduct(id: string, patch: Partial<ProductInput>): P
   if (patch.usageEn !== undefined) payload.usage_en = patch.usageEn;
   if (patch.usageZh !== undefined) payload.usage_zh = patch.usageZh;
   const { error } = await supabase.from("products").update(payload).eq("id", id);
+  if (error) console.error("insertProduct failed:", error);
   return !error;
 }
 
 export async function setProductTrashed(id: string, trashed: boolean): Promise<boolean> {
   const { error } = await supabase.from("products").update({ deleted: trashed }).eq("id", id);
+  if (error) console.error("insertProduct failed:", error);
   return !error;
 }
 export async function purgeProduct(id: string): Promise<boolean> {
   const { error } = await supabase.from("products").delete().eq("id", id);
+  if (error) console.error("insertProduct failed:", error);
   return !error;
 }
 
 /* ---------------- Category mutations ---------------- */
 
 export async function insertCategory(id: string, nameEn: string, nameZh: string): Promise<boolean> {
-  const { error } = await supabase.from("product_categories").insert({ id, name_en: nameEn, name_zh: nameZh, builtin: false });
+  const { error } = await supabase
+    .from("product_categories")
+    .insert({ id, name_en: nameEn, name_zh: nameZh, builtin: false });
+  if (error) console.error("insertProduct failed:", error);
   return !error;
 }
 export async function renameCategory(id: string, nameEn: string, nameZh: string): Promise<boolean> {
   const { error } = await supabase.from("product_categories").update({ name_en: nameEn, name_zh: nameZh }).eq("id", id);
+  if (error) console.error("insertProduct failed:", error);
   return !error;
 }
 export async function setCategoryTrashed(id: string, trashed: boolean): Promise<boolean> {
   const { error } = await supabase.from("product_categories").update({ deleted: trashed }).eq("id", id);
+  if (error) console.error("insertProduct failed:", error);
   return !error;
 }
 export async function purgeCategory(id: string): Promise<boolean> {
   const { error } = await supabase.from("product_categories").delete().eq("id", id);
+  if (error) console.error("insertProduct failed:", error);
   return !error;
 }
 
@@ -178,23 +250,36 @@ export async function purgeCategory(id: string): Promise<boolean> {
 
 export function toShopProduct(p: DbProduct): ShopProduct {
   return {
-    id: p.id, image: p.image, gallery: p.gallery.length > 0 ? p.gallery : [p.image],
-    category: p.category, priceNpr: p.priceNpr, stock: p.stock,
+    id: p.id,
+    image: p.image,
+    gallery: p.gallery.length > 0 ? p.gallery : [p.image],
+    category: p.category,
+    priceNpr: p.priceNpr,
+    stock: p.stock,
     ...(p.featured ? { featured: true } : {}),
     ...(p.discountPct != null ? { discount: p.discountPct } : {}),
   };
 }
 
 export interface ProductCopy {
-  id: string; name: string; body: string; details: string; price: string;
-  features: string[]; usage: string[];
+  id: string;
+  name: string;
+  body: string;
+  details: string;
+  price: string;
+  features: string[];
+  usage: string[];
 }
 
 export function productCopy(p: DbProduct, locale: "en" | "zh"): ProductCopy {
   const name = (locale === "zh" && p.nameZh) || p.nameEn;
   const body = (locale === "zh" && p.bodyZh) || p.bodyEn;
   return {
-    id: p.id, name, body, details: body, price: formatNpr(p.priceNpr),
+    id: p.id,
+    name,
+    body,
+    details: body,
+    price: formatNpr(p.priceNpr),
     features: locale === "zh" && p.featuresZh.length > 0 ? p.featuresZh : p.featuresEn,
     usage: locale === "zh" && p.usageZh.length > 0 ? p.usageZh : p.usageEn,
   };
@@ -236,13 +321,24 @@ export async function seedCatalogIfEmpty(): Promise<void> {
       const cEn = itemsEn.get(p.id);
       const cZh = itemsZh.get(p.id);
       return {
-        id: p.id, image: p.image, gallery: p.gallery, category: p.category,
-        price_npr: p.priceNpr, stock: p.stock, discount_pct: p.discount ?? null,
-        featured: Boolean(p.featured), visible: true, deleted: false,
-        name_en: cEn?.name ?? p.id, name_zh: cZh?.name ?? "",
-        body_en: cEn?.body ?? "", body_zh: cZh?.body ?? "",
-        features_en: cEn?.features ?? [], features_zh: cZh?.features ?? [],
-        usage_en: cEn?.usage ?? [], usage_zh: cZh?.usage ?? [],
+        id: p.id,
+        image: p.image,
+        gallery: p.gallery,
+        category: p.category,
+        price_npr: p.priceNpr,
+        stock: p.stock,
+        discount_pct: p.discount ?? null,
+        featured: Boolean(p.featured),
+        visible: true,
+        deleted: false,
+        name_en: cEn?.name ?? p.id,
+        name_zh: cZh?.name ?? "",
+        body_en: cEn?.body ?? "",
+        body_zh: cZh?.body ?? "",
+        features_en: cEn?.features ?? [],
+        features_zh: cZh?.features ?? [],
+        usage_en: cEn?.usage ?? [],
+        usage_zh: cZh?.usage ?? [],
       };
     }),
   );
