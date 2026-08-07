@@ -22,13 +22,6 @@ export function getInitials(name: string) {
   return (first[0]! + parts[1]![0]!).toUpperCase();
 }
 
-export function getInitials(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "A";
-  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
-  return (parts[0]![0] + parts[1]![0]).toUpperCase();
-}
-
 /** Live-updating name/email of the signed-in admin, from Supabase auth metadata. */
 export function useCurrentAdmin(): CurrentAdmin {
   const [identity, setIdentity] = useState<CurrentAdmin>({ name: "", email: "" });
