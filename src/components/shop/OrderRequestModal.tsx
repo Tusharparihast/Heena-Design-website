@@ -5,13 +5,12 @@ import { z } from "zod";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { MAX_ORDER_QTY, formatCny, formatNpr, unitPriceNpr } from "@/lib/shop";
-import { effectiveProducts, resolveCopy, useCatalogOverrides } from "@/lib/catalog-overrides";
+import { productCopy, toShopProduct, usePublicCatalog } from "@/lib/shop-catalog-db";
 import { useCnyRate } from "@/lib/use-cny-rate";
 import { logOrderRequest } from "@/lib/bookings-db";
 import { cn } from "@/lib/utils";
 import { ShopPrice } from "./DiscountBadge";
 import { QuantityStepper } from "./QuantityStepper";
-
 
 type ContactMethod = "wechat" | "whatsapp" | "phone" | "email";
 type Status = "idle" | "sending" | "done";
@@ -60,14 +59,10 @@ export function OrderRequestModal({
   const [errors, setErrors] = useState<Partial<Record<keyof Fields, string>>>({});
   const [status, setStatus] = useState<Status>("idle");
 
-  const overrides = useCatalogOverrides();
-  const product = useMemo(
-    () => effectiveProducts(overrides).find((p) => p.id === productId) ?? null,
-    [overrides, productId]
-  );
-  const copy = product
-    ? resolveCopy(product, t.shopPage.items.find((i) => i.id === productId), overrides, locale)
-    : null;
+  const { products } = usePublicCatalog();
+  const dbProduct = useMemo(() => products.find((p) => p.id === productId) ?? null, [products, productId]);
+  const product = dbProduct ? toShopProduct(dbProduct) : null;
+  const copy = dbProduct ? productCopy(dbProduct, locale) : null;
 
   // Reset everything whenever a product opens the drawer.
   useEffect(() => {
@@ -101,7 +96,10 @@ export function OrderRequestModal({
       z
         .object({
           name: z.string().trim().min(1, f.errors.name).max(100, f.errors.name),
-          phone: z.string().trim().regex(/^[+0-9][0-9\s()-]{5,19}$/, f.errors.phone),
+          phone: z
+            .string()
+            .trim()
+            .regex(/^[+0-9][0-9\s()-]{5,19}$/, f.errors.phone),
           wechat: z.string().trim().max(100),
           whatsapp: z.string().trim().max(30),
           email: z.string().trim().max(255),
@@ -120,7 +118,7 @@ export function OrderRequestModal({
             ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["email"], message: f.errors.email });
           }
         }),
-    [f]
+    [f],
   );
 
   if (!product || !copy) return null;
@@ -163,7 +161,7 @@ export function OrderRequestModal({
       toast.error(
         locale === "zh"
           ? "提交失败，请重试或直接通过微信联系我们。"
-          : "Couldn't submit the request. Please try again or reach us on WeChat."
+          : "Couldn't submit the request. Please try again or reach us on WeChat.",
       );
       return;
     }
@@ -182,7 +180,7 @@ export function OrderRequestModal({
         onClick={onClose}
         className={cn(
           "absolute inset-0 h-full w-full cursor-default bg-foreground/20 backdrop-blur-md transition-opacity duration-300",
-          mounted ? "opacity-100" : "opacity-0"
+          mounted ? "opacity-100" : "opacity-0",
         )}
       />
       <aside
@@ -196,12 +194,12 @@ export function OrderRequestModal({
           isMobile
             ? cn(
                 "inset-y-0 right-0 h-full w-full max-w-md border-l border-border transition-transform",
-                mounted ? "translate-x-0" : "translate-x-full"
+                mounted ? "translate-x-0" : "translate-x-full",
               )
             : cn(
                 "top-1/2 left-1/2 max-h-[88vh] w-[min(38rem,calc(100vw-2.5rem))] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-border transition-[opacity,scale]",
-                mounted ? "scale-100 opacity-100" : "scale-95 opacity-0"
-              )
+                mounted ? "scale-100 opacity-100" : "scale-95 opacity-0",
+              ),
         )}
       >
         <div className="flex items-start justify-between gap-4 border-b border-border p-5">
@@ -247,7 +245,12 @@ export function OrderRequestModal({
           </div>
         ) : (
           <>
-            <form id="order-request-form" onSubmit={(e) => void submit(e)} className="flex-1 space-y-5 overflow-y-auto p-5" noValidate>
+            <form
+              id="order-request-form"
+              onSubmit={(e) => void submit(e)}
+              className="flex-1 space-y-5 overflow-y-auto p-5"
+              noValidate
+            >
               {/* Selected product summary */}
               <div className="rounded-xl border border-border bg-secondary/40 p-4">
                 <div className="flex items-center gap-3">
@@ -267,7 +270,13 @@ export function OrderRequestModal({
                       <ShopPrice product={product} price={copy.price} className="font-semibold text-primary" />
                     </p>
                   </div>
-                  <QuantityStepper small value={qty} onChange={setQty} max={MAX_ORDER_QTY} label={t.shopPage.quantity} />
+                  <QuantityStepper
+                    small
+                    value={qty}
+                    onChange={setQty}
+                    max={MAX_ORDER_QTY}
+                    label={t.shopPage.quantity}
+                  />
                 </div>
                 <div className="mt-3 flex items-baseline justify-between gap-3 border-t border-border pt-3">
                   <span className="text-xs text-muted-foreground">{f.estimatedTotal}</span>
@@ -290,46 +299,102 @@ export function OrderRequestModal({
                 {/* Two columns on the wider desktop dialog; single column in the mobile drawer. */}
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field label={f.fullName} error={errors.name}>
-                    <input type="text" value={fields.name} onChange={set("name")} placeholder={f.fullNamePh} maxLength={100} className={inputClass} autoComplete="name" />
+                    <input
+                      type="text"
+                      value={fields.name}
+                      onChange={set("name")}
+                      placeholder={f.fullNamePh}
+                      maxLength={100}
+                      className={inputClass}
+                      autoComplete="name"
+                    />
                   </Field>
 
                   <Field label={f.phone} error={errors.phone}>
-                    <input type="tel" value={fields.phone} onChange={set("phone")} placeholder={f.phonePh} maxLength={20} className={inputClass} autoComplete="tel" />
+                    <input
+                      type="tel"
+                      value={fields.phone}
+                      onChange={set("phone")}
+                      placeholder={f.phonePh}
+                      maxLength={20}
+                      className={inputClass}
+                      autoComplete="tel"
+                    />
                   </Field>
                 </div>
 
                 <Field label={f.wechat} error={errors.wechat}>
-                  <input type="text" value={fields.wechat} onChange={set("wechat")} placeholder={f.wechatPh} maxLength={100} className={inputClass} />
+                  <input
+                    type="text"
+                    value={fields.wechat}
+                    onChange={set("wechat")}
+                    placeholder={f.wechatPh}
+                    maxLength={100}
+                    className={inputClass}
+                  />
                 </Field>
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field label={f.whatsapp} error={errors.whatsapp}>
-                    <input type="tel" value={fields.whatsapp} onChange={set("whatsapp")} placeholder={f.whatsappPh} maxLength={30} className={inputClass} />
+                    <input
+                      type="tel"
+                      value={fields.whatsapp}
+                      onChange={set("whatsapp")}
+                      placeholder={f.whatsappPh}
+                      maxLength={30}
+                      className={inputClass}
+                    />
                   </Field>
                   <Field label={f.email} error={errors.email}>
-                    <input type="email" value={fields.email} onChange={set("email")} placeholder={f.emailPh} maxLength={255} className={inputClass} autoComplete="email" />
+                    <input
+                      type="email"
+                      value={fields.email}
+                      onChange={set("email")}
+                      placeholder={f.emailPh}
+                      maxLength={255}
+                      className={inputClass}
+                      autoComplete="email"
+                    />
                   </Field>
                 </div>
 
                 <Field label={f.address} error={errors.address}>
-                  <textarea value={fields.address} onChange={set("address")} placeholder={f.addressPh} maxLength={300} rows={2} className={cn(inputClass, "resize-none")} />
+                  <textarea
+                    value={fields.address}
+                    onChange={set("address")}
+                    placeholder={f.addressPh}
+                    maxLength={300}
+                    rows={2}
+                    className={cn(inputClass, "resize-none")}
+                  />
                 </Field>
 
                 <Field label={f.notes} error={errors.notes}>
-                  <textarea value={fields.notes} onChange={set("notes")} placeholder={f.notesPh} maxLength={500} rows={2} className={cn(inputClass, "resize-none")} />
+                  <textarea
+                    value={fields.notes}
+                    onChange={set("notes")}
+                    placeholder={f.notesPh}
+                    maxLength={500}
+                    rows={2}
+                    className={cn(inputClass, "resize-none")}
+                  />
                 </Field>
               </fieldset>
 
               {/* Preferred contact method */}
               <fieldset>
-                <legend className="text-xs font-semibold tracking-[0.15em] text-foreground uppercase">{f.contact}</legend>
+                <legend className="text-xs font-semibold tracking-[0.15em] text-foreground uppercase">
+                  {f.contact}
+                </legend>
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   {(Object.keys(f.contactMethods) as ContactMethod[]).map((method) => (
                     <label
                       key={method}
                       className={cn(
                         "flex cursor-pointer items-center gap-2.5 rounded-lg border px-3 py-2.5 text-sm transition-colors",
-                        contact === method ? "border-primary bg-primary/5 font-medium" : "border-border hover:bg-accent"
+                        contact === method
+                          ? "border-primary bg-primary/5 font-medium"
+                          : "border-border hover:bg-accent",
                       )}
                     >
                       <input
@@ -343,7 +408,7 @@ export function OrderRequestModal({
                       <span
                         className={cn(
                           "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-colors",
-                          contact === method ? "border-primary" : "border-border"
+                          contact === method ? "border-primary" : "border-border",
                         )}
                         aria-hidden
                       >
@@ -378,15 +443,7 @@ export function OrderRequestModal({
   );
 }
 
-function Field({
-  label,
-  error,
-  children,
-}: {
-  label: string;
-  error?: string | undefined;
-  children: React.ReactNode;
-}) {
+function Field({ label, error, children }: { label: string; error?: string | undefined; children: React.ReactNode }) {
   return (
     <label className="block">
       <span className="text-xs font-medium text-foreground">{label}</span>
