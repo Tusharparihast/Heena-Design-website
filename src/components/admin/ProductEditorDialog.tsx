@@ -35,6 +35,12 @@ export interface ProductFormValues {
   discount?: number | undefined;
   featured: boolean;
   image?: string | undefined;
+  /** "What's included" bullet points shown on the product details page. */
+  featuresEn: string[];
+  featuresZh: string[];
+  /** "How to use" steps shown on the product details page. */
+  usageEn: string[];
+  usageZh: string[];
 }
 
 /** Current values used to prefill the form. */
@@ -54,6 +60,10 @@ export interface ProductEditorInitial {
   stock: StockStatus;
   discount?: number | undefined;
   featured: boolean;
+  featuresEn: string[];
+  featuresZh: string[];
+  usageEn: string[];
+  usageZh: string[];
 }
 
 /** A selectable category option (built-in or studio-created). */
@@ -69,6 +79,15 @@ const stockOptions: { value: StockStatus; label: string }[] = [
 ];
 
 type FormErrors = { name?: string; price?: string; discount?: string; image?: string };
+
+/** Split a textarea value into a clean list (one item per line). */
+function linesToList(text: string): string[] {
+  return text
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, 12);
+}
 
 /** Read an image file and downscale it so localStorage stays small. */
 async function fileToDataUrl(file: File): Promise<string> {
@@ -158,6 +177,11 @@ function ProductEditorForm({
   const [stock, setStock] = useState<StockStatus>(initial.stock);
   const [discount, setDiscount] = useState(initial.discount ? String(initial.discount) : "");
   const [featured, setFeatured] = useState(initial.featured);
+  // List fields are edited as plain text — one bullet/step per line.
+  const [featuresEnText, setFeaturesEnText] = useState(initial.featuresEn.join("\n"));
+  const [featuresZhText, setFeaturesZhText] = useState(initial.featuresZh.join("\n"));
+  const [usageEnText, setUsageEnText] = useState(initial.usageEn.join("\n"));
+  const [usageZhText, setUsageZhText] = useState(initial.usageZh.join("\n"));
   const [errors, setErrors] = useState<FormErrors>({});
   const [newCatOpen, setNewCatOpen] = useState(false);
   const [newCatEn, setNewCatEn] = useState("");
@@ -228,6 +252,10 @@ function ProductEditorForm({
       discount: pct,
       featured,
       image: imageChanged ? image : undefined,
+      featuresEn: linesToList(featuresEnText),
+      featuresZh: linesToList(featuresZhText),
+      usageEn: linesToList(usageEnText),
+      usageZh: linesToList(usageZhText),
     });
   };
 
@@ -475,6 +503,71 @@ function ProductEditorForm({
                 <Switch id="pe-featured" checked={featured} onCheckedChange={setFeatured} />
                 Show “Popular” badge
               </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* What's included + how to use (product details page) */}
+      <div className="mt-6 space-y-4 border-t border-border pt-5">
+        <div>
+          <p className="text-sm font-semibold">What's included</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Bullet points shown on the product details page — one per line. Leave empty to hide the
+            section.
+          </p>
+          <div className="mt-2 grid gap-4 sm:grid-cols-2">
+            <div>
+              <Label htmlFor="pe-features-en">English</Label>
+              <Textarea
+                id="pe-features-en"
+                className="mt-1.5"
+                rows={4}
+                value={featuresEnText}
+                onChange={(e) => setFeaturesEnText(e.target.value)}
+                placeholder={"2 fresh henna cones\nAftercare balm\nInstruction card"}
+              />
+            </div>
+            <div>
+              <Label htmlFor="pe-features-zh">中文</Label>
+              <Textarea
+                id="pe-features-zh"
+                className="mt-1.5"
+                rows={4}
+                value={featuresZhText}
+                onChange={(e) => setFeaturesZhText(e.target.value)}
+                placeholder={"2支新鲜海娜膏\n护理膏\n使用说明卡"}
+              />
+            </div>
+          </div>
+        </div>
+        <div>
+          <p className="text-sm font-semibold">How to use</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Numbered steps shown on the product details page — one step per line.
+          </p>
+          <div className="mt-2 grid gap-4 sm:grid-cols-2">
+            <div>
+              <Label htmlFor="pe-usage-en">English</Label>
+              <Textarea
+                id="pe-usage-en"
+                className="mt-1.5"
+                rows={4}
+                value={usageEnText}
+                onChange={(e) => setUsageEnText(e.target.value)}
+                placeholder={"Wash and dry the skin\nApply the design\nLet it dry for 30 minutes"}
+              />
+            </div>
+            <div>
+              <Label htmlFor="pe-usage-zh">中文</Label>
+              <Textarea
+                id="pe-usage-zh"
+                className="mt-1.5"
+                rows={4}
+                value={usageZhText}
+                onChange={(e) => setUsageZhText(e.target.value)}
+                placeholder={"清洁并擦干皮肤\n绘制图案\n等待30分钟自然晾干"}
+              />
             </div>
           </div>
         </div>

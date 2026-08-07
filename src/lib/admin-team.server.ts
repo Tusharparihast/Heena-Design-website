@@ -42,8 +42,7 @@ export async function listAdminMembers(admin: AdminClient, selfId: string): Prom
     const { data: userData } = await admin.auth.admin.getUserById(row.user_id);
     const email = userData.user?.email ?? "Unknown account";
 
-    // Fixed: Added the opening parenthesis for the type assertion and safe navigation
-    const metaName = (userData.user?.user_metadata?.full_name as string | undefined)?.trim();
+    const metaName = (userData.user?.user_metadata?.["full_name"] as string | undefined)?.trim();
 
     members.push({
       userId: row.user_id,
@@ -108,7 +107,7 @@ export async function createAdminAccount(
     email: normalized,
     password,
     email_confirm: true,
-    user_metadata: trimmedName ? { full_name: trimmedName } : undefined,
+    user_metadata: trimmedName ? { full_name: trimmedName } : {},
   });
   if (error || !data.user) {
     return { ok: false, error: error?.message ?? "Couldn't create the account." };

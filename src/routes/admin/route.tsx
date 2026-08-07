@@ -33,31 +33,34 @@ function AdminLayout() {
     return <Outlet />;
   }
 
+  // The gate wraps the ENTIRE dashboard chrome (sidebar + topbar + pages), so
+  // unauthenticated visitors only ever see the loading screen — never a flash
+  // of the dashboard — before being redirected to the login page.
   return (
-    <div className="min-h-screen bg-background">
-      <AdminSidebar
-        collapsed={collapsed}
-        mobileOpen={mobileOpen}
-        onCloseMobile={() => setMobileOpen(false)}
-      />
-
-      <div
-        className={cn(
-          "flex min-h-screen flex-col transition-[margin] duration-300 ease-in-out",
-          collapsed ? "lg:ml-18" : "lg:ml-64",
-        )}
-      >
-        <AdminTopbar
-          title={title}
-          onOpenMobile={() => setMobileOpen(true)}
-          onToggleCollapse={() => setCollapsed((v) => !v)}
+    <AdminAuthGate>
+      <div className="min-h-screen bg-background">
+        <AdminSidebar
+          collapsed={collapsed}
+          mobileOpen={mobileOpen}
+          onCloseMobile={() => setMobileOpen(false)}
         />
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">
-          <AdminAuthGate>
+
+        <div
+          className={cn(
+            "flex min-h-screen flex-col transition-[margin] duration-300 ease-in-out",
+            collapsed ? "lg:ml-18" : "lg:ml-64",
+          )}
+        >
+          <AdminTopbar
+            title={title}
+            onOpenMobile={() => setMobileOpen(true)}
+            onToggleCollapse={() => setCollapsed((v) => !v)}
+          />
+          <main className="flex-1 p-4 sm:p-6 lg:p-8">
             <Outlet />
-          </AdminAuthGate>
-        </main>
+          </main>
+        </div>
       </div>
-    </div>
+    </AdminAuthGate>
   );
 }

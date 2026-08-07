@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Check, MapPin, QrCode, ShoppingBag } from "lucide-react";
+import { ArrowLeft, Check, LoaderCircle, MapPin, QrCode, ShoppingBag } from "lucide-react";
 import { Section } from "@/components/site/Section";
 import { DiscountBadge, ShopPrice } from "@/components/shop/DiscountBadge";
 import { OrderRequestModal } from "@/components/shop/OrderRequestModal";
@@ -15,6 +15,7 @@ import {
   relatedFrom,
   resolveCopy,
   useCatalogOverrides,
+  useCatalogOverridesLoaded,
   type ProductCopy,
 } from "@/lib/catalog-overrides";
 import { cn } from "@/lib/utils";
@@ -47,13 +48,14 @@ function ProductPage() {
   const d = s.detailsPage;
 
   const overrides = useCatalogOverrides();
+  // Studio-created products live in localStorage overrides, which are only
+  // read AFTER the first client render — never judge "not found" before that.
+  const overridesLoaded = useCatalogOverridesLoaded();
   const catalog = useMemo(() => effectiveProducts(overrides), [overrides]);
   const baseProduct = catalog.find((p) => p.id === productId);
   const copy = baseProduct
     ? resolveCopy(baseProduct, s.items.find((i) => i.id === productId), overrides, locale)
     : null;
-  if (!baseProduct || !copy) throw notFound();
-  const product = baseProduct;
 
   const [imgIdx, setImgIdx] = useState(0);
   const [qty, setQty] = useState(1);
@@ -65,6 +67,19 @@ function ProductPage() {
     setOrderOpen(false);
     window.scrollTo(0, 0);
   }, [productId]);
+
+  if (!baseProduct || !copy) {
+    if (!overridesLoaded) {
+      // Overrides are still being read — show a loader instead of a wrong 404.
+      return (
+        <main className="flex min-h-[60vh] items-center justify-center">
+          <LoaderCircle className="h-8 w-8 animate-spin text-muted-foreground" />
+        </main>
+      );
+    }
+    throw notFound();
+  }
+  const product = baseProduct;
 
   const images = product.gallery.length > 0 ? product.gallery : [product.image];
   const out = product.stock === "out";

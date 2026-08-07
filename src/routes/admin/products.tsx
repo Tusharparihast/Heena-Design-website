@@ -269,6 +269,10 @@ function AdminProductsPage() {
         category: "cones",
         stock: "in",
         featured: false,
+        featuresEn: [],
+        featuresZh: [],
+        usageEn: [],
+        usageZh: [],
       };
     }
     if (editor.kind === "custom") {
@@ -287,6 +291,10 @@ function AdminProductsPage() {
         stock: c.stock,
         discount: c.discount,
         featured: c.featured,
+        featuresEn: c.featuresEn,
+        featuresZh: c.featuresZh,
+        usageEn: c.usageEn,
+        usageZh: c.usageZh,
       };
     }
     const base = shopProducts.find((p) => p.id === editor.id);
@@ -311,6 +319,10 @@ function AdminProductsPage() {
             ? undefined
             : (edit.discount ?? base.discount),
       featured: edit?.featured ?? Boolean(base.featured),
+      featuresEn: edit?.featuresEn ?? productItemsEn.get(base.id)?.features ?? [],
+      featuresZh: edit?.featuresZh ?? productItemsZh.get(base.id)?.features ?? [],
+      usageEn: edit?.usageEn ?? productItemsEn.get(base.id)?.usage ?? [],
+      usageZh: edit?.usageZh ?? productItemsZh.get(base.id)?.usage ?? [],
     };
   }, [editor, overrides]);
 
@@ -333,6 +345,10 @@ function AdminProductsPage() {
         nameZh: values.nameZh,
         bodyEn: values.bodyEn,
         bodyZh: values.bodyZh,
+        featuresEn: values.featuresEn,
+        featuresZh: values.featuresZh,
+        usageEn: values.usageEn,
+        usageZh: values.usageZh,
       };
       commit(
         { ...overrides, added: [...overrides.added, custom] },
@@ -357,6 +373,10 @@ function AdminProductsPage() {
                   featured: values.featured,
                   discount: values.discount,
                   image: values.image ?? c.image,
+                  featuresEn: values.featuresEn,
+                  featuresZh: values.featuresZh,
+                  usageEn: values.usageEn,
+                  usageZh: values.usageZh,
                 }
               : c,
           ),
@@ -376,6 +396,10 @@ function AdminProductsPage() {
         featured: values.featured,
         discount: values.discount ?? null,
         image: values.image,
+        featuresEn: values.featuresEn,
+        featuresZh: values.featuresZh,
+        usageEn: values.usageEn,
+        usageZh: values.usageZh,
       });
       const edits = { ...overrides.edits };
       if (edit) edits[editor.id] = edit;
