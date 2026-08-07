@@ -198,6 +198,14 @@ export function cleanEdit(edit: ProductEdit): ProductEdit | undefined {
     const pct = cleanPercent(edit.discount);
     if (pct !== undefined) out.discount = pct;
   }
+  const featuresEn = cleanTextList(edit.featuresEn);
+  const featuresZh = cleanTextList(edit.featuresZh);
+  const usageEn = cleanTextList(edit.usageEn);
+  const usageZh = cleanTextList(edit.usageZh);
+  if (featuresEn) out.featuresEn = featuresEn;
+  if (featuresZh) out.featuresZh = featuresZh;
+  if (usageEn) out.usageEn = usageEn;
+  if (usageZh) out.usageZh = usageZh;
   return Object.keys(out).length > 0 ? out : undefined;
 }
 
@@ -226,6 +234,10 @@ function cleanCustomProduct(raw: unknown): CustomProduct | undefined {
     nameZh: cleanText(c["nameZh"]) ?? "",
     bodyEn: cleanText(c["bodyEn"]) ?? "",
     bodyZh: cleanText(c["bodyZh"]) ?? "",
+    featuresEn: cleanTextList(c["featuresEn"]) ?? [],
+    featuresZh: cleanTextList(c["featuresZh"]) ?? [],
+    usageEn: cleanTextList(c["usageEn"]) ?? [],
+    usageZh: cleanTextList(c["usageZh"]) ?? [],
   };
 }
 
@@ -483,14 +495,17 @@ export function resolveCopy(
   if (custom) {
     const name = (locale === "zh" ? custom.nameZh : "") || custom.nameEn;
     const body = (locale === "zh" ? custom.bodyZh : "") || custom.bodyEn;
+    const features =
+      locale === "zh" && custom.featuresZh.length > 0 ? custom.featuresZh : custom.featuresEn;
+    const usage = locale === "zh" && custom.usageZh.length > 0 ? custom.usageZh : custom.usageEn;
     return {
       id: custom.id,
       name,
       body,
       details: body,
       price: formatNpr(custom.priceNpr),
-      features: [],
-      usage: [],
+      features,
+      usage,
     };
   }
   if (!localeItem) return null;
@@ -498,11 +513,15 @@ export function resolveCopy(
   if (!edit) return localeItem;
   const nameOverride = locale === "zh" ? edit.nameZh : edit.nameEn;
   const bodyOverride = locale === "zh" ? edit.bodyZh : edit.bodyEn;
+  const featuresOverride = locale === "zh" ? edit.featuresZh : edit.featuresEn;
+  const usageOverride = locale === "zh" ? edit.usageZh : edit.usageEn;
   return {
     ...localeItem,
     name: nameOverride ?? localeItem.name,
     body: bodyOverride ?? localeItem.body,
     price: edit.priceNpr !== undefined ? formatNpr(edit.priceNpr) : localeItem.price,
+    features: featuresOverride ?? localeItem.features,
+    usage: usageOverride ?? localeItem.usage,
   };
 }
 
@@ -626,4 +645,16 @@ export function useCatalogOverrides(): CatalogOverrides {
   }, []);
 
   return overrides;
+}
+
+/**
+ * False during SSR and the very first client render (when useCatalogOverrides
+ * still returns the empty defaults), true once localStorage has been read.
+ * Pages that 404 on a missing product must wait for this before deciding —
+ * otherwise studio-created products flash "not found" on first paint.
+ */
+export function useCatalogOverridesLoaded(): boolean {
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => setLoaded(true), []);
+  return loaded;
 }
