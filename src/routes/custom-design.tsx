@@ -97,9 +97,17 @@ function CustomDesignPage() {
     setFiles((prev) => [...prev, ...next]);
   }
 
-  // Auto-log the request to the studio dashboard (never blocks the handoff).
-  function logRequest(channel: "whatsapp" | "wechat" | "email") {
-    void logWebsiteBooking({
+  const zh = locale === "zh";
+  const [sending, setSending] = useState(false);
+
+  /** Saves the request to the studio dashboard, then hands off to the channel. */
+  async function submitRequest(channel: "whatsapp" | "wechat" | "email") {
+    if (!name.trim()) {
+      toast.error(zh ? "请填写您的姓名。" : "Please enter your name.");
+      return false;
+    }
+    setSending(true);
+    const ok = await logWebsiteBooking({
       kind: "custom-design",
       name,
       service: [style ? b.style[style].name : "", occasion].filter(Boolean).join(" · "),
@@ -116,18 +124,32 @@ function CustomDesignPage() {
       locale,
       channel,
     });
+    setSending(false);
+    if (ok) {
+      toast.success(
+        zh ? "设计请求已发送，我们会尽快联系您。" : "Request sent — we'll get back to you shortly.",
+      );
+    } else {
+      toast.error(
+        zh
+          ? "保存失败，请直接通过微信或 WhatsApp 联系我们。"
+          : "Couldn't save the request — please message us directly.",
+      );
+    }
+    return true;
   }
 
   async function copyMessage() {
+    if (!(await submitRequest("wechat"))) return;
     try {
       await navigator.clipboard.writeText(message);
       setCopied(true);
-      logRequest("wechat");
       setTimeout(() => setCopied(false), 2000);
     } catch {
       setCopied(false);
     }
   }
+
 
   const styleKeys: StyleKey[] = ["traditional", "modern", "both"];
 
