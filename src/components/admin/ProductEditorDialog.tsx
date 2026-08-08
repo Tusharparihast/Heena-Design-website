@@ -408,7 +408,7 @@ function ProductEditorForm({
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           e.preventDefault();
-                          addNewCategory();
+                          void addNewCategory();
                         }
                       }}
                       placeholder="New category (English)"
@@ -422,7 +422,7 @@ function ProductEditorForm({
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           e.preventDefault();
-                          addNewCategory();
+                          void addNewCategory();
                         }
                       }}
                       placeholder="新类别（中文，可选）"
@@ -435,7 +435,7 @@ function ProductEditorForm({
                         type="button"
                         size="sm"
                         className="h-7 flex-1 text-xs"
-                        onClick={addNewCategory}
+                        onClick={() => void addNewCategory()}
                         disabled={!newCatEn.trim()}
                       >
                         Add
