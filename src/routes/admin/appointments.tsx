@@ -1,44 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  CalendarCheck,
-  CalendarDays,
-  CheckCircle2,
-  Clock,
-  Pencil,
-  Plus,
-  RotateCcw,
-  Trash2,
-  X,
-} from "lucide-react";
+import { CalendarCheck, CalendarDays, CheckCircle2, Clock, Pencil, Plus, RotateCcw, Trash2, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import {
-  BookingEditorDialog,
-  sourceLabels,
-  statusLabels,
-} from "@/components/admin/BookingEditorDialog";
+import { BookingEditorDialog, sourceLabels, statusLabels } from "@/components/admin/BookingEditorDialog";
 import { BilingualField, LangBadge } from "@/components/admin/BilingualField";
 import { StatCard } from "@/components/admin/StatCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { dictionaries } from "@/i18n/dictionaries";
 import {
   bookingStatuses,
@@ -86,12 +59,13 @@ function fmtDate(date: string) {
   });
 }
 
+function extractImageUrls(notes: string): string[] {
+  const matches = notes.match(/https?:\/\/\S+/g) ?? [];
+  return matches.filter((u) => /\.(jpe?g|png|webp)(\?|$)/i.test(u) || u.includes("/storage/v1/object/"));
+}
+
 function AdminAppointmentsPage() {
-  const {
-    bookings: dbBookings,
-    loading: bookingsLoading,
-    refresh: refreshBookings,
-  } = useDbBookings();
+  const { bookings: dbBookings, loading: bookingsLoading, refresh: refreshBookings } = useDbBookings();
   const store = useMemo(
     () => ({
       active: dbBookings.filter((b) => !b.trashed),
@@ -100,8 +74,7 @@ function AdminAppointmentsPage() {
     [dbBookings],
   );
   const settings = useAppointmentSettings();
-  const patch = (p: Partial<AppointmentSettings>) =>
-    writeAppointmentSettings({ ...settings, ...p });
+  const patch = (p: Partial<AppointmentSettings>) => writeAppointmentSettings({ ...settings, ...p });
 
   const [filter, setFilter] = useState<BookingStatus | "all">("all");
   const [editorOpen, setEditorOpen] = useState(false);
@@ -119,12 +92,8 @@ function AdminAppointmentsPage() {
 
   /** Upcoming first (soonest on top), then past bookings newest-first. */
   const sorted = useMemo(() => {
-    const upcoming = store.active
-      .filter((b) => b.date >= today)
-      .sort((a, b) => a.date.localeCompare(b.date));
-    const past = store.active
-      .filter((b) => b.date < today)
-      .sort((a, b) => b.date.localeCompare(a.date));
+    const upcoming = store.active.filter((b) => b.date >= today).sort((a, b) => a.date.localeCompare(b.date));
+    const past = store.active.filter((b) => b.date < today).sort((a, b) => b.date.localeCompare(a.date));
     return [...upcoming, ...past];
   }, [store.active, today]);
 
@@ -134,9 +103,7 @@ function AdminAppointmentsPage() {
     (b) => b.date >= today && (b.status === "pending" || b.status === "confirmed"),
   ).length;
   const pendingCount = store.active.filter((b) => b.status === "pending").length;
-  const weekCount = store.active.filter(
-    (b) => b.date >= today && b.date <= weekEnd && b.status !== "cancelled",
-  ).length;
+  const weekCount = store.active.filter((b) => b.date >= today && b.date <= weekEnd && b.status !== "cancelled").length;
   const completedCount = store.active.filter((b) => b.status === "completed").length;
 
   async function saveBooking(b: Booking) {
@@ -179,9 +146,7 @@ function AdminAppointmentsPage() {
 
   function toggleDay(d: number) {
     const open = settings.openDays.includes(d);
-    const next = open
-      ? settings.openDays.filter((x) => x !== d)
-      : [...settings.openDays, d].sort();
+    const next = open ? settings.openDays.filter((x) => x !== d) : [...settings.openDays, d].sort();
     patch({ openDays: next });
   }
 
@@ -202,8 +167,7 @@ function AdminAppointmentsPage() {
         <div>
           <h2 className="font-display text-2xl font-bold sm:text-3xl">Appointments</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Log bookings from WhatsApp, WeChat and phone — and control the public booking
-            page.
+            Log bookings from WhatsApp, WeChat and phone — and control the public booking page.
           </p>
         </div>
         <Button
@@ -217,30 +181,10 @@ function AdminAppointmentsPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          label="Upcoming"
-          value={String(upcomingCount)}
-          delta="pending + confirmed"
-          icon={CalendarCheck}
-        />
-        <StatCard
-          label="Pending"
-          value={String(pendingCount)}
-          delta="awaiting confirmation"
-          icon={Clock}
-        />
-        <StatCard
-          label="This week"
-          value={String(weekCount)}
-          delta="next 7 days"
-          icon={CalendarDays}
-        />
-        <StatCard
-          label="Completed"
-          value={String(completedCount)}
-          delta="all time"
-          icon={CheckCircle2}
-        />
+        <StatCard label="Upcoming" value={String(upcomingCount)} delta="pending + confirmed" icon={CalendarCheck} />
+        <StatCard label="Pending" value={String(pendingCount)} delta="awaiting confirmation" icon={Clock} />
+        <StatCard label="This week" value={String(weekCount)} delta="next 7 days" icon={CalendarDays} />
+        <StatCard label="Completed" value={String(completedCount)} delta="all time" icon={CheckCircle2} />
       </div>
 
       <Tabs defaultValue="bookings">
@@ -272,9 +216,7 @@ function AdminAppointmentsPage() {
 
           {bookingsLoading ? (
             <Card className="shadow-none">
-              <CardContent className="py-12 text-center text-sm text-muted-foreground">
-                Loading bookings…
-              </CardContent>
+              <CardContent className="py-12 text-center text-sm text-muted-foreground">Loading bookings…</CardContent>
             </Card>
           ) : filtered.length === 0 ? (
             <Card className="shadow-none">
@@ -283,8 +225,8 @@ function AdminAppointmentsPage() {
                 <div>
                   <p className="font-medium">No bookings yet</p>
                   <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
-                    Clients book through WhatsApp, WeChat or email — log each request here
-                    to keep track of confirmations.
+                    Clients book through WhatsApp, WeChat or email — log each request here to keep track of
+                    confirmations.
                   </p>
                 </div>
                 <Button
@@ -310,6 +252,7 @@ function AdminAppointmentsPage() {
                       <TableHead>Time</TableHead>
                       <TableHead>People</TableHead>
                       <TableHead>Via</TableHead>
+                      <TableHead>Photos</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="pr-6 text-right">Actions</TableHead>
                     </TableRow>
@@ -317,27 +260,46 @@ function AdminAppointmentsPage() {
                   <TableBody>
                     {filtered.map((b) => (
                       <TableRow key={b.id}>
-                        <TableCell className="pl-6 font-medium whitespace-nowrap">
-                          {fmtDate(b.date)}
-                        </TableCell>
+                        <TableCell className="pl-6 font-medium whitespace-nowrap">{fmtDate(b.date)}</TableCell>
                         <TableCell>
                           <div className="font-medium">{b.name}</div>
                           <div className="text-xs text-muted-foreground">{b.contact}</div>
                         </TableCell>
-                        <TableCell className="whitespace-nowrap text-muted-foreground">
-                          {b.service || "—"}
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap text-muted-foreground">
-                          {b.time || "—"}
-                        </TableCell>
+                        <TableCell className="whitespace-nowrap text-muted-foreground">{b.service || "—"}</TableCell>
+                        <TableCell className="whitespace-nowrap text-muted-foreground">{b.time || "—"}</TableCell>
                         <TableCell>{b.people}</TableCell>
                         <TableCell className="whitespace-nowrap text-muted-foreground">
                           {sourceLabels[b.source]}
                         </TableCell>
                         <TableCell>
-                          <Badge variant={statusVariant(b.status)}>
-                            {statusLabels[b.status]}
-                          </Badge>
+                          {(() => {
+                            const urls = extractImageUrls(b.notes);
+                            if (urls.length === 0) return <span className="text-muted-foreground">—</span>;
+                            return (
+                              <div className="flex -space-x-2">
+                                {urls.slice(0, 3).map((url, i) => (
+                                  <a
+                                    key={url}
+                                    href={url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="block h-8 w-8 overflow-hidden rounded-full border-2 border-background ring-1 ring-border"
+                                    style={{ zIndex: 3 - i }}
+                                  >
+                                    <img src={url} alt="" className="h-full w-full object-cover" />
+                                  </a>
+                                ))}
+                                {urls.length > 3 ? (
+                                  <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-secondary text-[10px] font-medium">
+                                    +{urls.length - 3}
+                                  </span>
+                                ) : null}
+                              </div>
+                            );
+                          })()}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={statusVariant(b.status)}>{statusLabels[b.status]}</Badge>
                         </TableCell>
                         <TableCell className="pr-6 text-right">
                           <div className="flex justify-end gap-1">
@@ -374,9 +336,7 @@ function AdminAppointmentsPage() {
             <Card className="shadow-none">
               <CardHeader>
                 <CardTitle className="font-display text-lg">Trash</CardTitle>
-                <CardDescription>
-                  Restore a booking or delete it permanently.
-                </CardDescription>
+                <CardDescription>Restore a booking or delete it permanently.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
                 {store.trashed.map((b) => (
@@ -416,8 +376,7 @@ function AdminAppointmentsPage() {
             <CardHeader>
               <CardTitle className="font-display text-lg">Weekly schedule</CardTitle>
               <CardDescription>
-                Days the studio accepts bookings. Closed days show a warning on the public
-                booking form.
+                Days the studio accepts bookings. Closed days show a warning on the public booking form.
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-wrap gap-2">
@@ -446,9 +405,7 @@ function AdminAppointmentsPage() {
           <Card className="shadow-none">
             <CardHeader>
               <CardTitle className="font-display text-lg">Blocked dates</CardTitle>
-              <CardDescription>
-                Holidays, fully-booked days or personal time off.
-              </CardDescription>
+              <CardDescription>Holidays, fully-booked days or personal time off.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex flex-wrap items-center gap-2">
@@ -494,9 +451,7 @@ function AdminAppointmentsPage() {
           <Card className="shadow-none">
             <CardHeader>
               <CardTitle className="font-display text-lg">Group size</CardTitle>
-              <CardDescription>
-                Maximum number of people per booking on the public form.
-              </CardDescription>
+              <CardDescription>Maximum number of people per booking on the public form.</CardDescription>
             </CardHeader>
             <CardContent className="flex items-center gap-3">
               <Input
@@ -525,8 +480,8 @@ function AdminAppointmentsPage() {
             <CardHeader>
               <CardTitle className="font-display text-lg">Page text</CardTitle>
               <CardDescription>
-                The heading, intro and confirmation note on the public /appointment page.
-                Leave a field empty to use the built-in default.
+                The heading, intro and confirmation note on the public /appointment page. Leave a field empty to use the
+                built-in default.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
@@ -616,11 +571,7 @@ function OptionListEditor({
               <Input
                 value={opt.en}
                 placeholder="English"
-                onChange={(e) =>
-                  onChange(
-                    options.map((o) => (o.id === opt.id ? { ...o, en: e.target.value } : o)),
-                  )
-                }
+                onChange={(e) => onChange(options.map((o) => (o.id === opt.id ? { ...o, en: e.target.value } : o)))}
               />
             </div>
             <div className="flex flex-1 items-center gap-2">
@@ -628,11 +579,7 @@ function OptionListEditor({
               <Input
                 value={opt.zh}
                 placeholder="中文 (optional)"
-                onChange={(e) =>
-                  onChange(
-                    options.map((o) => (o.id === opt.id ? { ...o, zh: e.target.value } : o)),
-                  )
-                }
+                onChange={(e) => onChange(options.map((o) => (o.id === opt.id ? { ...o, zh: e.target.value } : o)))}
               />
             </div>
             <Button

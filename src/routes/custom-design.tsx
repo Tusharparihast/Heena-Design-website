@@ -119,50 +119,57 @@ function CustomDesignPage() {
       return null;
     }
     setSending(true);
-    const referenceUrls = files.length > 0 ? await uploadReferenceImages(files) : [];
-    if (files.length > 0 && referenceUrls.length === 0) {
-      toast.error(
-        zh
-          ? "参考图片上传失败，其余信息仍会发送。"
-          : "Reference photos failed to upload — the rest of your request will still be sent.",
-      );
-    }
-    const outgoingMessage = [
-      b.hero.title,
-      ...rows.filter((r) => r.label !== b.upload.title).map((r) => `${r.label}: ${r.value}`),
-      referenceUrls.length > 0 ? `${b.upload.title}: ${referenceUrls.join(", ")}` : "",
-    ]
-      .filter(Boolean)
-      .join("\n");
-
-    const ok = await logWebsiteBooking({
-      kind: "custom-design",
-      name,
-      service: [style ? b.style[style].name : "", occasion].filter(Boolean).join(" · "),
-      date,
-      people: Number(people) || 1,
-      notes: [
-        notes,
-        placement && `Placement: ${placement}`,
-        budget && `Budget: ${budget}`,
-        referenceUrls.length > 0 ? `Reference photos:\n${referenceUrls.join("\n")}` : "",
+    try {
+      const referenceUrls = files.length > 0 ? await uploadReferenceImages(files) : [];
+      if (files.length > 0 && referenceUrls.length === 0) {
+        toast.error(
+          zh
+            ? "参考图片上传失败，其余信息仍会发送。"
+            : "Reference photos failed to upload — the rest of your request will still be sent.",
+        );
+      }
+      const outgoingMessage = [
+        b.hero.title,
+        ...rows.filter((r) => r.label !== b.upload.title).map((r) => `${r.label}: ${r.value}`),
+        referenceUrls.length > 0 ? `${b.upload.title}: ${referenceUrls.join(", ")}` : "",
       ]
         .filter(Boolean)
-        .join("\n"),
-      locale,
-      channel,
-    });
-    setSending(false);
-    if (ok) {
-      toast.success(zh ? "设计请求已发送，我们会尽快联系您。" : "Request sent — we'll get back to you shortly.");
-    } else {
-      toast.error(
-        zh
-          ? "保存失败，请直接通过微信或 WhatsApp 联系我们。"
-          : "Couldn't save the request — please message us directly.",
-      );
+        .join("\n");
+
+      const ok = await logWebsiteBooking({
+        kind: "custom-design",
+        name,
+        service: [style ? b.style[style].name : "", occasion].filter(Boolean).join(" · "),
+        date,
+        people: Number(people) || 1,
+        notes: [
+          notes,
+          placement && `Placement: ${placement}`,
+          budget && `Budget: ${budget}`,
+          referenceUrls.length > 0 ? `Reference photos:\n${referenceUrls.join("\n")}` : "",
+        ]
+          .filter(Boolean)
+          .join("\n"),
+        locale,
+        channel,
+      });
+      if (ok) {
+        toast.success(zh ? "设计请求已发送，我们会尽快联系您。" : "Request sent — we'll get back to you shortly.");
+      } else {
+        toast.error(
+          zh
+            ? "保存失败，请直接通过微信或 WhatsApp 联系我们。"
+            : "Couldn't save the request — please message us directly.",
+        );
+      }
+      return outgoingMessage;
+    } catch (err) {
+      console.error("submitRequest failed:", err);
+      toast.error(zh ? "出现错误，请直接联系我们。" : "Something went wrong — please message us directly.");
+      return null;
+    } finally {
+      setSending(false);
     }
-    return outgoingMessage;
   }
 
   async function copyMessage() {
@@ -432,14 +439,18 @@ function CustomDesignPage() {
               <button
                 type="button"
                 disabled={sending}
-                onClick={async () => {
-                  const outgoing = await submitRequest("whatsapp");
-                  if (!outgoing) return;
-                  window.open(
-                    `https://wa.me/${site.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(outgoing)}`,
-                    "_blank",
-                    "noreferrer",
-                  );
+                onClick={() => {
+                  const win = window.open("", "_blank", "noreferrer");
+                  void (async () => {
+                    const outgoing = await submitRequest("whatsapp");
+                    if (!outgoing) {
+                      win?.close();
+                      return;
+                    }
+                    const url = `https://wa.me/${site.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(outgoing)}`;
+                    if (win) win.location.href = url;
+                    else window.open(url, "_blank", "noreferrer");
+                  })();
                 }}
                 className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
               >
