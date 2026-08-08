@@ -122,6 +122,102 @@ export type Database = {
         }
         Relationships: []
       }
+      product_categories: {
+        Row: {
+          builtin: boolean
+          created_at: string
+          deleted: boolean
+          id: string
+          name_en: string
+          name_zh: string
+        }
+        Insert: {
+          builtin?: boolean
+          created_at?: string
+          deleted?: boolean
+          id: string
+          name_en: string
+          name_zh?: string
+        }
+        Update: {
+          builtin?: boolean
+          created_at?: string
+          deleted?: boolean
+          id?: string
+          name_en?: string
+          name_zh?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          body_en: string
+          body_zh: string
+          category: string
+          created_at: string
+          deleted: boolean
+          discount_pct: number | null
+          featured: boolean
+          features_en: string[]
+          features_zh: string[]
+          gallery: string[]
+          id: string
+          image: string
+          name_en: string
+          name_zh: string
+          price_npr: number
+          stock: string
+          updated_at: string
+          usage_en: string[]
+          usage_zh: string[]
+          visible: boolean
+        }
+        Insert: {
+          body_en?: string
+          body_zh?: string
+          category: string
+          created_at?: string
+          deleted?: boolean
+          discount_pct?: number | null
+          featured?: boolean
+          features_en?: string[]
+          features_zh?: string[]
+          gallery?: string[]
+          id: string
+          image: string
+          name_en: string
+          name_zh?: string
+          price_npr: number
+          stock?: string
+          updated_at?: string
+          usage_en?: string[]
+          usage_zh?: string[]
+          visible?: boolean
+        }
+        Update: {
+          body_en?: string
+          body_zh?: string
+          category?: string
+          created_at?: string
+          deleted?: boolean
+          discount_pct?: number | null
+          featured?: boolean
+          features_en?: string[]
+          features_zh?: string[]
+          gallery?: string[]
+          id?: string
+          image?: string
+          name_en?: string
+          name_zh?: string
+          price_npr?: number
+          stock?: string
+          updated_at?: string
+          usage_en?: string[]
+          usage_zh?: string[]
+          visible?: boolean
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
