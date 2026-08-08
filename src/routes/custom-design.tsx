@@ -10,6 +10,7 @@ import { logWebsiteBooking } from "@/lib/bookings-db";
 import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffectiveAppointmentPage } from "@/lib/appointments";
 
 const title = "Custom Mehndi Design Requests — Weddings & Events | Nagma Designs";
 const description =
@@ -57,6 +58,11 @@ function CustomDesignPage() {
   const [files, setFiles] = useState<{ name: string; url: string; file: File }[]>([]);
   const [name, setName] = useState("");
   const [date, setDate] = useState("");
+
+  const page = useEffectiveAppointmentPage(locale);
+  const [timeIdx, setTimeIdx] = useState(0);
+  const time = page.timeSlots[timeIdx] ?? page.timeSlots[0] ?? "";
+
   const [people, setPeople] = useState("1");
   const [placementIdx, setPlacementIdx] = useState(0);
   const [budgetIdx, setBudgetIdx] = useState(0);
@@ -94,12 +100,26 @@ function CustomDesignPage() {
       { label: clean(b.details.budget), value: budget },
       { label: clean(b.details.people), value: people },
       { label: clean(b.details.date), value: date },
+      { label: clean(t.appointment.page.form.time), value: time },
       { label: clean(b.details.name), value: name },
       { label: clean(b.details.notes), value: notes },
       { label: b.upload.title, value: files.length ? String(files.length) : "" },
     ];
     return list.filter((r) => r.value.trim() !== "");
-  }, [b, style, occasion, placement, budget, people, date, name, notes, files.length]);
+  }, [
+    b,
+    style,
+    occasion,
+    placement,
+    budget,
+    people,
+    date,
+    time,
+    name,
+    notes,
+    files.length,
+    t.appointment.page.form.time,
+  ]);
 
   function addFiles(list: FileList | null) {
     if (!list) return;
@@ -141,6 +161,7 @@ function CustomDesignPage() {
         name,
         service: [style ? b.style[style].name : "", occasion].filter(Boolean).join(" · "),
         date,
+        time,
         people: Number(people) || 1,
         notes: [
           notes,
@@ -316,7 +337,7 @@ function CustomDesignPage() {
                 {step === 2 && (
                   <div>
                     <h2 className="text-xl font-semibold">{b.details.title}</h2>
-                    <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                    <div className="mt-5 grid gap-4 sm:grid-cols-3">
                       <Field label={b.details.name}>
                         <input
                           value={name}
@@ -333,6 +354,19 @@ function CustomDesignPage() {
                           onChange={(e) => setDate(e.target.value)}
                           className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                         />
+                      </Field>
+                      <Field label={t.appointment.page.form.time}>
+                        <select
+                          value={timeIdx}
+                          onChange={(e) => setTimeIdx(Number(e.target.value))}
+                          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                        >
+                          {page.timeSlots.map((opt, idx) => (
+                            <option key={opt} value={idx}>
+                              {opt}
+                            </option>
+                          ))}
+                        </select>
                       </Field>
                     </div>
                     <div className="mt-4 grid items-start gap-4 sm:grid-cols-3">
