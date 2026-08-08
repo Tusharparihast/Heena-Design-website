@@ -159,8 +159,8 @@ function AdminPaymentsPage() {
         <div>
           <h2 className="font-display text-2xl font-bold sm:text-3xl">Payment QR Codes</h2>
           <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-            These show to customers right after they place a shop order, so they know how to pay
-            you. Only active methods are shown.
+            These show to customers right after they place a shop order, so they know how to pay you. Only active
+            methods are shown.
           </p>
         </div>
         <Button size="sm" onClick={openNew} disabled={loading}>
@@ -180,8 +180,7 @@ function AdminPaymentsPage() {
             <div>
               <p className="font-medium">No payment methods yet</p>
               <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
-                Add your eSewa, Khalti, bank transfer, or any other QR code customers can scan to
-                pay you.
+                Add your eSewa, Khalti, bank transfer, or any other QR code customers can scan to pay you.
               </p>
             </div>
           </CardContent>
@@ -209,7 +208,9 @@ function AdminPaymentsPage() {
                   </div>
                   {m.accountName ? <p className="truncate text-xs text-muted-foreground">{m.accountName}</p> : null}
                   {m.accountNumber ? <p className="truncate text-xs text-muted-foreground">{m.accountNumber}</p> : null}
-                  {m.instructions ? <p className="line-clamp-2 text-xs text-muted-foreground">{m.instructions}</p> : null}
+                  {m.instructions ? (
+                    <p className="line-clamp-2 text-xs text-muted-foreground">{m.instructions}</p>
+                  ) : null}
                   <div className="flex gap-1 pt-1">
                     <Button variant="ghost" size="sm" onClick={() => openEdit(m)}>
                       <Pencil className="mr-1.5 h-3.5 w-3.5" />
@@ -237,8 +238,8 @@ function AdminPaymentsPage() {
           <DialogHeader>
             <DialogTitle>{editing === "new" ? "Add payment method" : "Edit payment method"}</DialogTitle>
             <DialogDescription>
-              Upload a clear, high-resolution QR code — it's shown as-is to customers, uncompressed,
-              so it always scans cleanly.
+              Upload a clear, high-resolution QR code — it's shown as-is to customers, uncompressed, so it always scans
+              cleanly.
             </DialogDescription>
           </DialogHeader>
 
