@@ -76,7 +76,10 @@ function statusVariant(status: BookingStatus) {
 }
 
 function fmtDate(date: string) {
-  return new Date(`${date}T12:00:00`).toLocaleDateString("en-US", {
+  if (!date) return "No date";
+  const d = new Date(`${date}T12:00:00`);
+  if (Number.isNaN(d.getTime())) return date;
+  return d.toLocaleDateString("en-US", {
     weekday: "short",
     month: "short",
     day: "numeric",
