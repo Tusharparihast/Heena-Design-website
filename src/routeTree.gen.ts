@@ -25,6 +25,7 @@ import { Route as AdminAppointmentsRouteImport } from './routes/admin/appointmen
 import { Route as AdminGalleryRouteImport } from './routes/admin/gallery'
 import { Route as AdminHomepageRouteImport } from './routes/admin/homepage'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
+import { Route as AdminOrdersRouteImport } from './routes/admin/orders'
 import { Route as AdminProductsRouteImport } from './routes/admin/products'
 import { Route as AdminResetPasswordRouteImport } from './routes/admin/reset-password'
 import { Route as AdminTeamRouteImport } from './routes/admin/team'
@@ -112,6 +113,11 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/login',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminOrdersRoute = AdminOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminProductsRoute = AdminProductsRouteImport.update({
   id: '/products',
   path: '/products',
@@ -159,6 +165,7 @@ export interface FileRoutesByFullPath {
   '/admin/gallery': typeof AdminGalleryRoute
   '/admin/homepage': typeof AdminHomepageRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/team': typeof AdminTeamRoute
@@ -181,6 +188,7 @@ export interface FileRoutesByTo {
   '/admin/gallery': typeof AdminGalleryRoute
   '/admin/homepage': typeof AdminHomepageRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/team': typeof AdminTeamRoute
@@ -206,6 +214,7 @@ export interface FileRoutesById {
   '/admin/gallery': typeof AdminGalleryRoute
   '/admin/homepage': typeof AdminHomepageRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/orders': typeof AdminOrdersRoute
   '/admin/products': typeof AdminProductsRoute
   '/admin/reset-password': typeof AdminResetPasswordRoute
   '/admin/team': typeof AdminTeamRoute
@@ -232,6 +241,7 @@ export interface FileRouteTypes {
     | '/admin/gallery'
     | '/admin/homepage'
     | '/admin/login'
+    | '/admin/orders'
     | '/admin/products'
     | '/admin/reset-password'
     | '/admin/team'
@@ -254,6 +264,7 @@ export interface FileRouteTypes {
     | '/admin/gallery'
     | '/admin/homepage'
     | '/admin/login'
+    | '/admin/orders'
     | '/admin/products'
     | '/admin/reset-password'
     | '/admin/team'
@@ -278,6 +289,7 @@ export interface FileRouteTypes {
     | '/admin/gallery'
     | '/admin/homepage'
     | '/admin/login'
+    | '/admin/orders'
     | '/admin/products'
     | '/admin/reset-password'
     | '/admin/team'
@@ -414,6 +426,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/orders': {
+      id: '/admin/orders'
+      path: '/orders'
+      fullPath: '/admin/orders'
+      preLoaderRoute: typeof AdminOrdersRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/products': {
       id: '/admin/products'
       path: '/products'
@@ -465,6 +484,7 @@ interface AdminRouteRouteChildren {
   AdminGalleryRoute: typeof AdminGalleryRoute
   AdminHomepageRoute: typeof AdminHomepageRoute
   AdminLoginRoute: typeof AdminLoginRoute
+  AdminOrdersRoute: typeof AdminOrdersRoute
   AdminProductsRoute: typeof AdminProductsRoute
   AdminResetPasswordRoute: typeof AdminResetPasswordRoute
   AdminTeamRoute: typeof AdminTeamRoute
@@ -478,6 +498,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminGalleryRoute: AdminGalleryRoute,
   AdminHomepageRoute: AdminHomepageRoute,
   AdminLoginRoute: AdminLoginRoute,
+  AdminOrdersRoute: AdminOrdersRoute,
   AdminProductsRoute: AdminProductsRoute,
   AdminResetPasswordRoute: AdminResetPasswordRoute,
   AdminTeamRoute: AdminTeamRoute,
