@@ -22,11 +22,15 @@ type AdminClient = SupabaseClient<Database>;
  * Throws "Forbidden" for non-admins.
  */
 export async function getAdminClientIfCallerIsAdmin(userClient: UserClient, userId: string): Promise<AdminClient> {
-  const { data, error } = await userClient.rpc("has_role", {
-    _user_id: userId,
-    _role: "admin",
-  });
-  if (error || data !== true) {
+  // Reads through the caller's own RLS-scoped client: they can only see their
+  // own role rows, so this cannot be spoofed.
+  const { data, error } = await userClient
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .maybeSingle();
+  if (error || !data) {
     throw new Error("Forbidden: admin role required");
   }
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
