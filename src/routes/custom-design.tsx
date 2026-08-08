@@ -9,6 +9,7 @@ import { useLanguage } from "@/i18n/LanguageProvider";
 import { logWebsiteBooking } from "@/lib/bookings-db";
 import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 const title = "Custom Mehndi Design Requests — Weddings & Events | Nagma Designs";
 const description =
@@ -30,6 +31,20 @@ export const Route = createFileRoute("/custom-design")({
 
 type StyleKey = "traditional" | "modern" | "both";
 
+/** Uploads reference photos to Storage and returns their public URLs (best-effort). */
+async function uploadReferenceImages(items: { file: File }[]): Promise<string[]> {
+  const urls: string[] = [];
+  for (const { file } of items) {
+    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const path = `${crypto.randomUUID()}.${ext}`;
+    const { error } = await supabase.storage.from("custom-design-refs").upload(path, file);
+    if (error) continue;
+    const { data } = supabase.storage.from("custom-design-refs").getPublicUrl(path);
+    if (data?.publicUrl) urls.push(data.publicUrl);
+  }
+  return urls;
+}
+
 function CustomDesignPage() {
   const { t, locale } = useLanguage();
   const b = t.booking;
@@ -39,7 +54,7 @@ function CustomDesignPage() {
   // Store option indexes (not the translated text) so switching languages
   // re-translates the summary instead of keeping the old-language string.
   const [occasionIdx, setOccasionIdx] = useState(0);
-  const [files, setFiles] = useState<{ name: string; url: string }[]>([]);
+  const [files, setFiles] = useState<{ name: string; url: string; file: File }[]>([]);
   const [name, setName] = useState("");
   const [date, setDate] = useState("");
   const [people, setPeople] = useState("1");
@@ -86,16 +101,11 @@ function CustomDesignPage() {
     return list.filter((r) => r.value.trim() !== "");
   }, [b, style, occasion, placement, budget, people, date, name, notes, files.length]);
 
-  const message = useMemo(
-    () => [b.hero.title, ...rows.map((r) => `${r.label}: ${r.value}`)].join("\n"),
-    [b.hero.title, rows],
-  );
-
   function addFiles(list: FileList | null) {
     if (!list) return;
     const next = Array.from(list)
       .slice(0, 4 - files.length)
-      .map((f) => ({ name: f.name, url: URL.createObjectURL(f) }));
+      .map((f) => ({ name: f.name, url: URL.createObjectURL(f), file: f }));
     setFiles((prev) => [...prev, ...next]);
   }
 
@@ -103,12 +113,28 @@ function CustomDesignPage() {
   const [sending, setSending] = useState(false);
 
   /** Saves the request to the studio dashboard, then hands off to the channel. */
-  async function submitRequest(channel: "whatsapp" | "wechat" | "email") {
+  async function submitRequest(channel: "whatsapp" | "wechat" | "email"): Promise<string | null> {
     if (!name.trim()) {
       toast.error(zh ? "请填写您的姓名。" : "Please enter your name.");
-      return false;
+      return null;
     }
     setSending(true);
+    const referenceUrls = files.length > 0 ? await uploadReferenceImages(files) : [];
+    if (files.length > 0 && referenceUrls.length === 0) {
+      toast.error(
+        zh
+          ? "参考图片上传失败，其余信息仍会发送。"
+          : "Reference photos failed to upload — the rest of your request will still be sent.",
+      );
+    }
+    const outgoingMessage = [
+      b.hero.title,
+      ...rows.filter((r) => r.label !== b.upload.title).map((r) => `${r.label}: ${r.value}`),
+      referenceUrls.length > 0 ? `${b.upload.title}: ${referenceUrls.join(", ")}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n");
+
     const ok = await logWebsiteBooking({
       kind: "custom-design",
       name,
@@ -119,7 +145,7 @@ function CustomDesignPage() {
         notes,
         placement && `Placement: ${placement}`,
         budget && `Budget: ${budget}`,
-        files.length ? `Reference photos: ${files.length}` : "",
+        referenceUrls.length > 0 ? `Reference photos:\n${referenceUrls.join("\n")}` : "",
       ]
         .filter(Boolean)
         .join("\n"),
@@ -128,9 +154,7 @@ function CustomDesignPage() {
     });
     setSending(false);
     if (ok) {
-      toast.success(
-        zh ? "设计请求已发送，我们会尽快联系您。" : "Request sent — we'll get back to you shortly.",
-      );
+      toast.success(zh ? "设计请求已发送，我们会尽快联系您。" : "Request sent — we'll get back to you shortly.");
     } else {
       toast.error(
         zh
@@ -138,20 +162,20 @@ function CustomDesignPage() {
           : "Couldn't save the request — please message us directly.",
       );
     }
-    return true;
+    return outgoingMessage;
   }
 
   async function copyMessage() {
-    if (!(await submitRequest("wechat"))) return;
+    const outgoing = await submitRequest("wechat");
+    if (!outgoing) return;
     try {
-      await navigator.clipboard.writeText(message);
+      await navigator.clipboard.writeText(outgoing);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
       setCopied(false);
     }
   }
-
 
   const styleKeys: StyleKey[] = ["traditional", "modern", "both"];
 
@@ -160,9 +184,7 @@ function CustomDesignPage() {
       <section className="relative overflow-hidden border-b border-border bg-secondary/40 px-4 py-16 sm:py-20">
         <MehndiPattern className="pointer-events-none absolute -top-20 -right-20 h-72 w-72 opacity-20" />
         <div className="relative mx-auto max-w-6xl">
-          <p className="text-xs font-semibold tracking-[0.2em] text-primary uppercase">
-            {b.hero.eyebrow}
-          </p>
+          <p className="text-xs font-semibold tracking-[0.2em] text-primary uppercase">{b.hero.eyebrow}</p>
           <h1 className="mt-4 max-w-3xl text-4xl font-semibold sm:text-5xl">{b.hero.title}</h1>
           <p className="mt-5 max-w-2xl text-muted-foreground">{b.hero.body}</p>
         </div>
@@ -177,9 +199,7 @@ function CustomDesignPage() {
                 onClick={() => (i === 0 || style ? setStep(i) : null)}
                 className={cn(
                   "rounded-full border px-4 py-2 text-sm transition-colors",
-                  i === step
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border hover:bg-accent",
+                  i === step ? "border-primary bg-primary text-primary-foreground" : "border-border hover:bg-accent",
                 )}
               >
                 <span className="mr-2 text-xs opacity-70">{i + 1}</span>
@@ -204,15 +224,11 @@ function CustomDesignPage() {
                           onClick={() => setStyle(key)}
                           className={cn(
                             "rounded-xl border p-4 text-left transition-colors",
-                            style === key
-                              ? "border-primary bg-primary/10"
-                              : "border-border hover:bg-accent/50",
+                            style === key ? "border-primary bg-primary/10" : "border-border hover:bg-accent/50",
                           )}
                         >
                           <span className="block font-medium">{b.style[key].name}</span>
-                          <span className="mt-2 block text-sm text-muted-foreground">
-                            {b.style[key].body}
-                          </span>
+                          <span className="mt-2 block text-sm text-muted-foreground">{b.style[key].body}</span>
                         </button>
                       ))}
                     </div>
@@ -346,9 +362,7 @@ function CustomDesignPage() {
                               {opt}
                             </option>
                           ))}
-                          <option value={b.details.budgetOptions.length}>
-                            {b.details.budgetCustom}
-                          </option>
+                          <option value={b.details.budgetOptions.length}>{b.details.budgetCustom}</option>
                         </select>
                         {isCustomBudget && (
                           <input
@@ -400,7 +414,6 @@ function CustomDesignPage() {
             </div>
           </div>
 
-
           <aside className="rounded-2xl border border-border bg-secondary/50 p-6 lg:sticky lg:top-24 lg:self-start">
             <h2 className="text-lg font-semibold">{b.summary.title}</h2>
             <div className="mt-4 max-h-64 overflow-auto rounded-xl border border-border bg-background p-4 text-sm">
@@ -420,9 +433,10 @@ function CustomDesignPage() {
                 type="button"
                 disabled={sending}
                 onClick={async () => {
-                  if (!(await submitRequest("whatsapp"))) return;
+                  const outgoing = await submitRequest("whatsapp");
+                  if (!outgoing) return;
                   window.open(
-                    `https://wa.me/${site.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(message)}`,
+                    `https://wa.me/${site.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(outgoing)}`,
                     "_blank",
                     "noreferrer",
                   );
@@ -449,8 +463,9 @@ function CustomDesignPage() {
                 type="button"
                 disabled={sending}
                 onClick={async () => {
-                  if (!(await submitRequest("email"))) return;
-                  window.location.href = `mailto:${site.email}?subject=${encodeURIComponent(b.hero.title)}&body=${encodeURIComponent(message)}`;
+                  const outgoing = await submitRequest("email");
+                  if (!outgoing) return;
+                  window.location.href = `mailto:${site.email}?subject=${encodeURIComponent(b.hero.title)}&body=${encodeURIComponent(outgoing)}`;
                 }}
                 className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm font-medium transition-colors hover:bg-accent disabled:opacity-60"
               >
@@ -458,7 +473,6 @@ function CustomDesignPage() {
                 {b.summary.email}
               </button>
             </div>
-
 
             <p className="mt-4 text-xs text-muted-foreground italic">{b.summary.note}</p>
           </aside>
@@ -468,16 +482,12 @@ function CustomDesignPage() {
       <Section className="border-t border-border pt-12 sm:pt-16">
         <div className="flex items-center gap-4" aria-hidden>
           <span className="h-px flex-1 bg-border" />
-          <span className="text-3xl font-semibold tracking-[0.35em] text-primary sm:text-4xl">
-            {t.appointment.or}
-          </span>
+          <span className="text-3xl font-semibold tracking-[0.35em] text-primary sm:text-4xl">{t.appointment.or}</span>
           <span className="h-px flex-1 bg-border" />
         </div>
 
         <div className="mx-auto mt-12 max-w-2xl text-center">
-          <p className="text-xs font-semibold tracking-[0.2em] text-primary uppercase">
-            {t.appointment.eyebrow}
-          </p>
+          <p className="text-xs font-semibold tracking-[0.2em] text-primary uppercase">{t.appointment.eyebrow}</p>
           <h2 className="mt-3 text-3xl font-semibold sm:text-4xl">{t.appointment.title}</h2>
           <p className="mt-4 text-muted-foreground">{t.appointment.body}</p>
           <ul className="mt-6 inline-flex flex-col items-start gap-2 text-left text-sm text-muted-foreground">
@@ -506,9 +516,7 @@ function CustomDesignPage() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-xs font-medium tracking-wide text-muted-foreground uppercase">
-        {label}
-      </span>
+      <span className="mb-1.5 block text-xs font-medium tracking-wide text-muted-foreground uppercase">{label}</span>
       {children}
     </label>
   );
