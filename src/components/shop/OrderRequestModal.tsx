@@ -8,6 +8,7 @@ import { MAX_ORDER_QTY, formatCny, formatNpr, unitPriceNpr } from "@/lib/shop";
 import { productCopy, toShopProduct, usePublicCatalog } from "@/lib/shop-catalog-db";
 import { useCnyRate } from "@/lib/use-cny-rate";
 import { logOrderRequest } from "@/lib/bookings-db";
+import { usePublicPaymentMethods } from "@/lib/payments-db";
 import { cn } from "@/lib/utils";
 import { ShopPrice } from "./DiscountBadge";
 import { QuantityStepper } from "./QuantityStepper";
@@ -50,6 +51,7 @@ export function OrderRequestModal({
   const { t, locale } = useLanguage();
   const isMobile = useIsMobile();
   const cnyRate = useCnyRate();
+  const { methods: paymentMethods } = usePublicPaymentMethods();
   const f = t.shopPage.orderForm;
 
   const [mounted, setMounted] = useState(false);
@@ -234,6 +236,25 @@ export function OrderRequestModal({
                 <QrCode className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
                 {f.confirm.paymentLine}
               </p>
+              {paymentMethods.length > 0 ? (
+                <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                  {paymentMethods.map((m) => (
+                    <div key={m.id} className="rounded-lg border border-border bg-background p-2 text-center">
+                      <img
+                        src={m.qrImage}
+                        alt={m.label}
+                        width={80}
+                        height={80}
+                        className="mx-auto h-20 w-20 rounded-md bg-white object-contain p-1"
+                      />
+                      <p className="mt-1.5 truncate text-xs font-medium">{m.label}</p>
+                      {m.accountNumber ? (
+                        <p className="truncate text-[10px] text-muted-foreground">{m.accountNumber}</p>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
             </div>
             <button
               type="button"
