@@ -135,7 +135,7 @@ export type BookingChannel = "whatsapp" | "wechat" | "email";
 
 /**
  * Logs a booking / custom-design request submitted from the public site.
- * Fire-and-forget: failures never block the WhatsApp/WeChat handoff.
+ * Returns false when the request could not be saved.
  */
 export async function logWebsiteBooking(input: {
   kind: "appointment" | "custom-design";
@@ -148,10 +148,10 @@ export async function logWebsiteBooking(input: {
   notes?: string;
   locale?: string;
   channel: BookingChannel;
-}): Promise<void> {
-  if (!input.name.trim()) return;
+}): Promise<boolean> {
+  if (!input.name.trim()) return false;
   try {
-    await supabase.from("bookings").insert({
+    const { error } = await supabase.from("bookings").insert({
       kind: input.kind,
       name: input.name.trim().slice(0, 120),
       contact: (input.contact ?? "").trim().slice(0, 160),
@@ -164,10 +164,13 @@ export async function logWebsiteBooking(input: {
       status: "pending",
       locale: input.locale ?? "en",
     });
+    return !error;
   } catch {
     // Ignore — the client still reaches the studio via the chat handoff.
+    return false;
   }
 }
+
 
 export interface OrderLogItem {
   id: string;
