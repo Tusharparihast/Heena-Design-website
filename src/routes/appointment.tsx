@@ -285,20 +285,27 @@ function AppointmentPage() {
             </div>
 
             <div className="mt-5 space-y-2">
-              <a
-                href={`https://wa.me/${site.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(message)}`}
-                onClick={() => logRequest("whatsapp")}
-                target="_blank"
-                rel="noreferrer"
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              <button
+                type="button"
+                disabled={sending}
+                onClick={async () => {
+                  if (!(await submitRequest("whatsapp"))) return;
+                  window.open(
+                    `https://wa.me/${site.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(message)}`,
+                    "_blank",
+                    "noreferrer",
+                  );
+                }}
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
               >
                 <MessageCircle className="h-4 w-4" aria-hidden />
                 {a.summary.send}
-              </a>
+              </button>
               <button
                 type="button"
+                disabled={sending}
                 onClick={copyMessage}
-                className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm font-medium transition-colors hover:bg-accent"
+                className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm font-medium transition-colors hover:bg-accent disabled:opacity-60"
               >
                 {copied ? (
                   <Check className="h-4 w-4 text-primary" aria-hidden />
@@ -307,15 +314,20 @@ function AppointmentPage() {
                 )}
                 {copied ? a.summary.copied : `${a.summary.wechat} · ${site.wechatId}`}
               </button>
-              <a
-                href={`mailto:${site.email}?subject=${encodeURIComponent(a.title)}&body=${encodeURIComponent(message)}`}
-                onClick={() => logRequest("email")}
-                className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm font-medium transition-colors hover:bg-accent"
+              <button
+                type="button"
+                disabled={sending}
+                onClick={async () => {
+                  if (!(await submitRequest("email"))) return;
+                  window.location.href = `mailto:${site.email}?subject=${encodeURIComponent(a.title)}&body=${encodeURIComponent(message)}`;
+                }}
+                className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm font-medium transition-colors hover:bg-accent disabled:opacity-60"
               >
                 <Mail className="h-4 w-4" aria-hidden />
                 {a.summary.email}
-              </a>
+              </button>
             </div>
+
 
             <p className="mt-4 text-xs text-muted-foreground italic">{page.note}</p>
           </aside>
