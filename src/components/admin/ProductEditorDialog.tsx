@@ -129,7 +129,7 @@ export function ProductEditorDialog({
   onOpenChange: (open: boolean) => void;
   onSave: (values: ProductFormValues) => void;
   /** Create a custom category from inside the editor; returns the new category id. */
-  onAddCategory?: ((nameEn: string, nameZh: string) => string | null) | undefined;
+  onAddCategory?: ((nameEn: string, nameZh: string) => string | null | Promise<string | null>) | undefined;
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -160,7 +160,7 @@ function ProductEditorForm({
   categories: CategoryOption[];
   onCancel: () => void;
   onSave: (values: ProductFormValues) => void;
-  onAddCategory?: ((nameEn: string, nameZh: string) => string | null) | undefined;
+  onAddCategory?: ((nameEn: string, nameZh: string) => string | null | Promise<string | null>) | undefined;
 }) {
   const isNew = initial.id === null;
   const fileInput = useRef<HTMLInputElement>(null);
@@ -214,10 +214,10 @@ function ProductEditorForm({
     setImageChanged(false);
   };
 
-  const addNewCategory = () => {
+  const addNewCategory = async () => {
     const nameEn = newCatEn.trim();
     if (!nameEn || !onAddCategory) return;
-    const id = onAddCategory(nameEn, newCatZh.trim());
+    const id = await onAddCategory(nameEn, newCatZh.trim());
     if (id) {
       setCategory(id);
       setNewCatEn("");
