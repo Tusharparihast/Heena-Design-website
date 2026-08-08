@@ -82,9 +82,30 @@ function AppointmentPage() {
     [page.title, rows],
   );
 
-  // Auto-log the request to the studio dashboard (never blocks the handoff).
-  function logRequest(channel: "whatsapp" | "wechat" | "email") {
-    void logWebsiteBooking({
+  const zh = locale === "zh";
+  const [sending, setSending] = useState(false);
+
+  /**
+   * Saves the request to the studio dashboard, then hands off to the chosen
+   * channel. Returns false when the form is incomplete.
+   */
+  async function submitRequest(channel: "whatsapp" | "wechat" | "email") {
+    if (!name.trim()) {
+      toast.error(zh ? "请填写您的姓名。" : "Please enter your name.");
+      return false;
+    }
+    if (!contact.trim()) {
+      toast.error(
+        zh ? "请填写微信号或电话，方便我们联系您。" : "Please add a WeChat ID or phone number.",
+      );
+      return false;
+    }
+    if (!date) {
+      toast.error(zh ? "请选择日期。" : "Please pick a date.");
+      return false;
+    }
+    setSending(true);
+    const ok = await logWebsiteBooking({
       kind: "appointment",
       name,
       contact,
@@ -96,18 +117,32 @@ function AppointmentPage() {
       locale,
       channel,
     });
+    setSending(false);
+    if (ok) {
+      toast.success(
+        zh ? "预约请求已发送，我们会尽快联系您。" : "Request sent — we'll confirm shortly.",
+      );
+    } else {
+      toast.error(
+        zh
+          ? "保存失败，请直接通过微信或 WhatsApp 联系我们。"
+          : "Couldn't save the request — please message us directly.",
+      );
+    }
+    return true;
   }
 
   async function copyMessage() {
+    if (!(await submitRequest("wechat"))) return;
     try {
       await navigator.clipboard.writeText(message);
       setCopied(true);
-      logRequest("wechat");
       setTimeout(() => setCopied(false), 2000);
     } catch {
       setCopied(false);
     }
   }
+
 
   return (
     <main>
