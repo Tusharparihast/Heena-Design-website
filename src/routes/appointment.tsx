@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { ArrowLeft, Check, Copy, Mail, MessageCircle } from "lucide-react";
+import { toast } from "sonner";
+
 import { MehndiPattern } from "@/components/site/MehndiPattern";
 import { Section } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
@@ -82,9 +84,30 @@ function AppointmentPage() {
     [page.title, rows],
   );
 
-  // Auto-log the request to the studio dashboard (never blocks the handoff).
-  function logRequest(channel: "whatsapp" | "wechat" | "email") {
-    void logWebsiteBooking({
+  const zh = locale === "zh";
+  const [sending, setSending] = useState(false);
+
+  /**
+   * Saves the request to the studio dashboard, then hands off to the chosen
+   * channel. Returns false when the form is incomplete.
+   */
+  async function submitRequest(channel: "whatsapp" | "wechat" | "email") {
+    if (!name.trim()) {
+      toast.error(zh ? "请填写您的姓名。" : "Please enter your name.");
+      return false;
+    }
+    if (!contact.trim()) {
+      toast.error(
+        zh ? "请填写微信号或电话，方便我们联系您。" : "Please add a WeChat ID or phone number.",
+      );
+      return false;
+    }
+    if (!date) {
+      toast.error(zh ? "请选择日期。" : "Please pick a date.");
+      return false;
+    }
+    setSending(true);
+    const ok = await logWebsiteBooking({
       kind: "appointment",
       name,
       contact,
@@ -96,18 +119,32 @@ function AppointmentPage() {
       locale,
       channel,
     });
+    setSending(false);
+    if (ok) {
+      toast.success(
+        zh ? "预约请求已发送，我们会尽快联系您。" : "Request sent — we'll confirm shortly.",
+      );
+    } else {
+      toast.error(
+        zh
+          ? "保存失败，请直接通过微信或 WhatsApp 联系我们。"
+          : "Couldn't save the request — please message us directly.",
+      );
+    }
+    return true;
   }
 
   async function copyMessage() {
+    if (!(await submitRequest("wechat"))) return;
     try {
       await navigator.clipboard.writeText(message);
       setCopied(true);
-      logRequest("wechat");
       setTimeout(() => setCopied(false), 2000);
     } catch {
       setCopied(false);
     }
   }
+
 
   return (
     <main>
@@ -248,20 +285,27 @@ function AppointmentPage() {
             </div>
 
             <div className="mt-5 space-y-2">
-              <a
-                href={`https://wa.me/${site.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(message)}`}
-                onClick={() => logRequest("whatsapp")}
-                target="_blank"
-                rel="noreferrer"
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              <button
+                type="button"
+                disabled={sending}
+                onClick={async () => {
+                  if (!(await submitRequest("whatsapp"))) return;
+                  window.open(
+                    `https://wa.me/${site.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(message)}`,
+                    "_blank",
+                    "noreferrer",
+                  );
+                }}
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
               >
                 <MessageCircle className="h-4 w-4" aria-hidden />
                 {a.summary.send}
-              </a>
+              </button>
               <button
                 type="button"
+                disabled={sending}
                 onClick={copyMessage}
-                className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm font-medium transition-colors hover:bg-accent"
+                className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm font-medium transition-colors hover:bg-accent disabled:opacity-60"
               >
                 {copied ? (
                   <Check className="h-4 w-4 text-primary" aria-hidden />
@@ -270,15 +314,20 @@ function AppointmentPage() {
                 )}
                 {copied ? a.summary.copied : `${a.summary.wechat} · ${site.wechatId}`}
               </button>
-              <a
-                href={`mailto:${site.email}?subject=${encodeURIComponent(a.title)}&body=${encodeURIComponent(message)}`}
-                onClick={() => logRequest("email")}
-                className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm font-medium transition-colors hover:bg-accent"
+              <button
+                type="button"
+                disabled={sending}
+                onClick={async () => {
+                  if (!(await submitRequest("email"))) return;
+                  window.location.href = `mailto:${site.email}?subject=${encodeURIComponent(a.title)}&body=${encodeURIComponent(message)}`;
+                }}
+                className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm font-medium transition-colors hover:bg-accent disabled:opacity-60"
               >
                 <Mail className="h-4 w-4" aria-hidden />
                 {a.summary.email}
-              </a>
+              </button>
             </div>
+
 
             <p className="mt-4 text-xs text-muted-foreground italic">{page.note}</p>
           </aside>
