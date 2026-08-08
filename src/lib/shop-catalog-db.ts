@@ -198,26 +198,30 @@ export async function insertProduct(p: ProductInput): Promise<boolean> {
 }
 
 export async function updateProduct(id: string, patch: Partial<ProductInput>): Promise<boolean> {
-  const payload: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  const payload: Record<string, unknown> = { ["updated_at"]: new Date().toISOString() };
   if (patch.image !== undefined) {
-    payload.image = patch.image;
-    payload.gallery = [patch.image];
+    payload["image"] = patch.image;
+    payload["gallery"] = [patch.image];
   }
-  if (patch.category !== undefined) payload.category = patch.category;
-  if (patch.priceNpr !== undefined) payload.price_npr = Math.round(patch.priceNpr);
-  if (patch.stock !== undefined) payload.stock = patch.stock;
-  if (patch.discountPct !== undefined) payload.discount_pct = patch.discountPct;
-  if (patch.featured !== undefined) payload.featured = patch.featured;
-  if (patch.visible !== undefined) payload.visible = patch.visible;
-  if (patch.nameEn !== undefined) payload.name_en = patch.nameEn;
-  if (patch.nameZh !== undefined) payload.name_zh = patch.nameZh;
-  if (patch.bodyEn !== undefined) payload.body_en = patch.bodyEn;
-  if (patch.bodyZh !== undefined) payload.body_zh = patch.bodyZh;
-  if (patch.featuresEn !== undefined) payload.features_en = patch.featuresEn;
-  if (patch.featuresZh !== undefined) payload.features_zh = patch.featuresZh;
-  if (patch.usageEn !== undefined) payload.usage_en = patch.usageEn;
-  if (patch.usageZh !== undefined) payload.usage_zh = patch.usageZh;
-  const { error } = await supabase.from("products").update(payload).eq("id", id);
+  if (patch.category !== undefined) payload["category"] = patch.category;
+  if (patch.priceNpr !== undefined) payload["price_npr"] = Math.round(patch.priceNpr);
+  if (patch.stock !== undefined) payload["stock"] = patch.stock;
+  if (patch.discountPct !== undefined) payload["discount_pct"] = patch.discountPct;
+  if (patch.featured !== undefined) payload["featured"] = patch.featured;
+  if (patch.visible !== undefined) payload["visible"] = patch.visible;
+  if (patch.nameEn !== undefined) payload["name_en"] = patch.nameEn;
+  if (patch.nameZh !== undefined) payload["name_zh"] = patch.nameZh;
+  if (patch.bodyEn !== undefined) payload["body_en"] = patch.bodyEn;
+  if (patch.bodyZh !== undefined) payload["body_zh"] = patch.bodyZh;
+  if (patch.featuresEn !== undefined) payload["features_en"] = patch.featuresEn;
+  if (patch.featuresZh !== undefined) payload["features_zh"] = patch.featuresZh;
+  if (patch.usageEn !== undefined) payload["usage_en"] = patch.usageEn;
+  if (patch.usageZh !== undefined) payload["usage_zh"] = patch.usageZh;
+  const { error } = await supabase
+    .from("products")
+    .update(payload as never)
+    .eq("id", id);
+
   if (error) console.error("insertProduct failed:", error);
   return !error;
 }
