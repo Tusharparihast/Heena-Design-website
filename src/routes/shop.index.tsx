@@ -190,7 +190,7 @@ function ProductCard({ product, copy }: { product: ShopProduct; copy: ProductCop
           <Link
             to="/shop/$productId"
             params={{ productId: product.id }}
-            className="inline-flex flex-1 items-center justify-center rounded-full border border-border px-2 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:px-4 sm:py-2 sm:text-sm sm:text-foreground"
+            className="hidden flex-1 items-center justify-center rounded-full border border-border px-2 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:inline-flex sm:px-4 sm:py-2 sm:text-sm sm:text-foreground"
           >
             <span className="truncate">{s.details}</span>
           </Link>
