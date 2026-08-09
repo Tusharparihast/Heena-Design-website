@@ -1,8 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { MessageCircle, ShoppingCart, LoaderCircle } from "lucide-react";
+import { ShoppingCart, LoaderCircle } from "lucide-react";
 import { Section, SectionHeading } from "@/components/site/Section";
-import { MehndiPattern } from "@/components/site/MehndiPattern";
 import { DiscountBadge, ShopPrice } from "@/components/shop/DiscountBadge";
 import { StockBadge } from "@/components/shop/StockBadge";
 import { useLanguage } from "@/i18n/LanguageProvider";
@@ -10,7 +9,6 @@ import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
 import { type ShopProduct } from "@/lib/shop";
 import { catLabel, productCopy, toShopProduct, usePublicCatalog, type ProductCopy } from "@/lib/shop-catalog-db";
-import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 const title = "Shop Henna Cones, Kits & Practice Tools | Nagma Designs";
@@ -50,38 +48,8 @@ function ShopPage() {
       .map((p) => ({ product: toShopProduct(p), copy: productCopy(p, locale) }));
   }, [activeFilter, products, locale]);
 
-  const waLink = `https://wa.me/${site.whatsapp.replace(/[^\d]/g, "")}?text=${encodeURIComponent(
-    `Hello ${site.name}, I would like to order from your shop.`,
-  )}`;
-
   return (
     <main className="relative">
-      <section className="relative overflow-hidden border-b border-border bg-secondary/40 px-4 py-20 sm:py-24">
-        <MehndiPattern className="pointer-events-none absolute -right-16 -bottom-24 h-80 w-80 opacity-20" />
-        <div className="relative mx-auto max-w-6xl">
-          <p className="text-xs font-semibold tracking-[0.2em] text-primary uppercase">{s.hero.eyebrow}</p>
-          <h1 className="mt-4 max-w-3xl text-4xl font-semibold sm:text-5xl">{s.hero.title}</h1>
-          <p className="mt-5 max-w-2xl text-muted-foreground">{s.hero.body}</p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <a
-              href={waLink}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-            >
-              <MessageCircle className="h-4 w-4" aria-hidden />
-              {s.hero.cta}
-            </a>
-            <Link
-              to="/contact"
-              className="inline-flex items-center rounded-full border border-border px-6 py-3 text-sm font-medium transition-colors hover:bg-accent"
-            >
-              {s.hero.secondary}
-            </Link>
-          </div>
-        </div>
-      </section>
-
       <Section>
         <SectionHeading label={s.hero.eyebrow} title={s.hero.title} />
 
