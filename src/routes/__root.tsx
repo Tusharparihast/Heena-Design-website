@@ -53,9 +53,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
-        </h1>
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">This page didn't load</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Something went wrong on our end. You can try refreshing or head back home.
         </p>
@@ -89,18 +87,31 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: `${site.name} — Mehndi Studio & Classes, Kathmandu` },
       {
         name: "description",
-        content:
-          "Traditional and modern mehndi artistry and in-person henna classes in Maitidevi, Kathmandu.",
+        content: "Traditional and modern mehndi artistry and in-person henna classes in Maitidevi, Kathmandu.",
       },
       { name: "author", content: site.name },
       { name: "theme-color", content: "#f2f6ea" },
       { title: "Lovable App" },
       { property: "og:title", content: "Lovable App" },
       { name: "twitter:title", content: "Lovable App" },
-      { property: "og:description", content: "Traditional and modern mehndi artistry and in-person henna classes in Maitidevi, Kathmandu." },
-      { name: "twitter:description", content: "Traditional and modern mehndi artistry and in-person henna classes in Maitidevi, Kathmandu." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/fadf4904-775a-472b-a08f-410bb2c9c974/id-preview-e29a8a4b--6ded26a2-2d26-4ef2-af1e-9c4fbc8acc48.lovable.app-1785919949690.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/fadf4904-775a-472b-a08f-410bb2c9c974/id-preview-e29a8a4b--6ded26a2-2d26-4ef2-af1e-9c4fbc8acc48.lovable.app-1785919949690.png" },
+      {
+        property: "og:description",
+        content: "Traditional and modern mehndi artistry and in-person henna classes in Maitidevi, Kathmandu.",
+      },
+      {
+        name: "twitter:description",
+        content: "Traditional and modern mehndi artistry and in-person henna classes in Maitidevi, Kathmandu.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/fadf4904-775a-472b-a08f-410bb2c9c974/id-preview-e29a8a4b--6ded26a2-2d26-4ef2-af1e-9c4fbc8acc48.lovable.app-1785919949690.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/fadf4904-775a-472b-a08f-410bb2c9c974/id-preview-e29a8a4b--6ded26a2-2d26-4ef2-af1e-9c4fbc8acc48.lovable.app-1785919949690.png",
+      },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
     ],
@@ -121,8 +132,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "@context": "https://schema.org",
           "@type": "LocalBusiness",
           name: site.name,
-          description:
-            "Traditional and modern mehndi artistry and in-person henna classes in Kathmandu.",
+          description: "Traditional and modern mehndi artistry and in-person henna classes in Kathmandu.",
           address: {
             "@type": "PostalAddress",
             streetAddress: "Maitidevi",
@@ -162,6 +172,13 @@ function RootComponent() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isAdmin = pathname.startsWith("/admin");
 
+  useEffect(() => {
+    const [nav] = performance.getEntriesByType("navigation") as PerformanceNavigationTiming[];
+    if (nav?.type !== "reload") return;
+    const id = window.requestAnimationFrame(() => window.scrollTo(0, 0));
+    return () => window.cancelAnimationFrame(id);
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
@@ -181,4 +198,3 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
-
