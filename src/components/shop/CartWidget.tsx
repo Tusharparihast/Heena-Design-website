@@ -1,15 +1,12 @@
 import { useMemo, useState } from "react";
-import { Copy, ShoppingCart, Trash2, X } from "lucide-react";
-import { toast } from "sonner";
-
-import { WeChatIcon, WhatsAppIcon } from "@/components/site/BrandIcons";
+import { ShoppingBag, ShoppingCart, Trash2, X } from "lucide-react";
+import { OrderRequestModal } from "@/components/shop/OrderRequestModal";
 import { QuantityStepper } from "@/components/shop/QuantityStepper";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { useCart } from "@/lib/cart";
 import { MAX_ORDER_QTY, formatCny, formatNpr, unitPriceNpr } from "@/lib/shop";
 import { productCopy, toShopProduct, usePublicCatalog } from "@/lib/shop-catalog-db";
-import { site } from "@/lib/site";
 import { useCnyRate } from "@/lib/use-cny-rate";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +18,7 @@ export function CartWidget() {
   const cnyRate = useCnyRate();
   const { items, count, setQty, remove, clear, open, setOpen } = useCart();
   const { products } = usePublicCatalog();
-  const [copied, setCopied] = useState(false);
+  const [placingOrder, setPlacingOrder] = useState(false);
 
   const lines = useMemo(
     () =>
@@ -40,34 +37,8 @@ export function CartWidget() {
 
   const total = lines.reduce((sum, l) => sum + l.total, 0);
 
-  const summary = useMemo(() => {
-    const header = `${c.summaryTitle} — ${site.name}`;
-    const body = lines.map((l, i) => `${i + 1}. ${l.name} × ${l.qty} — ${formatNpr(l.total)}`).join("\n");
-    const totalLine = `${c.total}: ${formatNpr(total)}${locale === "zh" ? ` (${formatCny(total, cnyRate)})` : ""}`;
-    return `${header}\n\n${body}\n\n${totalLine}\n\n${c.disclaimer}`;
-  }, [lines, total, c, locale, cnyRate]);
-
-  const waHref = `https://wa.me/${site.whatsapp.replace(/[^\d]/g, "")}?text=${encodeURIComponent(summary)}`;
-
-  const copySummary = async () => {
-    try {
-      await navigator.clipboard.writeText(summary);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
-      toast.success(c.copied);
-    } catch {
-      toast.error(c.copyFailed);
-    }
-  };
-
-  const orderWeChat = async () => {
-    await copySummary();
-    toast.message(c.wechatHint.replace("{id}", site.wechatId));
-  };
-
   return (
     <>
-      {/* Floating cart button */}
       <button
         type="button"
         onClick={() => setOpen(true)}
@@ -185,49 +156,33 @@ export function CartWidget() {
                     {c.disclaimer}
                   </p>
 
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    <a
-                      href={waHref}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-                    >
-                      <WhatsAppIcon className="h-4 w-4" aria-hidden />
-                      {c.orderWhatsapp}
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => void orderWeChat()}
-                      className="inline-flex items-center justify-center gap-2 rounded-full border border-border px-4 py-3 text-sm font-medium transition-colors hover:bg-accent"
-                    >
-                      <WeChatIcon className="h-4 w-4" aria-hidden />
-                      {c.orderWechat}
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOpen(false);
+                      setPlacingOrder(true);
+                    }}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                  >
+                    <ShoppingBag className="h-4 w-4" aria-hidden />
+                    {t.shopPage.orderForm.title}
+                  </button>
 
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <button
-                      type="button"
-                      onClick={() => void copySummary()}
-                      className="inline-flex items-center gap-1.5 text-xs font-medium text-primary transition-colors hover:underline"
-                    >
-                      <Copy className="h-3.5 w-3.5" aria-hidden />
-                      {copied ? c.copied : c.copyDetails}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => clear()}
-                      className="text-xs text-muted-foreground transition-colors hover:text-destructive"
-                    >
-                      {c.clear}
-                    </button>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => clear()}
+                    className="w-full text-center text-xs text-muted-foreground transition-colors hover:text-destructive"
+                  >
+                    {c.clear}
+                  </button>
                 </div>
               </>
             )}
           </aside>
         </div>
       ) : null}
+
+      <OrderRequestModal target={placingOrder ? { kind: "cart" } : null} onClose={() => setPlacingOrder(false)} />
     </>
   );
 }
