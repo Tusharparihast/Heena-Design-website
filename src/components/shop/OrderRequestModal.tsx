@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, Clock, Copy, QrCode, Send } from "lucide-react";
-import { X } from "lucide-react";
+import { CheckCircle2, Clock, Copy, MapPin, QrCode, Send, Store, X } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { WeChatIcon, WhatsAppIcon } from "@/components/site/BrandIcons";
@@ -14,23 +13,37 @@ import { logOrderRequest } from "@/lib/bookings-db";
 import { usePublicPaymentMethods } from "@/lib/payments-db";
 import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
-import { ShopPrice } from "./DiscountBadge";
 import { QuantityStepper } from "./QuantityStepper";
 
 export type OrderTarget = { kind: "single"; productId: string; qty: number } | { kind: "cart" };
 
 type Status = "idle" | "sending" | "done";
+type DeliveryMethod = "pickup" | "delivery";
+type ContactMethod = "wechat" | "whatsapp" | "phone" | "email";
 
 type Fields = {
   name: string;
   phone: string;
+  contactMethod: ContactMethod;
   wechat: string;
   whatsapp: string;
+  email: string;
+  deliveryMethod: DeliveryMethod;
   address: string;
   notes: string;
 };
 
-const emptyFields: Fields = { name: "", phone: "", wechat: "", whatsapp: "", address: "", notes: "" };
+const emptyFields: Fields = {
+  name: "",
+  phone: "",
+  contactMethod: "wechat",
+  wechat: "",
+  whatsapp: "",
+  email: "",
+  deliveryMethod: "delivery",
+  address: "",
+  notes: "",
+};
 
 const inputClass =
   "w-full rounded-lg border border-border bg-background px-3 py-2 text-sm transition-colors outline-none placeholder:text-muted-foreground/60 focus:border-primary";
@@ -109,21 +122,41 @@ export function OrderRequestModal({ target, onClose }: { target: OrderTarget | n
 
   const total = orderLines.reduce((sum, l) => sum + l.unitPriceNpr * l.qty, 0);
 
-  const schema = useMemo(
-    () =>
-      z.object({
-        name: z.string().trim().min(1, f.errors.name).max(100, f.errors.name),
-        phone: z
-          .string()
-          .trim()
-          .regex(/^[+0-9][0-9\s()-]{5,19}$/, f.errors.phone),
-        wechat: z.string().trim().min(1, f.errors.wechat).max(100, f.errors.wechat),
-        whatsapp: z.string().trim().max(30),
-        address: z.string().trim().min(1, f.errors.address).max(300),
-        notes: z.string().trim().max(500),
-      }),
-    [f],
-  );
+  // Dynamic Validation Schema based on options selected
+  const schema = useMemo(() => {
+    return z.object({
+      name: z.string().trim().min(1, f.errors.name).max(100, f.errors.name),
+      phone: z
+        .string()
+        .trim()
+        .regex(/^[+0-9][0-9\s()-]{5,19}$/, f.errors.phone),
+      contactMethod: z.enum(["wechat", "whatsapp", "phone", "email"]),
+      wechat:
+        fields.contactMethod === "wechat"
+          ? z.string().trim().min(1, f.errors.wechat).max(100, f.errors.wechat)
+          : z.string().optional(),
+      whatsapp:
+        fields.contactMethod === "whatsapp"
+          ? z
+              .string()
+              .trim()
+              .regex(/^[+0-9][0-9\s()-]{5,19}$/, f.errors.phone)
+          : z.string().optional(),
+      email:
+        fields.contactMethod === "email"
+          ? z
+              .string()
+              .trim()
+              .email(locale === "zh" ? "请输入有效的邮箱地址" : "Invalid email address")
+          : z.string().optional(),
+      deliveryMethod: z.enum(["pickup", "delivery"]),
+      address:
+        fields.deliveryMethod === "delivery"
+          ? z.string().trim().min(1, f.errors.address).max(300)
+          : z.string().optional(),
+      notes: z.string().trim().max(500),
+    });
+  }, [f, fields.contactMethod, fields.deliveryMethod, locale]);
 
   if (!target || orderLines.length === 0) return null;
 
@@ -136,16 +169,24 @@ export function OrderRequestModal({ target, onClose }: { target: OrderTarget | n
       .map((l, i) => `${i + 1}. ${l.name} × ${l.qty} — ${formatNpr(l.unitPriceNpr * l.qty)}`)
       .join("\n");
     const totalLine = `${f.estimatedTotal}: ${formatNpr(total)}`;
+
+    let activeContactDetail = "";
+    if (fields.contactMethod === "wechat") activeContactDetail = `${f.wechat}: ${fields.wechat}`;
+    else if (fields.contactMethod === "whatsapp") activeContactDetail = `${f.whatsapp}: ${fields.whatsapp}`;
+    else if (fields.contactMethod === "email") activeContactDetail = `Email: ${fields.email}`;
+    else activeContactDetail = `Phone: ${fields.phone}`;
+
     const customerLines = [
       `${f.fullName}: ${fields.name}`,
       `${f.phone}: ${fields.phone}`,
-      `${f.wechat}: ${fields.wechat}`,
-      fields.whatsapp ? `${f.whatsapp}: ${fields.whatsapp}` : "",
-      `${f.address}: ${fields.address}`,
+      activeContactDetail,
+      `Delivery Option: ${fields.deliveryMethod === "pickup" ? "Pickup from Maitidevi" : "Delivery"}`,
+      fields.deliveryMethod === "delivery" ? `${f.address}: ${fields.address}` : "",
       fields.notes ? `${f.notes}: ${fields.notes}` : "",
     ]
       .filter(Boolean)
       .join("\n");
+
     return `${header}\n\n${itemLines}\n\n${totalLine}\n\n${customerLines}`;
   }
 
@@ -164,20 +205,22 @@ export function OrderRequestModal({ target, onClose }: { target: OrderTarget | n
     }
     setErrors({});
     setStatus("sending");
+
     const ok = await logOrderRequest({
       name: fields.name,
       phone: fields.phone,
-      wechat: fields.wechat,
-      whatsapp: fields.whatsapp,
-      email: "",
-      address: fields.address,
+      wechat: fields.contactMethod === "wechat" ? fields.wechat : "",
+      whatsapp: fields.contactMethod === "whatsapp" ? fields.whatsapp : "",
+      email: fields.contactMethod === "email" ? fields.email : "",
+      address: fields.deliveryMethod === "delivery" ? fields.address : "Pickup from Maitidevi",
       notes: fields.notes,
-      contactMethod: "wechat",
-      deliveryMethod: "delivery",
+      contactMethod: fields.contactMethod,
+      deliveryMethod: fields.deliveryMethod,
       items: orderLines.map((l) => ({ id: l.id, name: l.name, qty: l.qty, unitPriceNpr: l.unitPriceNpr })),
       totalNpr: total,
       locale,
     });
+
     if (!ok) {
       setStatus("idle");
       toast.error(
@@ -187,6 +230,7 @@ export function OrderRequestModal({ target, onClose }: { target: OrderTarget | n
       );
       return;
     }
+
     setSummaryText(buildSummary());
     if (target.kind === "cart") clearCart();
     setStatus("done");
@@ -264,6 +308,7 @@ export function OrderRequestModal({ target, onClose }: { target: OrderTarget | n
             </span>
             <h3 className="text-xl font-semibold">{f.confirm.title}</h3>
             <p className="text-sm leading-relaxed text-muted-foreground">{f.confirm.body}</p>
+
             <div className="w-full rounded-xl border border-border bg-secondary/40 p-4 text-left">
               <p className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.15em] text-primary uppercase">
                 <Clock className="h-3.5 w-3.5" aria-hidden />
@@ -274,6 +319,7 @@ export function OrderRequestModal({ target, onClose }: { target: OrderTarget | n
                 <QrCode className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
                 {f.confirm.paymentLine}
               </p>
+
               {paymentMethods.length > 0 ? (
                 <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
                   {paymentMethods.map((m) => (
@@ -296,7 +342,7 @@ export function OrderRequestModal({ target, onClose }: { target: OrderTarget | n
             </div>
 
             <div className="grid w-full gap-2 sm:grid-cols-2">
-              
+              <a
                 href={waHref}
                 target="_blank"
                 rel="noreferrer"
@@ -314,6 +360,7 @@ export function OrderRequestModal({ target, onClose }: { target: OrderTarget | n
                 {c.orderWechat}
               </button>
             </div>
+
             <button
               type="button"
               onClick={() => void copySummary()}
@@ -339,6 +386,7 @@ export function OrderRequestModal({ target, onClose }: { target: OrderTarget | n
               className="flex-1 space-y-5 overflow-y-auto p-5"
               noValidate
             >
+              {/* ORDER SUMMARY */}
               <div className="rounded-xl border border-border bg-secondary/40 p-4">
                 {target.kind === "single" ? (
                   <div className="flex items-center gap-3">
@@ -356,7 +404,13 @@ export function OrderRequestModal({ target, onClose }: { target: OrderTarget | n
                       <p className="truncate text-sm font-semibold">{orderLines[0].name}</p>
                       <p className="text-xs font-semibold text-primary">{formatNpr(orderLines[0].unitPriceNpr)}</p>
                     </div>
-                    <QuantityStepper small value={qty} onChange={setQty} max={MAX_ORDER_QTY} label={t.shopPage.quantity} />
+                    <QuantityStepper
+                      small
+                      value={qty}
+                      onChange={setQty}
+                      max={MAX_ORDER_QTY}
+                      label={t.shopPage.quantity}
+                    />
                   </div>
                 ) : (
                   <ul className="divide-y divide-border">
@@ -394,11 +448,13 @@ export function OrderRequestModal({ target, onClose }: { target: OrderTarget | n
                 <p className="mt-1 text-[11px] text-muted-foreground">{f.totalNote}</p>
               </div>
 
+              {/* CUSTOMER & ORDER DETAILS */}
               <fieldset className="space-y-4">
                 <legend className="text-xs font-semibold tracking-[0.15em] text-foreground uppercase">
                   {f.customer}
                 </legend>
 
+                {/* NAME & PHONE */}
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field label={f.fullName} error={errors.name}>
                     <input
@@ -424,7 +480,39 @@ export function OrderRequestModal({ target, onClose }: { target: OrderTarget | n
                   </Field>
                 </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
+                {/* PREFERRED CONTACT METHOD */}
+                <div>
+                  <label className="text-xs font-medium text-foreground">
+                    {locale === "zh" ? "首选联系方式" : "Preferred Contact Method"}
+                  </label>
+                  <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {(
+                      [
+                        { id: "wechat", label: "WeChat" },
+                        { id: "whatsapp", label: "WhatsApp" },
+                        { id: "phone", label: locale === "zh" ? "电话" : "Phone" },
+                        { id: "email", label: "Email" },
+                      ] as const
+                    ).map((m) => (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => setFields((prev) => ({ ...prev, contactMethod: m.id }))}
+                        className={cn(
+                          "flex items-center justify-center rounded-lg border py-2 text-xs font-medium transition-all",
+                          fields.contactMethod === m.id
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border bg-background hover:bg-accent text-muted-foreground",
+                        )}
+                      >
+                        {m.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* DYNAMIC CONTACT FIELD */}
+                {fields.contactMethod === "wechat" && (
                   <Field label={f.wechat} error={errors.wechat}>
                     <input
                       type="text"
@@ -435,6 +523,9 @@ export function OrderRequestModal({ target, onClose }: { target: OrderTarget | n
                       className={inputClass}
                     />
                   </Field>
+                )}
+
+                {fields.contactMethod === "whatsapp" && (
                   <Field label={f.whatsapp} error={errors.whatsapp}>
                     <input
                       type="tel"
@@ -445,19 +536,81 @@ export function OrderRequestModal({ target, onClose }: { target: OrderTarget | n
                       className={inputClass}
                     />
                   </Field>
+                )}
+
+                {fields.contactMethod === "email" && (
+                  <Field label="Email Address" error={errors.email}>
+                    <input
+                      type="email"
+                      value={fields.email}
+                      onChange={set("email")}
+                      placeholder="you@example.com"
+                      maxLength={100}
+                      className={inputClass}
+                      autoComplete="email"
+                    />
+                  </Field>
+                )}
+
+                {fields.contactMethod === "phone" && (
+                  <p className="text-xs text-muted-foreground italic">
+                    {locale === "zh"
+                      ? "我们将直接拨打您上面填写的电话号码。"
+                      : "We will call you directly at the phone number provided above."}
+                  </p>
+                )}
+
+                {/* DELIVERY CHOICE */}
+                <div>
+                  <label className="text-xs font-medium text-foreground">
+                    {locale === "zh" ? "取货/配送方式" : "Fulfillment Method"}
+                  </label>
+                  <div className="mt-2 grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setFields((prev) => ({ ...prev, deliveryMethod: "delivery" }))}
+                      className={cn(
+                        "flex items-center justify-center gap-2 rounded-xl border p-3 text-xs font-medium transition-all",
+                        fields.deliveryMethod === "delivery"
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border bg-background hover:bg-accent text-muted-foreground",
+                      )}
+                    >
+                      <MapPin className="h-4 w-4 shrink-0" />
+                      {locale === "zh" ? "配送到家" : "Delivery"}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setFields((prev) => ({ ...prev, deliveryMethod: "pickup" }))}
+                      className={cn(
+                        "flex items-center justify-center gap-2 rounded-xl border p-3 text-xs font-medium transition-all",
+                        fields.deliveryMethod === "pickup"
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border bg-background hover:bg-accent text-muted-foreground",
+                      )}
+                    >
+                      <Store className="h-4 w-4 shrink-0" />
+                      {locale === "zh" ? "Maitidevi 自提" : "Pickup from Maitidevi"}
+                    </button>
+                  </div>
                 </div>
 
-                <Field label={f.address} error={errors.address}>
-                  <textarea
-                    value={fields.address}
-                    onChange={set("address")}
-                    placeholder={f.addressPh}
-                    maxLength={300}
-                    rows={2}
-                    className={cn(inputClass, "resize-none")}
-                  />
-                </Field>
+                {/* ADDRESS FIELD (SHOWN ONLY IF DELIVERY IS SELECTED) */}
+                {fields.deliveryMethod === "delivery" && (
+                  <Field label={f.address} error={errors.address}>
+                    <textarea
+                      value={fields.address}
+                      onChange={set("address")}
+                      placeholder={f.addressPh}
+                      maxLength={300}
+                      rows={2}
+                      className={cn(inputClass, "resize-none")}
+                    />
+                  </Field>
+                )}
 
+                {/* NOTES */}
                 <Field label={f.notes} error={errors.notes}>
                   <textarea
                     value={fields.notes}
