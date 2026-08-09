@@ -172,27 +172,29 @@ function ProductCard({ product, copy }: { product: ShopProduct; copy: ProductCop
           <StockBadge status={product.stock} />
         </div>
 
-        <button
-          type="button"
-          disabled={out}
-          onClick={() => {
-            add(product.id, 1);
-            setOpen(true);
-            toast.success(s.added);
-          }}
-          className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 sm:mt-4 sm:px-4 sm:py-2 sm:text-sm"
-        >
-          <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden />
-          {s.addToCart}
-        </button>
+        <div className="mt-2 flex items-center gap-1.5 sm:mt-4 sm:gap-2">
+          <button
+            type="button"
+            disabled={out}
+            onClick={() => {
+              add(product.id, 1);
+              setOpen(true);
+              toast.success(s.added);
+            }}
+            className="inline-flex flex-1 items-center justify-center gap-1 rounded-full bg-primary px-2 py-1.5 text-[11px] font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 sm:gap-1.5 sm:px-4 sm:py-2 sm:text-sm"
+          >
+            <ShoppingCart className="h-3 w-3 shrink-0 sm:h-4 sm:w-4" aria-hidden />
+            <span className="truncate">{s.addToCart}</span>
+          </button>
 
-        <Link
-          to="/shop/$productId"
-          params={{ productId: product.id }}
-          className="mt-1.5 inline-flex w-full items-center justify-center rounded-full border border-border px-3 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:mt-2 sm:px-4 sm:py-2 sm:text-sm sm:text-foreground"
-        >
-          {s.details}
-        </Link>
+          <Link
+            to="/shop/$productId"
+            params={{ productId: product.id }}
+            className="inline-flex flex-1 items-center justify-center rounded-full border border-border px-2 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:px-4 sm:py-2 sm:text-sm sm:text-foreground"
+          >
+            <span className="truncate">{s.details}</span>
+          </Link>
+        </div>
       </div>
     </li>
   );
