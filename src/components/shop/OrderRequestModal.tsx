@@ -13,6 +13,7 @@ import { logOrderRequest } from "@/lib/bookings-db";
 import { usePublicPaymentMethods } from "@/lib/payments-db";
 import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
+import { useModalBackClose } from "@/lib/modal-history";
 import { QuantityStepper } from "./QuantityStepper";
 
 export type OrderTarget = { kind: "single"; productId: string; qty: number } | { kind: "cart" };
@@ -73,6 +74,8 @@ export function OrderRequestModal({ target, onClose }: { target: OrderTarget | n
   const [status, setStatus] = useState<Status>("idle");
   const [summaryText, setSummaryText] = useState("");
   const [copied, setCopied] = useState(false);
+
+  useModalBackClose(target !== null, onClose);
 
   useEffect(() => {
     if (!target) {
