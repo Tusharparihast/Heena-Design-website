@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { MessageCircle, ShoppingBag, LoaderCircle } from "lucide-react";
+import { MessageCircle, ShoppingBag, ShoppingCart, LoaderCircle } from "lucide-react";
 import { Section, SectionHeading } from "@/components/site/Section";
 import { MehndiPattern } from "@/components/site/MehndiPattern";
 import { DiscountBadge, ShopPrice } from "@/components/shop/DiscountBadge";
@@ -8,6 +8,8 @@ import { OrderRequestModal } from "@/components/shop/OrderRequestModal";
 import { QuantityStepper } from "@/components/shop/QuantityStepper";
 import { StockBadge } from "@/components/shop/StockBadge";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { useCart } from "@/lib/cart";
+import { toast } from "sonner";
 import { MAX_ORDER_QTY, type ShopProduct } from "@/lib/shop";
 import { catLabel, productCopy, toShopProduct, usePublicCatalog, type ProductCopy } from "@/lib/shop-catalog-db";
 import { site } from "@/lib/site";
@@ -145,6 +147,7 @@ function ProductCard({
 }) {
   const { t } = useLanguage();
   const s = t.shopPage;
+  const { add, setOpen } = useCart();
   const [qty, setQty] = useState(1);
   const out = product.stock === "out";
 
@@ -195,7 +198,21 @@ function ProductCard({
           <QuantityStepper small value={qty} onChange={setQty} max={MAX_ORDER_QTY} label={s.quantity} />
         </div>
 
-        <div className="mt-4 flex gap-2">
+        <button
+          type="button"
+          disabled={out}
+          onClick={() => {
+            add(product.id, qty);
+            setOpen(true);
+            toast.success(s.added);
+          }}
+          className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/15 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <ShoppingCart className="h-4 w-4" aria-hidden />
+          {s.addToCart}
+        </button>
+
+        <div className="mt-2 flex gap-2">
           <Link
             to="/shop/$productId"
             params={{ productId: product.id }}

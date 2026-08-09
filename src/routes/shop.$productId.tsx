@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Check, LoaderCircle, MapPin, QrCode, ShoppingBag } from "lucide-react";
+import { ArrowLeft, Check, LoaderCircle, MapPin, QrCode, ShoppingBag, ShoppingCart } from "lucide-react";
 import { Section } from "@/components/site/Section";
 import { DiscountBadge, ShopPrice } from "@/components/shop/DiscountBadge";
 import { OrderRequestModal } from "@/components/shop/OrderRequestModal";
@@ -8,6 +8,8 @@ import { QuantityStepper } from "@/components/shop/QuantityStepper";
 import { StockBadge } from "@/components/shop/StockBadge";
 import { en } from "@/i18n/dictionaries";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { useCart } from "@/lib/cart";
+import { toast } from "sonner";
 import { MAX_ORDER_QTY, type ShopProduct } from "@/lib/shop";
 import {
   catLabel,
@@ -51,6 +53,7 @@ function ProductPage() {
   const baseProduct = dbProduct ? toShopProduct(dbProduct) : null;
   const copy = dbProduct ? productCopy(dbProduct, locale) : null;
 
+  const { add, setOpen } = useCart();
   const [imgIdx, setImgIdx] = useState(0);
   const [qty, setQty] = useState(1);
   const [orderOpen, setOrderOpen] = useState(false);
@@ -164,6 +167,19 @@ function ProductPage() {
               >
                 <ShoppingBag className="h-4 w-4" aria-hidden />
                 {s.orderNow}
+              </button>
+              <button
+                type="button"
+                disabled={out}
+                onClick={() => {
+                  add(product.id, qty);
+                  setOpen(true);
+                  toast.success(s.added);
+                }}
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-6 py-3 text-sm font-medium text-primary transition-colors hover:bg-primary/15 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none sm:px-8"
+              >
+                <ShoppingCart className="h-4 w-4" aria-hidden />
+                {s.addToCart}
               </button>
             </div>
 
