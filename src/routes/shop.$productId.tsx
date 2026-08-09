@@ -53,7 +53,7 @@ function ProductPage() {
   const baseProduct = dbProduct ? toShopProduct(dbProduct) : null;
   const copy = dbProduct ? productCopy(dbProduct, locale) : null;
 
-  const { add, setOpen } = useCart();
+  const { add } = useCart();
   const [imgIdx, setImgIdx] = useState(0);
   const [qty, setQty] = useState(1);
   const [orderOpen, setOrderOpen] = useState(false);
@@ -181,7 +181,6 @@ function ProductPage() {
                   disabled={out}
                   onClick={() => {
                     add(product.id, qty);
-                    setOpen(true);
                     toast.success(s.added);
                   }}
                   className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3 py-2.5 text-xs font-medium text-primary transition-colors hover:bg-primary/15 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none sm:gap-2 sm:px-8 sm:py-3 sm:text-sm"
