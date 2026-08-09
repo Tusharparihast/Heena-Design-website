@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { useRouter } from "@tanstack/react-router";
 
 // Module-level (shared across every modal in the app) so that one modal
 // closing while another opens in the same tick — e.g. Cart → Order form —
@@ -12,8 +13,13 @@ let hasPushedEntry = false;
  * returning the user to whatever page or modal was open before it —
  * instead of navigating away from the site. The *next* Back press then
  * behaves completely normally.
+ *
+ * Goes through the router's own history object (not raw window.history)
+ * so it stays in sync with the router's internal route/scroll tracking
+ * instead of fighting it.
  */
 export function useModalBackClose(isOpen: boolean, onClose: () => void) {
+  const router = useRouter();
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
   const tokenRef = useRef<symbol | null>(null);
@@ -25,31 +31,32 @@ export function useModalBackClose(isOpen: boolean, onClose: () => void) {
       currentToken = token;
       currentCloseHandler = () => onCloseRef.current();
       if (!hasPushedEntry) {
-        window.history.pushState({ modalOpen: true }, "");
+        const here = window.location.pathname + window.location.search;
+        router.history.push(here, { modalOpen: true });
         hasPushedEntry = true;
       }
-    } else if (tokenRef.current !== null) {
-      const myToken = tokenRef.current;
+    } else if (tokenRef.current !== null && currentToken === tokenRef.current) {
+      // This modal owned the shared slot and was closed by something other
+      // than the Back button (X button, backdrop, form submit) — clean up
+      // the entry we pushed so a later real Back press behaves normally.
       tokenRef.current = null;
-      // Defer: give another modal opening in this same tick (e.g. the
-      // Order form replacing the Cart) a chance to claim the slot before
-      // we release it — only clean up if we still own it afterward.
-      queueMicrotask(() => {
-        if (currentToken === myToken) {
-          currentToken = null;
-          currentCloseHandler = null;
-          if (hasPushedEntry) {
-            hasPushedEntry = false;
-            window.history.back();
-          }
-        }
-      });
+      currentToken = null;
+      currentCloseHandler = null;
+      hasPushedEntry = false;
+      router.history.back();
+    } else {
+      tokenRef.current = null;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
+  }, [isOpen, router]);
 
   useEffect(() => {
-    function onPopState() {
+    let skipNext = true; // ignore the subscription firing for our own initial mount
+    return router.history.subscribe(() => {
+      if (skipNext) {
+        skipNext = false;
+        return;
+      }
       if (currentCloseHandler) {
         const handler = currentCloseHandler;
         currentToken = null;
@@ -57,8 +64,7 @@ export function useModalBackClose(isOpen: boolean, onClose: () => void) {
         hasPushedEntry = false;
         handler();
       }
-    }
-    window.addEventListener("popstate", onPopState);
-    return () => window.removeEventListener("popstate", onPopState);
-  }, []);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router]);
 }
