@@ -125,7 +125,7 @@ function ShopPage() {
 function ProductCard({ product, copy }: { product: ShopProduct; copy: ProductCopy }) {
   const { t } = useLanguage();
   const s = t.shopPage;
-  const { add, setOpen } = useCart();
+  const { add } = useCart();
   const out = product.stock === "out";
 
   return (
@@ -178,7 +178,6 @@ function ProductCard({ product, copy }: { product: ShopProduct; copy: ProductCop
             disabled={out}
             onClick={() => {
               add(product.id, 1);
-              setOpen(true);
               toast.success(s.added);
             }}
             className="inline-flex flex-1 items-center justify-center gap-1 rounded-full bg-primary px-2 py-1.5 text-[11px] font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 sm:gap-1.5 sm:px-4 sm:py-2 sm:text-sm"
