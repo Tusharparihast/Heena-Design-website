@@ -43,11 +43,11 @@ export function CartWidget() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label={c.title}
-        className="fixed right-4 bottom-24 z-40 inline-flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 sm:right-6"
+        className="fixed right-4 bottom-24 z-40 inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 sm:right-6 sm:h-14 sm:w-14"
       >
-        <ShoppingCart className="h-5 w-5" aria-hidden />
+        <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden />
         {count > 0 ? (
-          <span className="absolute -top-1 -right-1 inline-flex h-6 min-w-6 items-center justify-center rounded-full border-2 border-background bg-foreground px-1 text-[11px] font-semibold text-background">
+          <span className="absolute -top-1 -right-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full border-2 border-background bg-foreground px-1 text-[10px] font-semibold text-background sm:h-6 sm:min-w-6 sm:text-[11px]">
             {count}
           </span>
         ) : null}

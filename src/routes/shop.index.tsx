@@ -1,16 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { MessageCircle, ShoppingBag, ShoppingCart, LoaderCircle } from "lucide-react";
+import { MessageCircle, ShoppingCart, LoaderCircle } from "lucide-react";
 import { Section, SectionHeading } from "@/components/site/Section";
 import { MehndiPattern } from "@/components/site/MehndiPattern";
 import { DiscountBadge, ShopPrice } from "@/components/shop/DiscountBadge";
-import { OrderRequestModal } from "@/components/shop/OrderRequestModal";
-import { QuantityStepper } from "@/components/shop/QuantityStepper";
 import { StockBadge } from "@/components/shop/StockBadge";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
-import { MAX_ORDER_QTY, type ShopProduct } from "@/lib/shop";
+import { type ShopProduct } from "@/lib/shop";
 import { catLabel, productCopy, toShopProduct, usePublicCatalog, type ProductCopy } from "@/lib/shop-catalog-db";
 import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
@@ -37,17 +35,13 @@ function ShopPage() {
   const { t, locale } = useLanguage();
   const s = t.shopPage;
   const [filter, setFilter] = useState<string>("all");
-  const [order, setOrder] = useState<{ id: string; qty: number } | null>(null);
-  // 2. Destructure 'loading' from the hook
   const { products, categories, loading } = usePublicCatalog();
 
-  /** Filter chips: All + every active category (built-ins can be renamed or removed). */
   const chips = useMemo(() => {
     const cats = categories.map((c) => ({ id: c.id, label: catLabel(c, locale) }));
     return [{ id: "all", label: s.filters.all }, ...cats];
   }, [s.filters, categories, locale]);
 
-  // Fall back to "all" if the active chip was a custom category that got deleted.
   const activeFilter = chips.some((c) => c.id === filter) ? filter : "all";
 
   const items = useMemo(() => {
@@ -69,7 +63,7 @@ function ShopPage() {
           <h1 className="mt-4 max-w-3xl text-4xl font-semibold sm:text-5xl">{s.hero.title}</h1>
           <p className="mt-5 max-w-2xl text-muted-foreground">{s.hero.body}</p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <a
+            
               href={waLink}
               target="_blank"
               rel="noreferrer"
@@ -110,56 +104,36 @@ function ShopPage() {
           ))}
         </div>
 
-        {/* 3. Wrap the product grid in the loading ternary check */}
         {loading ? (
           <div className="flex min-h-[40vh] items-center justify-center">
             <LoaderCircle className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <ul className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
             {items.map(({ product, copy }) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                copy={copy}
-                onOrder={(id, qty) => setOrder({ id, qty })}
-              />
+              <ProductCard key={product.id} product={product} copy={copy} />
             ))}
           </ul>
         )}
 
         <p className="mt-8 text-xs text-muted-foreground italic">{s.note}</p>
       </Section>
-
-      <OrderRequestModal
-        target={order ? { kind: "single", productId: order.id, qty: order.qty } : null}
-        onClose={() => setOrder(null)}
-      />
     </main>
   );
 }
 
-function ProductCard({
-  product,
-  copy,
-  onOrder,
-}: {
-  product: ShopProduct;
-  copy: ProductCopy;
-  onOrder: (id: string, qty: number) => void;
-}) {
+function ProductCard({ product, copy }: { product: ShopProduct; copy: ProductCopy }) {
   const { t } = useLanguage();
   const s = t.shopPage;
   const { add, setOpen } = useCart();
-  const [qty, setQty] = useState(1);
   const out = product.stock === "out";
 
   return (
-    <li className="flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-all duration-300 hover:border-primary/40 hover:shadow-md">
+    <li className="flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-all duration-300 hover:border-primary/40 hover:shadow-md sm:rounded-2xl">
       <Link
         to="/shop/$productId"
         params={{ productId: product.id }}
-        className="group relative block aspect-square overflow-hidden bg-secondary/40"
+        className="group relative block aspect-[4/3] overflow-hidden bg-secondary/40 sm:aspect-square"
         aria-label={copy.name}
       >
         <img
@@ -172,15 +146,15 @@ function ProductCard({
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
         />
         {product.featured ? (
-          <span className="absolute top-3 left-3 rounded-full bg-primary px-3 py-1 text-[11px] font-semibold text-primary-foreground">
+          <span className="absolute top-2 left-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground sm:top-3 sm:left-3 sm:px-3 sm:py-1 sm:text-[11px]">
             {s.featured}
           </span>
         ) : null}
-        <DiscountBadge percent={product.discount} className="absolute top-3 right-3" />
+        <DiscountBadge percent={product.discount} className="absolute top-2 right-2 sm:top-3 sm:right-3" />
       </Link>
 
-      <div className="flex flex-1 flex-col p-5">
-        <h3 className="text-base font-semibold">
+      <div className="flex flex-1 flex-col p-2.5 sm:p-5">
+        <h3 className="line-clamp-2 text-xs font-semibold sm:line-clamp-none sm:text-base">
           <Link
             to="/shop/$productId"
             params={{ productId: product.id }}
@@ -189,50 +163,36 @@ function ProductCard({
             {copy.name}
           </Link>
         </h3>
-        <p className="mt-2 text-sm text-muted-foreground">{copy.body}</p>
+        <p className="mt-1 line-clamp-1 text-[11px] text-muted-foreground sm:mt-2 sm:line-clamp-none sm:text-sm">
+          {copy.body}
+        </p>
 
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-          <ShopPrice product={product} price={copy.price} className="text-sm font-semibold text-primary" />
+        <div className="mt-1.5 flex flex-wrap items-center justify-between gap-1 sm:mt-4 sm:gap-2">
+          <ShopPrice product={product} price={copy.price} className="text-xs font-semibold text-primary sm:text-sm" />
           <StockBadge status={product.stock} />
-        </div>
-
-        <div className="mt-4 flex items-center justify-between gap-3">
-          <span className="text-xs text-muted-foreground">{s.quantity}</span>
-          <QuantityStepper small value={qty} onChange={setQty} max={MAX_ORDER_QTY} label={s.quantity} />
         </div>
 
         <button
           type="button"
           disabled={out}
           onClick={() => {
-            add(product.id, qty);
+            add(product.id, 1);
             setOpen(true);
             toast.success(s.added);
           }}
-          className="mt-4 inline-flex w-full items-center justify-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/15 disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 sm:mt-4 sm:px-4 sm:py-2 sm:text-sm"
         >
-          <ShoppingCart className="h-4 w-4" aria-hidden />
+          <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden />
           {s.addToCart}
         </button>
 
-        <div className="mt-2 flex gap-2">
-          <Link
-            to="/shop/$productId"
-            params={{ productId: product.id }}
-            className="inline-flex flex-1 items-center justify-center rounded-full border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-accent"
-          >
-            {s.details}
-          </Link>
-          <button
-            type="button"
-            disabled={out}
-            onClick={() => onOrder(product.id, qty)}
-            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <ShoppingBag className="h-4 w-4" aria-hidden />
-            {s.orderNow}
-          </button>
-        </div>
+        <Link
+          to="/shop/$productId"
+          params={{ productId: product.id }}
+          className="mt-1.5 inline-flex w-full items-center justify-center rounded-full border border-border px-3 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:mt-2 sm:px-4 sm:py-2 sm:text-sm sm:text-foreground"
+        >
+          {s.details}
+        </Link>
       </div>
     </li>
   );
