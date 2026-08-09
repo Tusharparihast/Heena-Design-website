@@ -288,8 +288,7 @@ function ProductPage() {
       </Section>
 
       <OrderRequestModal
-        productId={orderOpen ? product.id : null}
-        initialQty={qty}
+        target={orderOpen ? { kind: "single", productId: product.id, qty } : null}
         onClose={() => setOrderOpen(false)}
       />
     </main>
