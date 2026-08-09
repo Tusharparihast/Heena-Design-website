@@ -97,13 +97,26 @@ function AdminOrdersPage() {
   const trashed = useMemo(() => orders.filter((o) => o.trashed), [orders]);
 
   const [filter, setFilter] = useState<OrderStatus | "all">("all");
-  const [deliveryFilter, setDeliveryFilter] = useState<DeliveryMethod | "all">("all");
+  const [deliveryOn, setDeliveryOn] = useState<Set<DeliveryMethod>>(new Set<DeliveryMethod>(["pickup", "delivery"]));
   const [viewing, setViewing] = useState<AdminOrder | null>(null);
   const [purgeId, setPurgeId] = useState<string | null>(null);
 
+  function toggleDelivery(method: DeliveryMethod) {
+    setDeliveryOn((prev) => {
+      const next = new Set(prev);
+      if (next.has(method)) {
+        if (next.size === 1) return prev; // keep at least one selected
+        next.delete(method);
+      } else {
+        next.add(method);
+      }
+      return next;
+    });
+  }
+
   const filtered = active
     .filter((o) => filter === "all" || o.status === filter)
-    .filter((o) => deliveryFilter === "all" || o.deliveryMethod === deliveryFilter);
+    .filter((o) => deliveryOn.has(o.deliveryMethod));
 
   const newCount = active.filter((o) => o.status === "new").length;
   const pendingRevenue = active
@@ -194,19 +207,19 @@ function AdminOrdersPage() {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {(["all", "pickup", "delivery"] as const).map((d) => (
+          {(["pickup", "delivery"] as const).map((d) => (
             <button
               key={d}
               type="button"
-              onClick={() => setDeliveryFilter(d)}
+              onClick={() => toggleDelivery(d)}
               className={cn(
                 "rounded-full border px-3.5 py-1.5 text-sm transition-colors",
-                deliveryFilter === d
+                deliveryOn.has(d)
                   ? "border-primary bg-primary/10 font-medium text-primary"
-                  : "border-border hover:bg-accent",
+                  : "border-border text-muted-foreground hover:bg-accent",
               )}
             >
-              {d === "all" ? "All" : deliveryLabels[d]}
+              {deliveryLabels[d]}
             </button>
           ))}
         </div>
