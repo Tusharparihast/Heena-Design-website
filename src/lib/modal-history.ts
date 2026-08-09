@@ -1,14 +1,9 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "@tanstack/react-router";
 
-// Module-level (shared across every modal in the app) so that one modal
-// closing while another opens in the same tick — e.g. Cart → Order form —
-// can hand off a single history entry instead of stacking two.
 let currentToken: symbol | null = null;
 let currentCloseHandler: (() => void) | null = null;
 let hasPushedEntry = false;
-// Set right before any history change *we* trigger ourselves, so our own
-// subscribe listener below can tell it apart from a real Back/Forward press.
 let suppressNextChange = false;
 
 /**
@@ -16,9 +11,6 @@ let suppressNextChange = false;
  * returning the user to whatever page or modal was open before it —
  * instead of navigating away from the site. The *next* Back press then
  * behaves completely normally.
- *
- * Goes through the router's own history object (not raw window.history)
- * so it stays in sync with the router's internal route/scroll tracking.
  */
 export function useModalBackClose(isOpen: boolean, onClose: () => void) {
   const router = useRouter();
@@ -32,13 +24,24 @@ export function useModalBackClose(isOpen: boolean, onClose: () => void) {
       tokenRef.current = token;
       currentToken = token;
       currentCloseHandler = () => onCloseRef.current();
+
       if (!hasPushedEntry) {
-        const here = window.location.pathname + window.location.search;
-        suppressNextChange = true;
-        router.history.push(here, { modalOpen: true });
+        // Claim the slot immediately so a second open in the same tick
+        // doesn't also try to push, but defer the actual history mutation
+        // to the next paint — this is what lets the drawer render and
+        // become visible on the very first click, instead of racing with it.
         hasPushedEntry = true;
+        const id = window.requestAnimationFrame(() => {
+          const here = window.location.pathname + window.location.search;
+          suppressNextChange = true;
+          router.history.push(here, { modalOpen: true });
+        });
+        return () => window.cancelAnimationFrame(id);
       }
-    } else if (tokenRef.current !== null && currentToken === tokenRef.current) {
+      return undefined;
+    }
+
+    if (tokenRef.current !== null && currentToken === tokenRef.current) {
       tokenRef.current = null;
       currentToken = null;
       currentCloseHandler = null;
@@ -50,6 +53,7 @@ export function useModalBackClose(isOpen: boolean, onClose: () => void) {
     } else {
       tokenRef.current = null;
     }
+    return undefined;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, router]);
 
