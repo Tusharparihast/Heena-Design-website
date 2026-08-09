@@ -131,7 +131,10 @@ function ShopPage() {
         <p className="mt-8 text-xs text-muted-foreground italic">{s.note}</p>
       </Section>
 
-      <OrderRequestModal productId={order?.id ?? null} initialQty={order?.qty ?? 1} onClose={() => setOrder(null)} />
+      <OrderRequestModal
+        target={order ? { kind: "single", productId: order.id, qty: order.qty } : null}
+        onClose={() => setOrder(null)}
+      />
     </main>
   );
 }
