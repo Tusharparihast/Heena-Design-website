@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ShoppingBag, ShoppingCart, Trash2, X } from "lucide-react";
 import { OrderRequestModal } from "@/components/shop/OrderRequestModal";
 import { QuantityStepper } from "@/components/shop/QuantityStepper";
@@ -19,6 +19,12 @@ export function CartWidget() {
   const { items, count, setQty, remove, clear, open, setOpen } = useCart();
   const { products } = usePublicCatalog();
   const [placingOrder, setPlacingOrder] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    document.body.classList.add("overflow-hidden");
+    return () => document.body.classList.remove("overflow-hidden");
+  }, [open]);
 
   const lines = useMemo(
     () =>
