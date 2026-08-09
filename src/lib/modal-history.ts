@@ -7,6 +7,9 @@ import { useRouter } from "@tanstack/react-router";
 let currentToken: symbol | null = null;
 let currentCloseHandler: (() => void) | null = null;
 let hasPushedEntry = false;
+// Set right before any history change *we* trigger ourselves, so our own
+// subscribe listener below can tell it apart from a real Back/Forward press.
+let suppressNextChange = false;
 
 /**
  * Makes the device/browser Back button close an open modal/drawer first,
@@ -15,8 +18,7 @@ let hasPushedEntry = false;
  * behaves completely normally.
  *
  * Goes through the router's own history object (not raw window.history)
- * so it stays in sync with the router's internal route/scroll tracking
- * instead of fighting it.
+ * so it stays in sync with the router's internal route/scroll tracking.
  */
 export function useModalBackClose(isOpen: boolean, onClose: () => void) {
   const router = useRouter();
@@ -32,18 +34,19 @@ export function useModalBackClose(isOpen: boolean, onClose: () => void) {
       currentCloseHandler = () => onCloseRef.current();
       if (!hasPushedEntry) {
         const here = window.location.pathname + window.location.search;
+        suppressNextChange = true;
         router.history.push(here, { modalOpen: true });
         hasPushedEntry = true;
       }
     } else if (tokenRef.current !== null && currentToken === tokenRef.current) {
-      // This modal owned the shared slot and was closed by something other
-      // than the Back button (X button, backdrop, form submit) — clean up
-      // the entry we pushed so a later real Back press behaves normally.
       tokenRef.current = null;
       currentToken = null;
       currentCloseHandler = null;
-      hasPushedEntry = false;
-      router.history.back();
+      if (hasPushedEntry) {
+        hasPushedEntry = false;
+        suppressNextChange = true;
+        router.history.back();
+      }
     } else {
       tokenRef.current = null;
     }
@@ -51,10 +54,9 @@ export function useModalBackClose(isOpen: boolean, onClose: () => void) {
   }, [isOpen, router]);
 
   useEffect(() => {
-    let skipNext = true; // ignore the subscription firing for our own initial mount
     return router.history.subscribe(() => {
-      if (skipNext) {
-        skipNext = false;
+      if (suppressNextChange) {
+        suppressNextChange = false;
         return;
       }
       if (currentCloseHandler) {
