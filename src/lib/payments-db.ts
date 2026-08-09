@@ -106,7 +106,15 @@ export async function insertPaymentMethod(m: PaymentMethodInput): Promise<boolea
 }
 
 export async function updatePaymentMethod(id: string, patch: Partial<PaymentMethodInput>): Promise<boolean> {
-  const payload: Record<string, unknown> = {};
+  const payload: {
+    label?: string;
+    qr_image?: string;
+    account_name?: string;
+    account_number?: string;
+    instructions?: string;
+    active?: boolean;
+    sort_order?: number;
+  } = {};
   if (patch.label !== undefined) payload.label = patch.label;
   if (patch.qrImage !== undefined) payload.qr_image = patch.qrImage;
   if (patch.accountName !== undefined) payload.account_name = patch.accountName;

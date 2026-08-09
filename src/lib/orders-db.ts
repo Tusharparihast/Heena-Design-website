@@ -69,10 +69,10 @@ function rowToOrder(row: OrderRow): AdminOrder {
     items: rawItems.map((raw) => {
       const i = raw as Record<string, unknown>;
       return {
-        id: String(i.id ?? ""),
-        name: String(i.name ?? ""),
-        qty: Number(i.qty ?? 0),
-        unitPriceNpr: Number(i.unit_price_npr ?? 0),
+        id: String(i['id'] ?? ""),
+        name: String(i['name'] ?? ""),
+        qty: Number(i['qty'] ?? 0),
+        unitPriceNpr: Number(i['unit_price_npr'] ?? 0),
       };
     }),
     totalNpr: row.total_npr,
