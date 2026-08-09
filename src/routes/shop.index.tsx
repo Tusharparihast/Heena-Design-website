@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { ShoppingCart, LoaderCircle } from "lucide-react";
-import { Section, SectionHeading } from "@/components/site/Section";
+import { Section } from "@/components/site/Section";
+import { MehndiPattern } from "@/components/site/MehndiPattern";
 import { DiscountBadge, ShopPrice } from "@/components/shop/DiscountBadge";
 import { StockBadge } from "@/components/shop/StockBadge";
 import { useLanguage } from "@/i18n/LanguageProvider";
@@ -50,10 +51,17 @@ function ShopPage() {
 
   return (
     <main className="relative">
-      <Section>
-        <SectionHeading label={s.hero.eyebrow} title={s.hero.title} />
+      <section className="relative overflow-hidden border-b border-border bg-secondary/40 px-4 py-20 sm:py-24">
+        <MehndiPattern className="pointer-events-none absolute -right-16 -bottom-24 h-80 w-80 opacity-20" />
+        <div className="relative mx-auto max-w-6xl">
+          <p className="text-xs font-semibold tracking-[0.2em] text-primary uppercase">{s.hero.eyebrow}</p>
+          <h1 className="mt-4 max-w-3xl text-4xl font-semibold sm:text-5xl">{s.hero.title}</h1>
+          <p className="mt-5 max-w-2xl text-muted-foreground">{s.hero.body}</p>
+        </div>
+      </section>
 
-        <div className="mt-8 flex flex-wrap gap-2">
+      <Section>
+        <div className="flex flex-wrap gap-2">
           {chips.map((chip) => (
             <button
               key={chip.id}
