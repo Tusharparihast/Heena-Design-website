@@ -166,9 +166,6 @@ export function OrderRequestModal({
     setErrors({});
     setStatus("sending");
 
-    const deliveryLabel =
-      delivery === "pickup" ? (zh ? "到店取件（迈蒂德维）" : "Pickup from Maitidevi") : zh ? "送货上门" : "Delivery";
-
     const ok = await logOrderRequest({
       name: fields.name,
       phone: fields.phone,
@@ -176,8 +173,9 @@ export function OrderRequestModal({
       whatsapp: contact === "whatsapp" ? fields.whatsapp : "",
       email: contact === "email" ? fields.email : "",
       address: delivery === "delivery" ? fields.address : "",
-      notes: [`${zh ? "取件方式" : "Delivery"}: ${deliveryLabel}`, fields.notes].filter(Boolean).join("\n"),
+      notes: fields.notes,
       contactMethod: contact,
+      deliveryMethod: delivery,
       items: [{ id: product.id, name: copy.name, qty, unitPriceNpr: unitPriceNpr(product) }],
       totalNpr: total,
       locale,
