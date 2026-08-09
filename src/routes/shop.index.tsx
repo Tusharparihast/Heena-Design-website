@@ -63,7 +63,7 @@ function ShopPage() {
           <h1 className="mt-4 max-w-3xl text-4xl font-semibold sm:text-5xl">{s.hero.title}</h1>
           <p className="mt-5 max-w-2xl text-muted-foreground">{s.hero.body}</p>
           <div className="mt-8 flex flex-wrap gap-3">
-            
+            <a
               href={waLink}
               target="_blank"
               rel="noreferrer"
