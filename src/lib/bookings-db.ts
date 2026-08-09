@@ -5,13 +5,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
-import {
-  bookingSources,
-  bookingStatuses,
-  type Booking,
-  type BookingSource,
-  type BookingStatus,
-} from "./appointments";
+import { bookingSources, bookingStatuses, type Booking, type BookingSource, type BookingStatus } from "./appointments";
 
 export interface AdminBooking extends Booking {
   trashed: boolean;
@@ -65,10 +59,7 @@ export function useDbBookings() {
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
-    const { data, error: err } = await supabase
-      .from("bookings")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const { data, error: err } = await supabase.from("bookings").select("*").order("created_at", { ascending: false });
     if (err) {
       setError(err.message);
     } else {
@@ -100,9 +91,7 @@ function bookingPayload(b: Booking) {
 }
 
 export async function insertDbBooking(b: Booking): Promise<boolean> {
-  const { error } = await supabase
-    .from("bookings")
-    .insert({ ...bookingPayload(b), kind: "appointment" });
+  const { error } = await supabase.from("bookings").insert({ ...bookingPayload(b), kind: "appointment" });
   return !error;
 }
 
@@ -171,7 +160,6 @@ export async function logWebsiteBooking(input: {
   }
 }
 
-
 export interface OrderLogItem {
   id: string;
   name: string;
@@ -179,6 +167,7 @@ export interface OrderLogItem {
   unitPriceNpr: number;
 }
 
+/** Logs a shop order request. Returns false when the insert failed. */
 /** Logs a shop order request. Returns false when the insert failed. */
 export async function logOrderRequest(input: {
   name: string;
@@ -189,6 +178,7 @@ export async function logOrderRequest(input: {
   address: string;
   notes: string;
   contactMethod: string;
+  deliveryMethod: "pickup" | "delivery";
   items: OrderLogItem[];
   totalNpr: number;
   locale: string;
@@ -203,6 +193,7 @@ export async function logOrderRequest(input: {
       address: input.address.trim().slice(0, 300),
       notes: input.notes.trim().slice(0, 1000),
       contact_method: input.contactMethod,
+      delivery_method: input.deliveryMethod,
       items: input.items.map((i) => ({
         id: i.id,
         name: i.name,
