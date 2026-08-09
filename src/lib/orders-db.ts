@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+export type DeliveryMethod = "pickup" | "delivery";
+
 export const orderStatuses = ["new", "confirmed", "shipped", "completed", "cancelled"] as const;
 export type OrderStatus = (typeof orderStatuses)[number];
 
@@ -24,6 +26,7 @@ export interface AdminOrder {
   address: string;
   notes: string;
   contactMethod: string;
+  deliveryMethod: DeliveryMethod;
   items: OrderItem[];
   totalNpr: number;
   locale: string;
@@ -42,6 +45,7 @@ interface OrderRow {
   address: string;
   notes: string;
   contact_method: string;
+  delivery_method: string;
   items: unknown;
   total_npr: number;
   locale: string;
@@ -66,13 +70,14 @@ function rowToOrder(row: OrderRow): AdminOrder {
     address: row.address,
     notes: row.notes,
     contactMethod: row.contact_method,
+    deliveryMethod: row.delivery_method === "delivery" ? "delivery" : "pickup",
     items: rawItems.map((raw) => {
       const i = raw as Record<string, unknown>;
       return {
-        id: String(i['id'] ?? ""),
-        name: String(i['name'] ?? ""),
-        qty: Number(i['qty'] ?? 0),
-        unitPriceNpr: Number(i['unit_price_npr'] ?? 0),
+        id: String(i["id"] ?? ""),
+        name: String(i["name"] ?? ""),
+        qty: Number(i["qty"] ?? 0),
+        unitPriceNpr: Number(i["unit_price_npr"] ?? 0),
       };
     }),
     totalNpr: row.total_npr,
@@ -88,15 +93,14 @@ export function useDbOrders() {
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("order_requests")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const { data, error } = await supabase.from("order_requests").select("*").order("created_at", { ascending: false });
     if (!error) setOrders((data ?? []).map((row) => rowToOrder(row as OrderRow)));
     setLoading(false);
   }, []);
 
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
 
   return { orders, loading, refresh };
 }
