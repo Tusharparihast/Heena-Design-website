@@ -1,17 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import {
-  Banknote,
-  Clock,
-  Mail,
-  MapPin,
-  Package,
-  PackageCheck,
-  Phone,
-  RotateCcw,
-  Sparkles,
-  Trash2,
-} from "lucide-react";
+import { Banknote, Clock, Mail, MapPin, Package, PackageCheck, Phone, RotateCcw, Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -28,28 +17,9 @@ import { StatCard } from "@/components/admin/StatCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatNpr } from "@/lib/shop";
 import {
   deleteOrder,
@@ -59,6 +29,7 @@ import {
   useDbOrders,
   type AdminOrder,
   type OrderStatus,
+  type DeliveryMethod,
 } from "@/lib/orders-db";
 import { cn } from "@/lib/utils";
 
@@ -73,6 +44,11 @@ const statusLabels: Record<OrderStatus, string> = {
   shipped: "Shipped",
   completed: "Completed",
   cancelled: "Cancelled",
+};
+
+const deliveryLabels: Record<DeliveryMethod, string> = {
+  pickup: "Pickup",
+  delivery: "Delivery",
 };
 
 function statusVariant(status: OrderStatus) {
@@ -121,10 +97,13 @@ function AdminOrdersPage() {
   const trashed = useMemo(() => orders.filter((o) => o.trashed), [orders]);
 
   const [filter, setFilter] = useState<OrderStatus | "all">("all");
+  const [deliveryFilter, setDeliveryFilter] = useState<DeliveryMethod | "all">("all");
   const [viewing, setViewing] = useState<AdminOrder | null>(null);
   const [purgeId, setPurgeId] = useState<string | null>(null);
 
-  const filtered = filter === "all" ? active : active.filter((o) => o.status === filter);
+  const filtered = active
+    .filter((o) => filter === "all" || o.status === filter)
+    .filter((o) => deliveryFilter === "all" || o.deliveryMethod === deliveryFilter);
 
   const newCount = active.filter((o) => o.status === "new").length;
   const pendingRevenue = active
@@ -184,51 +163,58 @@ function AdminOrdersPage() {
       <div>
         <h2 className="font-display text-2xl font-bold sm:text-3xl">Orders</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Shop order requests submitted from the public site — confirm, track and fulfill them
-          here.
+          Shop order requests submitted from the public site — confirm, track and fulfill them here.
         </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label="New" value={String(newCount)} delta="awaiting review" icon={Sparkles} />
-        <StatCard
-          label="Pending value"
-          value={formatNpr(pendingRevenue)}
-          delta="not yet completed"
-          icon={Banknote}
-        />
+        <StatCard label="Pending value" value={formatNpr(pendingRevenue)} delta="not yet completed" icon={Banknote} />
         <StatCard label="This week" value={String(weekCount)} delta="last 7 days" icon={Clock} />
-        <StatCard
-          label="Completed"
-          value={String(completedCount)}
-          delta="all time"
-          icon={PackageCheck}
-        />
+        <StatCard label="Completed" value={String(completedCount)} delta="all time" icon={PackageCheck} />
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {(["all", ...orderStatuses] as const).map((s) => (
-          <button
-            key={s}
-            type="button"
-            onClick={() => setFilter(s)}
-            className={cn(
-              "rounded-full border px-3.5 py-1.5 text-sm transition-colors",
-              filter === s
-                ? "border-primary bg-primary/10 font-medium text-primary"
-                : "border-border hover:bg-accent",
-            )}
-          >
-            {s === "all" ? "All" : statusLabels[s]}
-          </button>
-        ))}
+      <div className="space-y-2">
+        <div className="flex flex-wrap gap-2">
+          {(["all", ...orderStatuses] as const).map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setFilter(s)}
+              className={cn(
+                "rounded-full border px-3.5 py-1.5 text-sm transition-colors",
+                filter === s
+                  ? "border-primary bg-primary/10 font-medium text-primary"
+                  : "border-border hover:bg-accent",
+              )}
+            >
+              {s === "all" ? "All" : statusLabels[s]}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {(["all", "pickup", "delivery"] as const).map((d) => (
+            <button
+              key={d}
+              type="button"
+              onClick={() => setDeliveryFilter(d)}
+              className={cn(
+                "rounded-full border px-3.5 py-1.5 text-sm transition-colors",
+                deliveryFilter === d
+                  ? "border-primary bg-primary/10 font-medium text-primary"
+                  : "border-border hover:bg-accent",
+              )}
+            >
+              {d === "all" ? "All" : deliveryLabels[d]}
+            </button>
+          ))}
+        </div>
       </div>
 
       {loading ? (
         <Card className="shadow-none">
-          <CardContent className="py-12 text-center text-sm text-muted-foreground">
-            Loading orders…
-          </CardContent>
+          <CardContent className="py-12 text-center text-sm text-muted-foreground">Loading orders…</CardContent>
         </Card>
       ) : filtered.length === 0 ? (
         <Card className="shadow-none">
@@ -251,6 +237,7 @@ function AdminOrdersPage() {
                   <TableHead className="pl-6">Date</TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead>Items</TableHead>
+                  <TableHead>Delivery</TableHead>
                   <TableHead>Total</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="pr-6 text-right">Actions</TableHead>
@@ -263,11 +250,7 @@ function AdminOrdersPage() {
                     <TableRow key={o.id}>
                       <TableCell className="pl-6 whitespace-nowrap">{fmtDateTime(o.createdAt)}</TableCell>
                       <TableCell>
-                        <button
-                          type="button"
-                          onClick={() => setViewing(o)}
-                          className="text-left hover:underline"
-                        >
+                        <button type="button" onClick={() => setViewing(o)} className="text-left hover:underline">
                           <div className="font-medium">{o.customerName}</div>
                           <div className="text-xs text-muted-foreground">{contact.value}</div>
                         </button>
@@ -275,14 +258,14 @@ function AdminOrdersPage() {
                       <TableCell className="max-w-[220px] truncate text-muted-foreground">
                         {itemsSummary(o.items)}
                       </TableCell>
-                      <TableCell className="font-medium whitespace-nowrap">
-                        {formatNpr(o.totalNpr)}
-                      </TableCell>
                       <TableCell>
-                        <Select
-                          value={o.status}
-                          onValueChange={(v) => void changeStatus(o, v as OrderStatus)}
-                        >
+                        <Badge variant={o.deliveryMethod === "delivery" ? "default" : "outline"}>
+                          {deliveryLabels[o.deliveryMethod]}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-medium whitespace-nowrap">{formatNpr(o.totalNpr)}</TableCell>
+                      <TableCell>
+                        <Select value={o.status} onValueChange={(v) => void changeStatus(o, v as OrderStatus)}>
                           <SelectTrigger className="h-8 w-[130px] text-xs">
                             <SelectValue>
                               <Badge variant={statusVariant(o.status)}>{statusLabels[o.status]}</Badge>
@@ -343,9 +326,7 @@ function AdminOrdersPage() {
                     <span className="block truncate text-sm">
                       {o.customerName} · {formatNpr(o.totalNpr)}
                     </span>
-                    <span className="block text-xs text-muted-foreground">
-                      {fmtDateTime(o.createdAt)}
-                    </span>
+                    <span className="block text-xs text-muted-foreground">{fmtDateTime(o.createdAt)}</span>
                   </span>
                   <span className="flex shrink-0 items-center gap-2">
                     <Button variant="outline" size="sm" onClick={() => void restoreOrderRow(o.id)}>
@@ -390,8 +371,7 @@ function AdminOrdersPage() {
                   ) : null}
                   {viewing.wechat ? (
                     <p className="flex items-center gap-2">
-                      <span className="w-3.5 text-center text-xs text-muted-foreground">微</span>{" "}
-                      {viewing.wechat}
+                      <span className="w-3.5 text-center text-xs text-muted-foreground">微</span> {viewing.wechat}
                     </p>
                   ) : null}
                   {viewing.whatsapp ? (
@@ -410,24 +390,24 @@ function AdminOrdersPage() {
                       {viewing.address}
                     </p>
                   ) : null}
+                  <p className="text-xs text-muted-foreground">
+                    {deliveryLabels[viewing.deliveryMethod]}
+                    {viewing.deliveryMethod === "delivery" && viewing.address ? ` — ${viewing.address}` : ""}
+                  </p>
                   <p className="pt-1 text-xs text-muted-foreground">
                     Prefers: <span className="font-medium">{viewing.contactMethod}</span>
                   </p>
                 </div>
 
                 <div>
-                  <h4 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                    Items
-                  </h4>
+                  <h4 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Items</h4>
                   <ul className="mt-2 divide-y divide-border rounded-lg border border-border">
                     {viewing.items.map((item) => (
                       <li key={item.id} className="flex items-center justify-between px-3 py-2">
                         <span>
                           {item.qty}× {item.name}
                         </span>
-                        <span className="text-muted-foreground">
-                          {formatNpr(item.unitPriceNpr * item.qty)}
-                        </span>
+                        <span className="text-muted-foreground">{formatNpr(item.unitPriceNpr * item.qty)}</span>
                       </li>
                     ))}
                   </ul>
@@ -439,9 +419,7 @@ function AdminOrdersPage() {
 
                 {viewing.notes ? (
                   <div>
-                    <h4 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                      Notes
-                    </h4>
+                    <h4 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Notes</h4>
                     <p className="mt-1 whitespace-pre-wrap text-muted-foreground">{viewing.notes}</p>
                   </div>
                 ) : null}
@@ -461,9 +439,7 @@ function AdminOrdersPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => void confirmPurge()}>
-              Delete permanently
-            </AlertDialogAction>
+            <AlertDialogAction onClick={() => void confirmPurge()}>Delete permanently</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
