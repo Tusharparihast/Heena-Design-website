@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ShoppingBag, ShoppingCart, Trash2, X } from "lucide-react";
 import { OrderRequestModal } from "@/components/shop/OrderRequestModal";
 import { QuantityStepper } from "@/components/shop/QuantityStepper";
@@ -42,6 +42,36 @@ export function CartWidget() {
   );
 
   const total = lines.reduce((sum, l) => sum + l.total, 0);
+
+  // Make the device/browser Back button close the cart first, before it
+  // navigates the underlying page.
+  const historyPushedRef = useRef(false);
+
+  useEffect(() => {
+    if (open) {
+      if (!historyPushedRef.current) {
+        window.history.pushState({ cartOpen: true }, "");
+        historyPushedRef.current = true;
+      }
+    } else if (historyPushedRef.current) {
+      // Cart was closed by something other than the back button (the X
+      // button, the backdrop, "Order request", etc.) — remove the extra
+      // history entry we pushed so a later real Back press works normally.
+      historyPushedRef.current = false;
+      window.history.back();
+    }
+  }, [open]);
+
+  useEffect(() => {
+    function onPopState() {
+      if (open) {
+        historyPushedRef.current = false;
+        setOpen(false);
+      }
+    }
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [open, setOpen]);
 
   return (
     <>
