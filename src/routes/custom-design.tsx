@@ -11,6 +11,7 @@ import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffectiveAppointmentPage } from "@/lib/appointments";
+import { signReferenceUpload } from "@/lib/design-refs.functions";
 
 const title = "Custom Mehndi Design Requests — Weddings & Events | Nagma Designs";
 const description =
@@ -32,16 +33,24 @@ export const Route = createFileRoute("/custom-design")({
 
 type StyleKey = "traditional" | "modern" | "both";
 
-/** Uploads reference photos to Storage and returns their public URLs (best-effort). */
+/**
+ * Uploads reference photos to the private Storage bucket and returns
+ * long-lived signed links (best-effort). The bucket is not publicly
+ * browsable — only the studio can list or open files in it.
+ */
 async function uploadReferenceImages(items: { file: File }[]): Promise<string[]> {
   const urls: string[] = [];
   for (const { file } of items) {
-    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const ext = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
     const path = `${crypto.randomUUID()}.${ext}`;
     const { error } = await supabase.storage.from("custom-design-refs").upload(path, file);
     if (error) continue;
-    const { data } = supabase.storage.from("custom-design-refs").getPublicUrl(path);
-    if (data?.publicUrl) urls.push(data.publicUrl);
+    try {
+      const { url } = await signReferenceUpload({ data: { path } });
+      if (url) urls.push(url);
+    } catch (err) {
+      console.error("signReferenceUpload failed:", err);
+    }
   }
   return urls;
 }
