@@ -104,12 +104,14 @@ function primaryContact(o: AdminOrder): { label: string; value: string } {
   const chosen = byMethod[o.contactMethod];
   if (chosen) return { label: o.contactMethod, value: chosen };
   const first = ["wechat", "whatsapp", "phone", "email"].find((k) => byMethod[k]);
-  return first ? { label: first, value: byMethod[first] } : { label: "", value: "—" };
+  const firstValue = first ? byMethod[first] : undefined;
+  return first && firstValue ? { label: first, value: firstValue } : { label: "", value: "—" };
 }
 
 function itemsSummary(items: AdminOrder["items"]) {
-  if (items.length === 0) return "—";
-  const first = `${items[0].qty}× ${items[0].name}`;
+  const head = items[0];
+  if (!head) return "—";
+  const first = `${head.qty}× ${head.name}`;
   return items.length > 1 ? `${first} +${items.length - 1} more` : first;
 }
 

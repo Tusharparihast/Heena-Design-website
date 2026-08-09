@@ -122,6 +122,42 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_methods: {
+        Row: {
+          account_name: string
+          account_number: string
+          active: boolean
+          created_at: string
+          id: string
+          instructions: string
+          label: string
+          qr_image: string
+          sort_order: number
+        }
+        Insert: {
+          account_name?: string
+          account_number?: string
+          active?: boolean
+          created_at?: string
+          id?: string
+          instructions?: string
+          label: string
+          qr_image: string
+          sort_order?: number
+        }
+        Update: {
+          account_name?: string
+          account_number?: string
+          active?: boolean
+          created_at?: string
+          id?: string
+          instructions?: string
+          label?: string
+          qr_image?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       product_categories: {
         Row: {
           builtin: boolean
