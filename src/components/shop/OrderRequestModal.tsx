@@ -14,6 +14,7 @@ import { ShopPrice } from "./DiscountBadge";
 import { QuantityStepper } from "./QuantityStepper";
 
 type ContactMethod = "wechat" | "whatsapp" | "phone" | "email";
+type DeliveryMethod = "pickup" | "delivery";
 type Status = "idle" | "sending" | "done";
 
 type Fields = {
@@ -39,6 +40,18 @@ const emptyFields: Fields = {
 const inputClass =
   "w-full rounded-lg border border-border bg-background px-3 py-2 text-sm transition-colors outline-none placeholder:text-muted-foreground/60 focus:border-primary";
 
+const radioLabelClass = (active: boolean) =>
+  cn(
+    "flex cursor-pointer items-center gap-2.5 rounded-lg border px-3 py-2.5 text-sm transition-colors",
+    active ? "border-primary bg-primary/5 font-medium" : "border-border hover:bg-accent",
+  );
+
+const radioDotClass = (active: boolean) =>
+  cn(
+    "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-colors",
+    active ? "border-primary" : "border-border",
+  );
+
 export function OrderRequestModal({
   productId,
   initialQty = 1,
@@ -53,9 +66,11 @@ export function OrderRequestModal({
   const cnyRate = useCnyRate();
   const { methods: paymentMethods } = usePublicPaymentMethods();
   const f = t.shopPage.orderForm;
+  const zh = locale === "zh";
 
   const [mounted, setMounted] = useState(false);
   const [qty, setQty] = useState(initialQty);
+  const [delivery, setDelivery] = useState<DeliveryMethod>("pickup");
   const [contact, setContact] = useState<ContactMethod>("wechat");
   const [fields, setFields] = useState<Fields>(emptyFields);
   const [errors, setErrors] = useState<Partial<Record<keyof Fields, string>>>({});
@@ -75,6 +90,7 @@ export function OrderRequestModal({
     setQty(initialQty);
     setFields(emptyFields);
     setErrors({});
+    setDelivery("pickup");
     setContact("wechat");
     setStatus("idle");
     document.body.classList.add("overflow-hidden");
@@ -105,19 +121,23 @@ export function OrderRequestModal({
           wechat: z.string().trim().max(100),
           whatsapp: z.string().trim().max(30),
           email: z.string().trim().max(255),
-          address: z.string().trim().min(1, f.errors.address).max(300),
+          address: z.string().trim().max(300),
           notes: z.string().trim().max(500),
           contact: z.enum(["wechat", "whatsapp", "phone", "email"]),
+          delivery: z.enum(["pickup", "delivery"]),
         })
         .superRefine((val, ctx) => {
           if (val.contact === "wechat" && !val.wechat) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["wechat"], message: f.errors.wechat });
           }
-          if (val.contact === "email" && !val.email) {
+          if (val.contact === "whatsapp" && !val.whatsapp) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["whatsapp"], message: f.errors.phone });
+          }
+          if (val.contact === "email" && (!val.email || !z.string().email().safeParse(val.email).success)) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["email"], message: f.errors.email });
           }
-          if (val.email && !z.string().email().safeParse(val.email).success) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["email"], message: f.errors.email });
+          if (val.delivery === "delivery" && !val.address) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["address"], message: f.errors.address });
           }
         }),
     [f],
@@ -133,7 +153,7 @@ export function OrderRequestModal({
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (status === "sending") return;
-    const result = schema.safeParse({ ...fields, contact });
+    const result = schema.safeParse({ ...fields, contact, delivery });
     if (!result.success) {
       const next: Partial<Record<keyof Fields, string>> = {};
       for (const issue of result.error.issues) {
@@ -145,14 +165,18 @@ export function OrderRequestModal({
     }
     setErrors({});
     setStatus("sending");
+
+    const deliveryLabel =
+      delivery === "pickup" ? (zh ? "到店取件（迈蒂德维）" : "Pickup from Maitidevi") : zh ? "送货上门" : "Delivery";
+
     const ok = await logOrderRequest({
       name: fields.name,
       phone: fields.phone,
-      wechat: fields.wechat,
-      whatsapp: fields.whatsapp,
-      email: fields.email,
-      address: fields.address,
-      notes: fields.notes,
+      wechat: contact === "wechat" ? fields.wechat : "",
+      whatsapp: contact === "whatsapp" ? fields.whatsapp : "",
+      email: contact === "email" ? fields.email : "",
+      address: delivery === "delivery" ? fields.address : "",
+      notes: [`${zh ? "取件方式" : "Delivery"}: ${deliveryLabel}`, fields.notes].filter(Boolean).join("\n"),
       contactMethod: contact,
       items: [{ id: product.id, name: copy.name, qty, unitPriceNpr: unitPriceNpr(product) }],
       totalNpr: total,
@@ -161,7 +185,7 @@ export function OrderRequestModal({
     if (!ok) {
       setStatus("idle");
       toast.error(
-        locale === "zh"
+        zh
           ? "提交失败，请重试或直接通过微信联系我们。"
           : "Couldn't submit the request. Please try again or reach us on WeChat.",
       );
@@ -191,8 +215,6 @@ export function OrderRequestModal({
         aria-label={f.title}
         className={cn(
           "absolute flex flex-col bg-card shadow-2xl duration-300 ease-out",
-          // Mobile: full-height drawer sliding in from the right edge.
-          // Desktop: centered dialog fading/scaling in — a side drawer feels out of place on wide screens.
           isMobile
             ? cn(
                 "inset-y-0 right-0 h-full w-full max-w-md border-l border-border transition-transform",
@@ -303,7 +325,7 @@ export function OrderRequestModal({
                   <span className="text-xs text-muted-foreground">{f.estimatedTotal}</span>
                   <span className="inline-flex flex-wrap items-baseline justify-end gap-x-2 text-base font-semibold text-primary">
                     {formatNpr(total)}
-                    {locale === "zh" ? (
+                    {zh ? (
                       <span className="text-xs font-normal text-muted-foreground">{formatCny(total, cnyRate)}</span>
                     ) : null}
                   </span>
@@ -316,8 +338,6 @@ export function OrderRequestModal({
                 <legend className="text-xs font-semibold tracking-[0.15em] text-foreground uppercase">
                   {f.customer}
                 </legend>
-
-                {/* Two columns on the wider desktop dialog; single column in the mobile drawer. */}
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field label={f.fullName} error={errors.name}>
                     <input
@@ -330,7 +350,6 @@ export function OrderRequestModal({
                       autoComplete="name"
                     />
                   </Field>
-
                   <Field label={f.phone} error={errors.phone}>
                     <input
                       type="tel"
@@ -343,53 +362,6 @@ export function OrderRequestModal({
                     />
                   </Field>
                 </div>
-
-                <Field label={f.wechat} error={errors.wechat}>
-                  <input
-                    type="text"
-                    value={fields.wechat}
-                    onChange={set("wechat")}
-                    placeholder={f.wechatPh}
-                    maxLength={100}
-                    className={inputClass}
-                  />
-                </Field>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Field label={f.whatsapp} error={errors.whatsapp}>
-                    <input
-                      type="tel"
-                      value={fields.whatsapp}
-                      onChange={set("whatsapp")}
-                      placeholder={f.whatsappPh}
-                      maxLength={30}
-                      className={inputClass}
-                    />
-                  </Field>
-                  <Field label={f.email} error={errors.email}>
-                    <input
-                      type="email"
-                      value={fields.email}
-                      onChange={set("email")}
-                      placeholder={f.emailPh}
-                      maxLength={255}
-                      className={inputClass}
-                      autoComplete="email"
-                    />
-                  </Field>
-                </div>
-
-                <Field label={f.address} error={errors.address}>
-                  <textarea
-                    value={fields.address}
-                    onChange={set("address")}
-                    placeholder={f.addressPh}
-                    maxLength={300}
-                    rows={2}
-                    className={cn(inputClass, "resize-none")}
-                  />
-                </Field>
-
                 <Field label={f.notes} error={errors.notes}>
                   <textarea
                     value={fields.notes}
@@ -402,6 +374,51 @@ export function OrderRequestModal({
                 </Field>
               </fieldset>
 
+              {/* Delivery */}
+              <fieldset>
+                <legend className="text-xs font-semibold tracking-[0.15em] text-foreground uppercase">
+                  {zh ? "取件方式" : "Delivery"}
+                </legend>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  {(["pickup", "delivery"] as const).map((opt) => (
+                    <label key={opt} className={radioLabelClass(delivery === opt)}>
+                      <input
+                        type="radio"
+                        name="order-delivery-method"
+                        value={opt}
+                        checked={delivery === opt}
+                        onChange={() => setDelivery(opt)}
+                        className="sr-only"
+                      />
+                      <span className={radioDotClass(delivery === opt)} aria-hidden>
+                        {delivery === opt ? <span className="h-2 w-2 rounded-full bg-primary" /> : null}
+                      </span>
+                      {opt === "pickup"
+                        ? zh
+                          ? "到店取件（迈蒂德维）"
+                          : "Pickup from Maitidevi"
+                        : zh
+                          ? "送货上门"
+                          : "Delivery"}
+                    </label>
+                  ))}
+                </div>
+                {delivery === "delivery" ? (
+                  <div className="mt-3">
+                    <Field label={f.address} error={errors.address}>
+                      <textarea
+                        value={fields.address}
+                        onChange={set("address")}
+                        placeholder={f.addressPh}
+                        maxLength={300}
+                        rows={2}
+                        className={cn(inputClass, "resize-none")}
+                      />
+                    </Field>
+                  </div>
+                ) : null}
+              </fieldset>
+
               {/* Preferred contact method */}
               <fieldset>
                 <legend className="text-xs font-semibold tracking-[0.15em] text-foreground uppercase">
@@ -409,15 +426,7 @@ export function OrderRequestModal({
                 </legend>
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   {(Object.keys(f.contactMethods) as ContactMethod[]).map((method) => (
-                    <label
-                      key={method}
-                      className={cn(
-                        "flex cursor-pointer items-center gap-2.5 rounded-lg border px-3 py-2.5 text-sm transition-colors",
-                        contact === method
-                          ? "border-primary bg-primary/5 font-medium"
-                          : "border-border hover:bg-accent",
-                      )}
-                    >
+                    <label key={method} className={radioLabelClass(contact === method)}>
                       <input
                         type="radio"
                         name="order-contact-method"
@@ -426,19 +435,67 @@ export function OrderRequestModal({
                         onChange={() => setContact(method)}
                         className="sr-only"
                       />
-                      <span
-                        className={cn(
-                          "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-colors",
-                          contact === method ? "border-primary" : "border-border",
-                        )}
-                        aria-hidden
-                      >
+                      <span className={radioDotClass(contact === method)} aria-hidden>
                         {contact === method ? <span className="h-2 w-2 rounded-full bg-primary" /> : null}
                       </span>
                       {f.contactMethods[method]}
                     </label>
                   ))}
                 </div>
+
+                {contact === "wechat" ? (
+                  <div className="mt-3">
+                    <Field label={f.wechat} error={errors.wechat}>
+                      <input
+                        type="text"
+                        value={fields.wechat}
+                        onChange={set("wechat")}
+                        placeholder={f.wechatPh}
+                        maxLength={100}
+                        className={inputClass}
+                      />
+                    </Field>
+                  </div>
+                ) : null}
+
+                {contact === "whatsapp" ? (
+                  <div className="mt-3">
+                    <Field label={f.whatsapp} error={errors.whatsapp}>
+                      <input
+                        type="tel"
+                        value={fields.whatsapp}
+                        onChange={set("whatsapp")}
+                        placeholder={f.whatsappPh}
+                        maxLength={30}
+                        className={inputClass}
+                      />
+                    </Field>
+                  </div>
+                ) : null}
+
+                {contact === "email" ? (
+                  <div className="mt-3">
+                    <Field label={f.email} error={errors.email}>
+                      <input
+                        type="email"
+                        value={fields.email}
+                        onChange={set("email")}
+                        placeholder={f.emailPh}
+                        maxLength={255}
+                        className={inputClass}
+                        autoComplete="email"
+                      />
+                    </Field>
+                  </div>
+                ) : null}
+
+                {contact === "phone" ? (
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    {zh
+                      ? `我们将通过您的电话号码联系您${fields.phone ? `：${fields.phone}` : ""}。`
+                      : `We'll reach you at the phone number above${fields.phone ? `: ${fields.phone}` : "."}`}
+                  </p>
+                ) : null}
               </fieldset>
             </form>
 
