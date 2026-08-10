@@ -7,6 +7,17 @@ import { useRouter } from "@tanstack/react-router";
 let currentToken: symbol | null = null;
 let currentCloseHandler: (() => void) | null = null;
 let hasPushedEntry = false;
+// History changes we cause ourselves (push on open, back on close) must not be
+// mistaken for a user pressing Back — otherwise the modal closes the instant it
+// opens and the user has to click twice.
+let selfNav = false;
+function markSelfNav() {
+  selfNav = true;
+  // Subscribers fire synchronously during the history change; clear right after.
+  queueMicrotask(() => {
+    selfNav = false;
+  });
+}
 
 /**
  * Makes the device/browser Back button close an open modal/drawer first,
@@ -32,8 +43,9 @@ export function useModalBackClose(isOpen: boolean, onClose: () => void) {
       currentCloseHandler = () => onCloseRef.current();
       if (!hasPushedEntry) {
         const here = window.location.pathname + window.location.search;
-        router.history.push(here, { modalOpen: true });
         hasPushedEntry = true;
+        markSelfNav();
+        router.history.push(here, { modalOpen: true });
       }
     } else if (tokenRef.current !== null && currentToken === tokenRef.current) {
       // This modal owned the shared slot and was closed by something other
@@ -42,8 +54,11 @@ export function useModalBackClose(isOpen: boolean, onClose: () => void) {
       tokenRef.current = null;
       currentToken = null;
       currentCloseHandler = null;
-      hasPushedEntry = false;
-      router.history.back();
+      if (hasPushedEntry) {
+        hasPushedEntry = false;
+        markSelfNav();
+        router.history.back();
+      }
     } else {
       tokenRef.current = null;
     }
@@ -51,12 +66,8 @@ export function useModalBackClose(isOpen: boolean, onClose: () => void) {
   }, [isOpen, router]);
 
   useEffect(() => {
-    let skipNext = true; // ignore the subscription firing for our own initial mount
     return router.history.subscribe(() => {
-      if (skipNext) {
-        skipNext = false;
-        return;
-      }
+      if (selfNav) return;
       if (currentCloseHandler) {
         const handler = currentCloseHandler;
         currentToken = null;
