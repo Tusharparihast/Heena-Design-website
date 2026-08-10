@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { dictionaries, type Locale } from "./dictionaries";
+import { supabase } from "@/integrations/supabase/client";
 import type { Dict } from "./en";
 import {
   emptyHomepageOverrides,
@@ -27,9 +28,20 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("en");
   const [homeOverrides, setHomeOverridesState] = useState<HomepageOverrides>(emptyHomepageOverrides);
 
-  useEffect(() => {
+useEffect(() => {
     const stored = window.localStorage.getItem(LOCALE_KEY);
-    if (stored === "en" || stored === "zh") setLocaleState(stored);
+    if (stored === "en" || stored === "zh") {
+      setLocaleState(stored);
+    } else {
+      void supabase
+        .from("site_settings")
+        .select("default_locale")
+        .eq("id", "main")
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data?.default_locale === "zh") setLocaleState("zh");
+        });
+    }
     setHomeOverridesState(readHomepageOverrides());
   }, []);
 
