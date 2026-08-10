@@ -65,28 +65,49 @@ export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopb
         </div>
 
         {/* Notifications */}
-        <DropdownMenu>
+        <DropdownMenu
+          onOpenChange={(open) => {
+            if (open && unreadCount > 0) markAllRead();
+          }}
+        >
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" aria-label="Notifications" className="relative">
               <Bell className="h-5 w-5" />
-              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-henna" />
+              {unreadCount > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-henna px-1 text-[10px] font-bold leading-none text-primary-foreground">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80">
-            <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+          <DropdownMenuContent align="end" className="max-h-[70vh] w-80 overflow-y-auto">
+            <DropdownMenuLabel className="flex items-center justify-between">
+              <span>Notifications</span>
+              {unreadCount > 0 && <span className="text-xs font-normal text-muted-foreground">{unreadCount} new</span>}
+            </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {notifications.map((n) => (
-              <DropdownMenuItem key={n.title} className="flex cursor-pointer flex-col items-start gap-0.5 py-2.5">
-                <span className="text-sm font-medium leading-snug">{n.title}</span>
-                <span className="text-xs text-muted-foreground">{n.time}</span>
+            {notifications.length === 0 ? (
+              <DropdownMenuItem disabled className="justify-center py-4 text-xs text-muted-foreground">
+                {notifLoading ? "Loading…" : "No notifications yet"}
               </DropdownMenuItem>
-            ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="justify-center text-xs text-muted-foreground">
-              Demo data — live alerts come with the backend phase
-            </DropdownMenuItem>
+            ) : (
+              notifications.map((n) => (
+                <DropdownMenuItem key={n.id} asChild className="cursor-pointer py-2.5">
+                  <Link to={n.to} className="flex flex-col items-start gap-0.5">
+                    <span className="flex w-full items-start gap-2">
+                      {!n.read && <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-henna" />}
+                      <span className="text-sm font-medium leading-snug">{n.title}</span>
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {n.detail} · {relativeTime(n.at)}
+                    </span>
+                  </Link>
+                </DropdownMenuItem>
+              ))
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
+
 
         {/* Theme toggle */}
         <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle dark mode">
