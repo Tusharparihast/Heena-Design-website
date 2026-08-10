@@ -12,8 +12,6 @@ import {
   QrCode,
   Settings,
   ShoppingBag,
-  TrendingUp,
-  UsersRound,
   type LucideIcon,
 } from "lucide-react";
 
@@ -38,7 +36,5 @@ export const adminNavItems: AdminNavItem[] = [
   { label: "Payment QR Codes", to: "/admin/payments", icon: QrCode },
   { label: "Contact Information", to: "/admin/contact-info", icon: Phone },
   { label: "Media Library", to: "/admin/media", icon: FolderOpen },
-  { label: "SEO", to: "/admin/seo", icon: TrendingUp },
-  { label: "Team & Access", to: "/admin/team", icon: UsersRound },
   { label: "Settings", to: "/admin/settings", icon: Settings },
 ];
