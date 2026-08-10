@@ -74,6 +74,7 @@ export type Database = {
           contact_method: string
           created_at: string
           customer_name: string
+          delivery_method: string
           email: string
           id: string
           items: Json
@@ -91,6 +92,7 @@ export type Database = {
           contact_method?: string
           created_at?: string
           customer_name: string
+          delivery_method?: string
           email?: string
           id?: string
           items?: Json
@@ -108,6 +110,7 @@ export type Database = {
           contact_method?: string
           created_at?: string
           customer_name?: string
+          delivery_method?: string
           email?: string
           id?: string
           items?: Json
