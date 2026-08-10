@@ -10,7 +10,14 @@ let hasPushedEntry = false;
 // History changes we cause ourselves (push on open, back on close) must not be
 // mistaken for a user pressing Back — otherwise the modal closes the instant it
 // opens and the user has to click twice.
-let selfNavigations = 0;
+let selfNav = false;
+function markSelfNav() {
+  selfNav = true;
+  // Subscribers fire synchronously during the history change; clear right after.
+  queueMicrotask(() => {
+    selfNav = false;
+  });
+}
 
 /**
  * Makes the device/browser Back button close an open modal/drawer first,
@@ -37,7 +44,7 @@ export function useModalBackClose(isOpen: boolean, onClose: () => void) {
       if (!hasPushedEntry) {
         const here = window.location.pathname + window.location.search;
         hasPushedEntry = true;
-        selfNavigations += 1;
+        markSelfNav();
         router.history.push(here, { modalOpen: true });
       }
     } else if (tokenRef.current !== null && currentToken === tokenRef.current) {
@@ -49,7 +56,7 @@ export function useModalBackClose(isOpen: boolean, onClose: () => void) {
       currentCloseHandler = null;
       if (hasPushedEntry) {
         hasPushedEntry = false;
-        selfNavigations += 1;
+        markSelfNav();
         router.history.back();
       }
     } else {
@@ -60,10 +67,7 @@ export function useModalBackClose(isOpen: boolean, onClose: () => void) {
 
   useEffect(() => {
     return router.history.subscribe(() => {
-      if (selfNavigations > 0) {
-        selfNavigations -= 1;
-        return;
-      }
+      if (selfNav) return;
       if (currentCloseHandler) {
         const handler = currentCloseHandler;
         currentToken = null;
