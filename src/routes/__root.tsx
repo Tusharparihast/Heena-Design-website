@@ -20,6 +20,7 @@ import { MehndiBackdrop } from "@/components/site/MehndiBackdrop";
 import { CursorMehndi } from "@/components/site/CursorMehndi";
 import { FloatingWeChat } from "@/components/site/FloatingWeChat";
 import { site } from "@/lib/site";
+import { SeoTagsInjector } from "@/components/site/SeoTagsInjector";
 
 function NotFoundComponent() {
   return (
