@@ -22,16 +22,11 @@ interface AdminTopbarProps {
   onToggleCollapse: () => void;
 }
 
-const notifications = [
-  { title: "New appointment request — Bridal full-hand", time: "10 min ago" },
-  { title: "Course inquiry: Beginner Basics (WeChat)", time: "1 hour ago" },
-  { title: "New testimonial awaiting approval", time: "Yesterday" },
-];
-
 export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopbarProps) {
   const { theme, toggleTheme, mounted } = useTheme();
   const navigate = useNavigate();
   const { name, email } = useCurrentAdmin();
+  const { notifications, unreadCount, loading: notifLoading, markAllRead } = useAdminNotifications();
 
   async function handleLogout() {
     await supabase.auth.signOut();
