@@ -391,7 +391,7 @@ export function OrderRequestModal({ target, onClose }: { target: OrderTarget | n
             >
               {/* ORDER SUMMARY */}
               <div className="rounded-xl border border-border bg-secondary/40 p-4">
-                {target.kind === "single" ? (
+                {target.kind === "single" && orderLines[0] ? (
                   <div className="flex items-center gap-3">
                     <img
                       src={orderLines[0].image}
