@@ -28,7 +28,7 @@ function fmtSince(iso: string) {
   });
 }
 
-function AdminTeamPage() {
+export function AdminTeamPage() {
   const [members, setMembers] = useState<AdminMember[] | null>(null);
   const [loadError, setLoadError] = useState("");
   const [name, setName] = useState("");
