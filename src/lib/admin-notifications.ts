@@ -3,10 +3,11 @@
 // shop order requests and catalogue changes), keeps it in sync through
 // Postgres realtime, and remembers which items have been read in this browser.
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeTables } from "./admin-metrics";
+import { playNotificationChime } from "./notification-prefs";
 
 export type AdminNotificationKind = "appointment" | "order" | "product";
 export type AdminNotificationLink = "/admin/appointments" | "/admin/orders" | "/admin/products";
@@ -134,10 +135,16 @@ export function useAdminNotifications() {
   const [raw, setRaw] = useState<RawItem[]>([]);
   const [read, setRead] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const firstLoadRef = useRef(true);
 
   const refresh = useCallback(async () => {
     const items = await fetchFeed();
-    setRaw(items);
+    setRaw((prev) => {
+      const isNewItem = items.length > 0 && (prev.length === 0 || items[0]?.id !== prev[0]?.id);
+      if (!firstLoadRef.current && isNewItem) playNotificationChime();
+      return items;
+    });
+    firstLoadRef.current = false;
     setLoading(false);
   }, []);
 
