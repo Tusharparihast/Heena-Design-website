@@ -33,7 +33,10 @@ export interface AdminMetrics {
 export function useRealtimeTables(tables: string[], onChange: () => void) {
   const key = tables.join(",");
   useEffect(() => {
-    const channel = supabase.channel(`admin-live-${key}`);
+    // Unique per effect run so React's dev-mode mount→cleanup→mount cycle
+    // never reuses a channel Supabase hasn't finished removing yet.
+    const topic = `admin-live-${key}-${Math.random().toString(36).slice(2)}`;
+    const channel = supabase.channel(topic);
     for (const table of key.split(",")) {
       channel.on("postgres_changes", { event: "*", schema: "public", table }, () => onChange());
     }
