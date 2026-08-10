@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeTables } from "./admin-metrics";
 
 export type AdminNotificationKind = "appointment" | "order" | "product";
+export type AdminNotificationLink = "/admin/appointments" | "/admin/orders" | "/admin/products";
 
 export interface AdminNotification {
   id: string;
@@ -16,7 +17,7 @@ export interface AdminNotification {
   title: string;
   detail: string;
   at: string;
-  to: string;
+  to: AdminNotificationLink;
   read: boolean;
 }
 
@@ -62,7 +63,7 @@ interface RawItem {
   title: string;
   detail: string;
   at: string;
-  to: string;
+  to: AdminNotificationLink;
 }
 
 async function fetchFeed(): Promise<RawItem[]> {
