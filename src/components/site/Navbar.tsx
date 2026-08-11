@@ -55,7 +55,7 @@ export function Navbar() {
           ))}
         </ul>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 -translate-y-[2px]">
           <button
             type="button"
             role="switch"
