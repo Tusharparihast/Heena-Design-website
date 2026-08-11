@@ -7,7 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeTables } from "./admin-metrics";
-import { playNotificationChime } from "./notification-prefs";
+import { playNotificationChime, showBrowserNotification } from "./notification-prefs";
 
 export type AdminNotificationKind = "appointment" | "order" | "product";
 export type AdminNotificationLink = "/admin/appointments" | "/admin/orders" | "/admin/products";
@@ -141,7 +141,11 @@ export function useAdminNotifications() {
     const items = await fetchFeed();
     setRaw((prev) => {
       const isNewItem = items.length > 0 && (prev.length === 0 || items[0]?.id !== prev[0]?.id);
-      if (!firstLoadRef.current && isNewItem) playNotificationChime();
+      if (!firstLoadRef.current && isNewItem) {
+        playNotificationChime();
+        const top = items[0];
+        if (top) showBrowserNotification(top.title, top.detail);
+      }
       return items;
     });
     firstLoadRef.current = false;

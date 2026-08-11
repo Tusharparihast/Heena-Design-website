@@ -41,3 +41,14 @@ export function playNotificationChime(): void {
     // Audio unavailable — silently skip.
   }
 }
+
+/** Show a desktop notification when the admin granted permission. */
+export function showBrowserNotification(title: string, body: string): void {
+  if (typeof window === "undefined" || !("Notification" in window)) return;
+  if (Notification.permission !== "granted") return;
+  try {
+    new Notification(title, { body, tag: "nagma-admin" });
+  } catch {
+    // Notification unavailable — silently skip.
+  }
+}
