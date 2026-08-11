@@ -14,8 +14,10 @@ import { fileToDataUrl } from "@/lib/image-upload";
 import {
   browserPushPermission,
   isNotificationSoundEnabled,
+  playNotificationChime,
   requestBrowserPushPermission,
   setNotificationSoundEnabled,
+  showBrowserNotification,
 } from "@/lib/notification-prefs";
 import { updateSiteSettings, useAdminSiteSettings, type SiteSettings } from "@/lib/site-settings-db";
 import { useCurrentAdmin } from "@/lib/use-current-admin";
@@ -299,6 +301,7 @@ function NotificationsSection() {
             onCheckedChange={(v) => {
               setSoundOn(v);
               setNotificationSoundEnabled(v);
+              if (v) playNotificationChime();
             }}
           />
         </div>
@@ -321,7 +324,12 @@ function NotificationsSection() {
               size="sm"
               variant="outline"
               onClick={() => {
-                void requestBrowserPushPermission().then(setPermission);
+                void requestBrowserPushPermission().then((p) => {
+                  setPermission(p);
+                  if (p === "granted") {
+                    showBrowserNotification("Notifications enabled", "You'll be alerted about new bookings and orders.");
+                  }
+                });
               }}
             >
               Enable
