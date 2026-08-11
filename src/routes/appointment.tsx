@@ -6,11 +6,7 @@ import { toast } from "sonner";
 import { MehndiPattern } from "@/components/site/MehndiPattern";
 import { Section } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import {
-  dateAvailability,
-  useAppointmentSettings,
-  useEffectiveAppointmentPage,
-} from "@/lib/appointments";
+import { dateAvailability, useAppointmentSettings, useEffectiveAppointmentPage } from "@/lib/appointments";
 import { logWebsiteBooking } from "@/lib/bookings-db";
 import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
@@ -89,7 +85,7 @@ function AppointmentPage() {
 
   /**
    * Saves the request to the studio dashboard, then hands off to the chosen
-   * channel. Returns false when the form is incomplete.
+   * channel. Returns false when the form is incomplete or unavailable.
    */
   async function submitRequest(channel: "whatsapp" | "wechat" | "email") {
     if (!name.trim()) {
@@ -97,13 +93,15 @@ function AppointmentPage() {
       return false;
     }
     if (!contact.trim()) {
-      toast.error(
-        zh ? "请填写微信号或电话，方便我们联系您。" : "Please add a WeChat ID or phone number.",
-      );
+      toast.error(zh ? "请填写微信号或电话，方便我们联系您。" : "Please add a WeChat ID or phone number.");
       return false;
     }
     if (!date) {
       toast.error(zh ? "请选择日期。" : "Please pick a date.");
+      return false;
+    }
+    if (availability !== "open") {
+      toast.error(zh ? "所选日期暂不可预约，请选择其他日期。" : "That date isn't available — please pick another.");
       return false;
     }
     setSending(true);
@@ -121,9 +119,7 @@ function AppointmentPage() {
     });
     setSending(false);
     if (ok) {
-      toast.success(
-        zh ? "预约请求已发送，我们会尽快联系您。" : "Request sent — we'll confirm shortly.",
-      );
+      toast.success(zh ? "预约请求已发送，我们会尽快联系您。" : "Request sent — we'll confirm shortly.");
     } else {
       toast.error(
         zh
@@ -145,7 +141,6 @@ function AppointmentPage() {
     }
   }
 
-
   return (
     <main>
       <section className="relative overflow-hidden border-b border-border bg-secondary/40 px-4 py-16 sm:py-20">
@@ -158,9 +153,7 @@ function AppointmentPage() {
             <ArrowLeft className="h-4 w-4" aria-hidden />
             {a.back}
           </Link>
-          <p className="mt-6 text-xs font-semibold tracking-[0.2em] text-primary uppercase">
-            {a.eyebrow}
-          </p>
+          <p className="mt-6 text-xs font-semibold tracking-[0.2em] text-primary uppercase">{a.eyebrow}</p>
           <h1 className="mt-4 max-w-3xl text-4xl font-semibold sm:text-5xl">{page.title}</h1>
           <p className="mt-5 max-w-2xl text-muted-foreground">{page.body}</p>
         </div>
@@ -226,9 +219,7 @@ function AppointmentPage() {
                 </Field>
                 {availability !== "open" && (
                   <p className="mt-1.5 text-xs font-medium text-destructive">
-                    {availability === "blocked"
-                      ? a.availability.blocked
-                      : a.availability.closedDay}
+                    {availability === "blocked" ? a.availability.blocked : a.availability.closedDay}
                   </p>
                 )}
               </div>
@@ -328,7 +319,6 @@ function AppointmentPage() {
               </button>
             </div>
 
-
             <p className="mt-4 text-xs text-muted-foreground italic">{page.note}</p>
           </aside>
         </div>
@@ -340,9 +330,7 @@ function AppointmentPage() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-xs font-medium tracking-wide text-muted-foreground uppercase">
-        {label}
-      </span>
+      <span className="mb-1.5 block text-xs font-medium tracking-wide text-muted-foreground uppercase">{label}</span>
       {children}
     </label>
   );
