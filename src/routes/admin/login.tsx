@@ -138,7 +138,7 @@ function AdminLoginPage() {
         <button
           type="button"
           onClick={() => {
-            window.location.herf = "/";
+            window.location.href = "/";
           }}
           className="mt-6 flex items-center justify-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
