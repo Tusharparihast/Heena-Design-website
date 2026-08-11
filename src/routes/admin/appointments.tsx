@@ -549,6 +549,30 @@ function AdminAppointmentsPage() {
         booking={editing}
         onSave={(b) => void saveBooking(b)}
       />
+
+      <Dialog open={photos !== null} onOpenChange={(o) => !o && setPhotos(null)}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="font-display">Reference photos</DialogTitle>
+            <DialogDescription>
+              {photos ? `${photos.urls.length} photo(s) sent by ${photos.name}` : ""}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {photos?.urls.map((url) => (
+              <a
+                key={url}
+                href={url}
+                target="_blank"
+                rel="noreferrer"
+                className="block overflow-hidden rounded-lg border border-border"
+              >
+                <img src={url} alt="" className="h-56 w-full bg-muted object-contain" loading="lazy" />
+              </a>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
