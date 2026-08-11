@@ -21,17 +21,12 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/85 backdrop-blur">
-      <nav
-        className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4"
-        aria-label="Main"
-      >
+      <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4" aria-label="Main">
         <Link to="/" className="flex items-center gap-2">
           <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-primary">
             <MehndiMark />
           </span>
-          <span className="font-display text-xl leading-none font-semibold tracking-tight">
-            {site.shortName}
-          </span>
+          <span className="font-display text-xl leading-none font-semibold tracking-tight">{site.shortName}</span>
         </Link>
 
         <ul className="hidden items-center gap-6 md:flex">
@@ -49,7 +44,7 @@ export function Navbar() {
                     <span
                       className={cn(
                         "h-0.5 w-4 rounded-full bg-primary transition-all duration-300",
-                        isActive ? "opacity-100" : "opacity-0 group-hover:opacity-60"
+                        isActive ? "opacity-100" : "opacity-0 group-hover:opacity-60",
                       )}
                       aria-hidden
                     />
@@ -67,19 +62,19 @@ export function Navbar() {
             aria-checked={locale === "zh"}
             aria-label={locale === "en" ? "Switch to Chinese" : "Switch to English"}
             onClick={toggleLocale}
-            className="relative inline-flex h-8 w-[5.25rem] items-center rounded-full border border-border bg-background p-0.5 transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+            className="relative -top-px inline-flex h-8 w-[5.25rem] items-center rounded-full border border-border bg-background p-0.5 transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
           >
             <span
               className={cn(
                 "absolute left-0.5 top-0.5 h-7 w-[calc(50%-2px)] rounded-full bg-primary transition-transform duration-200 ease-out",
-                locale === "zh" ? "translate-x-full" : "translate-x-0"
+                locale === "zh" ? "translate-x-full" : "translate-x-0",
               )}
               aria-hidden
             />
             <span
               className={cn(
                 "relative z-10 flex-1 text-center text-xs font-semibold transition-colors duration-200",
-                locale === "en" ? "text-primary-foreground" : "text-muted-foreground"
+                locale === "en" ? "text-primary-foreground" : "text-muted-foreground",
               )}
             >
               EN
@@ -87,7 +82,7 @@ export function Navbar() {
             <span
               className={cn(
                 "relative z-10 flex-1 text-center text-xs font-semibold transition-colors duration-200",
-                locale === "zh" ? "text-primary-foreground" : "text-muted-foreground"
+                locale === "zh" ? "text-primary-foreground" : "text-muted-foreground",
               )}
             >
               中文
@@ -122,7 +117,7 @@ export function Navbar() {
                     <span
                       className={cn(
                         "h-0.5 w-4 rounded-full bg-primary transition-all duration-300",
-                        isActive ? "opacity-100" : "opacity-0 group-hover:opacity-60"
+                        isActive ? "opacity-100" : "opacity-0 group-hover:opacity-60",
                       )}
                       aria-hidden
                     />
