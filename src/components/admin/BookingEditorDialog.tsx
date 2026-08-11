@@ -12,13 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
   bookingSources,
@@ -60,12 +54,7 @@ interface BookingEditorDialogProps {
 }
 
 /** Add/edit form for one booking. Name, contact and date are required. */
-export function BookingEditorDialog({
-  open,
-  onOpenChange,
-  booking,
-  onSave,
-}: BookingEditorDialogProps) {
+export function BookingEditorDialog({ open, onOpenChange, booking, onSave }: BookingEditorDialogProps) {
   const settings = useAppointmentSettings();
   const services = effectiveServices(settings);
   const timeSlots = effectiveTimeSlots(settings);
@@ -130,12 +119,8 @@ export function BookingEditorDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="font-display">
-            {booking ? "Edit booking" : "Log a booking"}
-          </DialogTitle>
-          <DialogDescription>
-            Record an appointment the client sent on WhatsApp, WeChat or by phone.
-          </DialogDescription>
+          <DialogTitle className="font-display">{booking ? "Edit booking" : "Log a booking"}</DialogTitle>
+          <DialogDescription>Record an appointment the client sent on WhatsApp, WeChat or by phone.</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -259,7 +244,7 @@ export function BookingEditorDialog({
             <Label htmlFor="bk-notes">Notes</Label>
             <Textarea
               id="bk-notes"
-              rows={3}
+              rows={5}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Occasion, design ideas, special requests…"
