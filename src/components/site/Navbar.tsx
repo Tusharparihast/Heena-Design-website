@@ -62,7 +62,7 @@ export function Navbar() {
             aria-checked={locale === "zh"}
             aria-label={locale === "en" ? "Switch to Chinese" : "Switch to English"}
             onClick={toggleLocale}
-            className="relative -top-0.5 inline-flex h-8 w-[5.25rem] items-center rounded-full border border-border bg-background p-0.5 transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+            className="relative -translate-y-[2px] inline-flex h-8 w-[5.25rem] items-center rounded-full border border-border bg-background p-0.5 transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
           >
             <span
               className={cn(
