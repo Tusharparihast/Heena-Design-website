@@ -6,21 +6,34 @@ import {
 } from "@/components/ui/accordion";
 import { Section, SectionHeading } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { effectiveFaqItems, faqSectionHeading, faqText, useFaqOverrides } from "@/lib/faq-overrides";
 
 export function FaqSection() {
-  const { t } = useLanguage();
+  const { locale } = useLanguage();
+  const overrides = useFaqOverrides();
+  const items = effectiveFaqItems(overrides);
+  const heading = faqSectionHeading(overrides);
+  const zh = locale === "zh";
+
+  if (items.length === 0) return null;
 
   return (
     <Section id="faq">
       <div className="grid gap-10 lg:grid-cols-[1fr_1.4fr]">
-        <SectionHeading label={t.faq.label} title={t.faq.title} />
+        <SectionHeading
+          label={zh ? heading.labelZh || heading.labelEn : heading.labelEn}
+          title={zh ? heading.titleZh || heading.titleEn : heading.titleEn}
+        />
         <Accordion type="single" collapsible className="w-full">
-          {t.faq.items.map((item, i) => (
-            <AccordionItem key={item.q} value={`item-${i}`}>
-              <AccordionTrigger className="text-left">{item.q}</AccordionTrigger>
-              <AccordionContent className="text-muted-foreground">{item.a}</AccordionContent>
-            </AccordionItem>
-          ))}
+          {items.map((item, i) => {
+            const { q, a } = faqText(item, locale);
+            return (
+              <AccordionItem key={item.id} value={`item-${i}`}>
+                <AccordionTrigger className="text-left">{q}</AccordionTrigger>
+                <AccordionContent className="whitespace-pre-line text-muted-foreground">{a}</AccordionContent>
+              </AccordionItem>
+            );
+          })}
         </Accordion>
       </div>
     </Section>
