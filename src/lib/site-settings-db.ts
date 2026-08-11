@@ -87,7 +87,9 @@ export function useAdminSiteSettings() {
 }
 
 export async function updateSiteSettings(patch: Partial<SiteSettings>): Promise<boolean> {
-  const payload: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  const payload: Partial<SiteSettingsRow> & { updated_at: string } = {
+    updated_at: new Date().toISOString(),
+  };
   if (patch.seoTitleSuffix !== undefined) payload.seo_title_suffix = patch.seoTitleSuffix;
   if (patch.seoDefaultDescription !== undefined) payload.seo_default_description = patch.seoDefaultDescription;
   if (patch.seoOgImage !== undefined) payload.seo_og_image = patch.seoOgImage;
@@ -100,3 +102,4 @@ export async function updateSiteSettings(patch: Partial<SiteSettings>): Promise<
   if (error) console.error("updateSiteSettings failed:", error);
   return !error;
 }
+
