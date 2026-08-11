@@ -1,5 +1,25 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Bell, ExternalLink, LogOut, Menu, Moon, PanelLeft, Search, Settings, Sun } from "lucide-react";
+import {
+  Bell,
+  ExternalLink,
+  LogOut,
+  Menu,
+  Moon,
+  PanelLeft,
+  Search,
+  Settings,
+  Sun,
+  X,
+  ChevronDown,
+  ChevronUp,
+  Package,
+  Image,
+  CalendarDays,
+  ShoppingBag,
+  MessageSquare,
+  HelpCircle,
+  BookOpen,
+} from "lucide-react";
 import { useState } from "react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -49,6 +69,7 @@ export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopb
   const faqItems = adminFaqItems(faqOverrides);
   const testimonialItems = adminTestimonials(testimonialOverrides);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchIndex, setSearchIndex] = useState(-1);
 
   const searchData: AdminSearchResult[] = [
     ...products.map((product) => ({
@@ -118,10 +139,63 @@ export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopb
 
   const searchResults = searchAdminData(searchQuery, searchData);
 
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!searchQuery.trim() || searchResults.length === 0) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setSearchIndex((prev) => (prev < searchResults.length - 1 ? prev + 1 : 0));
+    }
+
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setSearchIndex((prev) => (prev > 0 ? prev - 1 : searchResults.length - 1));
+    }
+
+    if (e.key === "Enter" && searchIndex >= 0) {
+      e.preventDefault();
+
+      const result = searchResults[searchIndex];
+
+      if (result) {
+        void navigate({ to: result.to });
+        setSearchQuery("");
+        setSearchIndex(-1);
+      }
+    }
+
+    if (e.key === "Escape") {
+      setSearchQuery("");
+      setSearchIndex(-1);
+    }
+  };
+
   async function handleLogout() {
     await supabase.auth.signOut();
     void navigate({ to: "/admin/login" });
   }
+
+  const getSearchIcon = (section: string) => {
+    switch (section) {
+      case "Products":
+        return <Package className="h-4 w-4" />;
+      case "Gallery":
+      case "Student Work":
+        return <Image className="h-4 w-4" />;
+      case "Appointments":
+        return <CalendarDays className="h-4 w-4" />;
+      case "Orders":
+        return <ShoppingBag className="h-4 w-4" />;
+      case "Testimonials":
+        return <MessageSquare className="h-4 w-4" />;
+      case "FAQ":
+        return <HelpCircle className="h-4 w-4" />;
+      case "Courses":
+        return <BookOpen className="h-4 w-4" />;
+      default:
+        return <Search className="h-4 w-4" />;
+    }
+  };
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-2 border-b border-border bg-background/85 px-4 backdrop-blur-md sm:gap-3 sm:px-6">
@@ -151,10 +225,28 @@ export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopb
           <Input
             type="search"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setSearchIndex(-1);
+            }}
+            onKeyDown={handleSearchKeyDown}
             placeholder="Search content…"
-            className="w-52 rounded-full bg-secondary/60 pl-9 lg:w-64"
+            className="w-52 rounded-full bg-secondary/60 pl-9 pr-9 lg:w-64"
           />
+
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery("");
+                setSearchIndex(-1);
+              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label="Clear search"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
 
           {searchQuery.trim() && (
             <div className="absolute right-0 top-full z-50 mt-2 w-80 overflow-hidden rounded-xl border border-border bg-background shadow-lg">
@@ -162,21 +254,32 @@ export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopb
                 <div className="px-4 py-3 text-sm text-muted-foreground">No results found.</div>
               ) : (
                 <div className="max-h-96 overflow-y-auto py-1">
-                  {searchResults.map((result) => (
+                  {searchResults.map((result, index) => (
                     <Link
                       key={`${result.section}-${result.id}`}
                       to={result.to}
-                      onClick={() => setSearchQuery("")}
-                      className="block px-4 py-3 transition-colors hover:bg-secondary"
+                      onClick={() => {
+                        setSearchQuery("");
+                        setSearchIndex(-1);
+                      }}
+                      className={`block px-4 py-3 transition-colors hover:bg-secondary ${
+                        index === searchIndex ? "bg-secondary" : ""
+                      }`}
                     >
-                      <p className="text-sm font-medium">{result.title}</p>
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5 text-muted-foreground">{getSearchIcon(result.section)}</div>
 
-                      <div className="mt-0.5 flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">{result.section}</span>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium">{result.title}</p>
 
-                        {result.description && (
-                          <span className="truncate text-xs text-muted-foreground">· {result.description}</span>
-                        )}
+                          <div className="mt-0.5 flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground">{result.section}</span>
+
+                            {result.description && (
+                              <span className="truncate text-xs text-muted-foreground">· {result.description}</span>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </Link>
                   ))}
