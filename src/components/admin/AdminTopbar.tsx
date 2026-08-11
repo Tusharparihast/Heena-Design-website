@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Bell, ExternalLink, LogOut, Menu, Moon, PanelLeft, Search, Settings, Sun } from "lucide-react";
+import { useState } from "react";
 
-import { useTheme } from "@/hooks/use-theme";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,8 +13,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { useTheme } from "@/hooks/use-theme";
 import { supabase } from "@/integrations/supabase/client";
+
+import { searchAdminData, type AdminSearchResult } from "@/lib/admin-search";
 import { relativeTime, useAdminNotifications } from "@/lib/admin-notifications";
+import { useAdminCatalog } from "@/lib/shop-catalog-db";
 import { getInitials, useCurrentAdmin } from "@/lib/use-current-admin";
 
 interface AdminTopbarProps {
@@ -28,6 +32,19 @@ export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopb
   const navigate = useNavigate();
   const { name, email } = useCurrentAdmin();
   const { notifications, unreadCount, loading: notifLoading, markAllRead } = useAdminNotifications();
+  const { products } = useAdminCatalog();
+
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const searchData: AdminSearchResult[] = products.map((product) => ({
+    id: product.id,
+    title: product.nameEn,
+    description: product.bodyEn,
+    section: "Products",
+    to: "/admin/products",
+  }));
+
+  const searchResults = searchAdminData(searchQuery, searchData);
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -58,11 +75,43 @@ export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopb
         {/* Search */}
         <div className="relative hidden md:block">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+
           <Input
             type="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search content…"
             className="w-52 rounded-full bg-secondary/60 pl-9 lg:w-64"
           />
+
+          {searchQuery.trim() && (
+            <div className="absolute right-0 top-full z-50 mt-2 w-80 overflow-hidden rounded-xl border border-border bg-background shadow-lg">
+              {searchResults.length === 0 ? (
+                <div className="px-4 py-3 text-sm text-muted-foreground">No results found.</div>
+              ) : (
+                <div className="max-h-96 overflow-y-auto py-1">
+                  {searchResults.map((result) => (
+                    <Link
+                      key={`${result.section}-${result.id}`}
+                      to={result.to}
+                      onClick={() => setSearchQuery("")}
+                      className="block px-4 py-3 transition-colors hover:bg-secondary"
+                    >
+                      <p className="text-sm font-medium">{result.title}</p>
+
+                      <div className="mt-0.5 flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">{result.section}</span>
+
+                        {result.description && (
+                          <span className="truncate text-xs text-muted-foreground">· {result.description}</span>
+                        )}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Notifications */}
@@ -108,7 +157,6 @@ export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopb
             )}
           </DropdownMenuContent>
         </DropdownMenu>
-
 
         {/* Theme toggle */}
         <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle dark mode">
