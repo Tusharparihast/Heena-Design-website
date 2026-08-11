@@ -257,6 +257,45 @@ export type Database = {
         }
         Relationships: []
       }
+      site_settings: {
+        Row: {
+          created_at: string
+          default_locale: string
+          id: string
+          seo_default_description: string
+          seo_ga_measurement_id: string
+          seo_og_image: string
+          seo_robots_index: boolean
+          seo_search_console_verification: string
+          seo_title_suffix: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_locale?: string
+          id: string
+          seo_default_description?: string
+          seo_ga_measurement_id?: string
+          seo_og_image?: string
+          seo_robots_index?: boolean
+          seo_search_console_verification?: string
+          seo_title_suffix?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_locale?: string
+          id?: string
+          seo_default_description?: string
+          seo_ga_measurement_id?: string
+          seo_og_image?: string
+          seo_robots_index?: boolean
+          seo_search_console_verification?: string
+          seo_title_suffix?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string

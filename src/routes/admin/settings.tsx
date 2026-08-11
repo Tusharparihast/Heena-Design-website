@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Bell, Globe, Image as ImageIcon, ShieldCheck, TrendingUp, UsersRound } from "lucide-react";
+import { Bell, Image as ImageIcon, ShieldCheck, TrendingUp, UsersRound } from "lucide-react";
 import { toast } from "sonner";
 import { AdminTeamPage } from "./team";
 import { Button } from "@/components/ui/button";
@@ -14,8 +14,10 @@ import { fileToDataUrl } from "@/lib/image-upload";
 import {
   browserPushPermission,
   isNotificationSoundEnabled,
+  playNotificationChime,
   requestBrowserPushPermission,
   setNotificationSoundEnabled,
+  showBrowserNotification,
 } from "@/lib/notification-prefs";
 import { updateSiteSettings, useAdminSiteSettings, type SiteSettings } from "@/lib/site-settings-db";
 import { useCurrentAdmin } from "@/lib/use-current-admin";
@@ -26,14 +28,13 @@ export const Route = createFileRoute("/admin/settings")({
   component: AdminSettingsPage,
 });
 
-type Tab = "seo" | "users" | "security" | "notifications" | "preferences";
+type Tab = "seo" | "users" | "security" | "notifications";
 
 const tabs: { id: Tab; label: string; icon: typeof TrendingUp }[] = [
   { id: "seo", label: "SEO Settings", icon: TrendingUp },
   { id: "users", label: "Users & Access", icon: UsersRound },
   { id: "security", label: "Security", icon: ShieldCheck },
   { id: "notifications", label: "Notifications", icon: Bell },
-  { id: "preferences", label: "Site Preferences", icon: Globe },
 ];
 
 function AdminSettingsPage() {
@@ -72,7 +73,6 @@ function AdminSettingsPage() {
       {tab === "users" ? <AdminTeamPage /> : null}
       {tab === "security" ? <SecuritySection /> : null}
       {tab === "notifications" ? <NotificationsSection /> : null}
-      {tab === "preferences" ? <PreferencesSection /> : null}
     </div>
   );
 }
@@ -301,6 +301,7 @@ function NotificationsSection() {
             onCheckedChange={(v) => {
               setSoundOn(v);
               setNotificationSoundEnabled(v);
+              if (v) playNotificationChime();
             }}
           />
         </div>
@@ -323,70 +324,17 @@ function NotificationsSection() {
               size="sm"
               variant="outline"
               onClick={() => {
-                void requestBrowserPushPermission().then(setPermission);
+                void requestBrowserPushPermission().then((p) => {
+                  setPermission(p);
+                  if (p === "granted") {
+                    showBrowserNotification("Notifications enabled", "You'll be alerted about new bookings and orders.");
+                  }
+                });
               }}
             >
               Enable
             </Button>
           ) : null}
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-/* ---------------- Site Preferences ---------------- */
-
-function PreferencesSection() {
-  const { settings, loading, refresh } = useAdminSiteSettings();
-  const [saving, setSaving] = useState(false);
-
-  if (loading) {
-    return (
-      <Card className="shadow-none">
-        <CardContent className="py-12 text-center text-sm text-muted-foreground">Loading…</CardContent>
-      </Card>
-    );
-  }
-
-  async function setDefaultLocale(locale: "en" | "zh") {
-    setSaving(true);
-    const ok = await updateSiteSettings({ defaultLocale: locale });
-    setSaving(false);
-    if (!ok) {
-      toast.error("Couldn't save — please try again.");
-      return;
-    }
-    await refresh();
-    toast.success("Default language updated.");
-  }
-
-  return (
-    <Card className="shadow-none">
-      <CardContent className="space-y-4 p-4 sm:p-6">
-        <div>
-          <p className="text-sm font-medium">Default storefront language</p>
-          <p className="text-xs text-muted-foreground">
-            Used for first-time visitors who haven't chosen a language yet.
-          </p>
-          <div className="mt-3 flex gap-2">
-            {(["en", "zh"] as const).map((loc) => (
-              <button
-                key={loc}
-                type="button"
-                disabled={saving}
-                onClick={() => void setDefaultLocale(loc)}
-                className={cn(
-                  "rounded-full border px-4 py-2 text-sm transition-colors",
-                  settings.defaultLocale === loc
-                    ? "border-primary bg-primary/10 font-medium text-primary"
-                    : "border-border hover:bg-accent",
-                )}
-              >
-                {loc === "en" ? "English" : "中文"}
-              </button>
-            ))}
-          </div>
         </div>
       </CardContent>
     </Card>

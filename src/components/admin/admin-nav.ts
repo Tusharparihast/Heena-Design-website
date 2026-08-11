@@ -2,7 +2,7 @@ import {
   CalendarCheck,
   CircleHelp,
   ClipboardList,
-  FolderOpen,
+  
   GraduationCap,
   Home,
   Images,
@@ -35,6 +35,6 @@ export const adminNavItems: AdminNavItem[] = [
   { label: "Orders", to: "/admin/orders", icon: ClipboardList },
   { label: "Payment QR Codes", to: "/admin/payments", icon: QrCode },
   { label: "Contact Information", to: "/admin/contact-info", icon: Phone },
-  { label: "Media Library", to: "/admin/media", icon: FolderOpen },
+  
   { label: "Settings", to: "/admin/settings", icon: Settings },
 ];
