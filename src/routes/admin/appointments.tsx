@@ -10,6 +10,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { dictionaries } from "@/i18n/dictionaries";
@@ -80,6 +87,7 @@ function AdminAppointmentsPage() {
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<Booking | undefined>(undefined);
   const [blockedInput, setBlockedInput] = useState("");
+  const [photos, setPhotos] = useState<{ name: string; urls: string[] } | null>(null);
 
   const today = todayStr();
 
@@ -276,25 +284,27 @@ function AdminAppointmentsPage() {
                             const urls = extractImageUrls(b.notes);
                             if (urls.length === 0) return <span className="text-muted-foreground">—</span>;
                             return (
-                              <div className="flex -space-x-2">
-                                {urls.slice(0, 3).map((url, i) => (
-                                  <a
-                                    key={url}
-                                    href={url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="block h-8 w-8 overflow-hidden rounded-full border-2 border-background ring-1 ring-border"
-                                    style={{ zIndex: 3 - i }}
-                                  >
-                                    <img src={url} alt="" className="h-full w-full object-cover" />
-                                  </a>
-                                ))}
-                                {urls.length > 3 ? (
-                                  <span className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-background bg-secondary text-[10px] font-medium">
-                                    +{urls.length - 3}
-                                  </span>
-                                ) : null}
-                              </div>
+                              <button
+                                type="button"
+                                className="flex items-center gap-1"
+                                aria-label={`View ${urls.length} photo(s) from ${b.name}`}
+                                onClick={() => setPhotos({ name: b.name, urls })}
+                              >
+                                <span className="flex -space-x-2">
+                                  {urls.slice(0, 3).map((url, i) => (
+                                    <span
+                                      key={url}
+                                      className="block h-8 w-8 overflow-hidden rounded-full border-2 border-background ring-1 ring-border"
+                                      style={{ zIndex: 3 - i }}
+                                    >
+                                      <img src={url} alt="" className="h-full w-full object-cover" />
+                                    </span>
+                                  ))}
+                                </span>
+                                <span className="ml-1 text-xs font-medium text-primary">
+                                  {urls.length > 3 ? `+${urls.length - 3} · View all` : "View"}
+                                </span>
+                              </button>
                             );
                           })()}
                         </TableCell>
