@@ -9,6 +9,7 @@ import {
   Search,
   Settings,
   Sun,
+  X,
   ChevronDown,
   ChevronUp,
   Package,
