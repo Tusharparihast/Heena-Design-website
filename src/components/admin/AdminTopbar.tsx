@@ -9,7 +9,6 @@ import {
   Search,
   Settings,
   Sun,
-  X,
   ChevronDown,
   ChevronUp,
   Package,
@@ -233,20 +232,6 @@ export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopb
             placeholder="Search content…"
             className="w-52 rounded-full bg-secondary/60 pl-9 pr-9 lg:w-64"
           />
-
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => {
-                setSearchQuery("");
-                setSearchIndex(-1);
-              }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              aria-label="Clear search"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
 
           {searchQuery.trim() && (
             <div className="absolute right-0 top-full z-50 mt-2 w-80 overflow-hidden rounded-xl border border-border bg-background shadow-lg">
