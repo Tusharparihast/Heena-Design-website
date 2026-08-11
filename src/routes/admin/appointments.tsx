@@ -10,13 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { dictionaries } from "@/i18n/dictionaries";
@@ -160,6 +154,10 @@ function AdminAppointmentsPage() {
 
   function addBlockedDate() {
     if (!blockedInput) return;
+    if (blockedInput < today) {
+      toast.error("Can't block a date in the past.");
+      return;
+    }
     if (settings.blockedDates.includes(blockedInput)) {
       toast.error("That date is already blocked.");
       return;
@@ -422,6 +420,7 @@ function AdminAppointmentsPage() {
                 <Input
                   type="date"
                   className="w-auto"
+                  min={today}
                   value={blockedInput}
                   onChange={(e) => setBlockedInput(e.target.value)}
                 />
