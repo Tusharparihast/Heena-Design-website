@@ -21,6 +21,10 @@ import { relativeTime, useAdminNotifications } from "@/lib/admin-notifications";
 import { useAdminCatalog } from "@/lib/shop-catalog-db";
 import { useEffectiveGalleryItems } from "@/lib/gallery-overrides";
 import { useDbBookings } from "@/lib/bookings-db";
+import { useDbOrders } from "@/lib/orders-db";
+import { useFaqOverrides, adminFaqItems } from "@/lib/faq-overrides";
+import { useTestimonialOverrides, adminTestimonials } from "@/lib/testimonial-overrides";
+import { en } from "@/i18n/en";
 import { getInitials, useCurrentAdmin } from "@/lib/use-current-admin";
 
 interface AdminTopbarProps {
@@ -38,6 +42,12 @@ export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopb
   const galleryItems = useEffectiveGalleryItems("gallery");
   const studentWorkItems = useEffectiveGalleryItems("student");
   const { bookings } = useDbBookings();
+  const { orders } = useDbOrders();
+  const faqOverrides = useFaqOverrides();
+  const testimonialOverrides = useTestimonialOverrides();
+
+  const faqItems = adminFaqItems(faqOverrides);
+  const testimonialItems = adminTestimonials(testimonialOverrides);
   const [searchQuery, setSearchQuery] = useState("");
 
   const searchData: AdminSearchResult[] = [
@@ -71,6 +81,38 @@ export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopb
       description: `${booking.service} · ${booking.date}`,
       section: "Appointments",
       to: "/admin/appointments",
+    })),
+
+    ...orders.map((order) => ({
+      id: order.id,
+      title: order.customerName,
+      description: `${order.phone} · ${order.items.map((item) => item.name).join(", ")}`,
+      section: "Orders",
+      to: "/admin/orders",
+    })),
+
+    ...testimonialItems.map(({ item }) => ({
+      id: item.id,
+      title: item.nameEn,
+      description: item.reviewEn,
+      section: "Testimonials",
+      to: "/admin/testimonials",
+    })),
+
+    ...faqItems.map((item) => ({
+      id: item.id,
+      title: item.questionEn,
+      description: item.answerEn,
+      section: "FAQ",
+      to: "/admin/faq",
+    })),
+
+    ...en.courses.items.map((course) => ({
+      id: course.name,
+      title: course.name,
+      description: `${course.level} · ${course.duration} · ${course.body}`,
+      section: "Courses",
+      to: "/admin/courses",
     })),
   ];
 
