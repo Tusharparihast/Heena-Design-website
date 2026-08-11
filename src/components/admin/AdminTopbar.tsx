@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Bell, ExternalLink, LogOut, Menu, Moon, PanelLeft, Search, Settings, Sun, User } from "lucide-react";
+import { Bell, ExternalLink, LogOut, Menu, Moon, PanelLeft, Search, Settings, Sun } from "lucide-react";
 
 import { useTheme } from "@/hooks/use-theme";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";

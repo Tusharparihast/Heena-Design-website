@@ -2,7 +2,7 @@ import {
   CalendarCheck,
   CircleHelp,
   ClipboardList,
-  FolderOpen,
+  
   GraduationCap,
   Home,
   Images,
