@@ -136,9 +136,6 @@ export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopb
               <p className="text-xs font-normal text-muted-foreground">{email}</p>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer">
-              <User className="mr-2 h-4 w-4" /> Profile
-            </DropdownMenuItem>
             <DropdownMenuItem asChild className="cursor-pointer">
               <Link to="/admin/$section" params={{ section: "settings" }}>
                 <Settings className="mr-2 h-4 w-4" /> Settings
