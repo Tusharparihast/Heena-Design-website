@@ -248,6 +248,7 @@ export function BookingEditorDialog({ open, onOpenChange, booking, onSave }: Boo
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Occasion, design ideas, special requests…"
+              className="min-h-[120px] resize-y sm:min-h-[140px]"
             />
           </div>
         </div>
