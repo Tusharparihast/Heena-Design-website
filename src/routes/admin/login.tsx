@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Eye, EyeOff, LoaderCircle, LockKeyhole } from "lucide-react";
 import { toast } from "sonner";
 
@@ -135,13 +135,13 @@ function AdminLoginPage() {
           </div>
         </div>
 
-        <Link
+        <button
           to="/"
           className="mt-6 flex items-center justify-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to website
-        </Link>
+        </button>
       </div>
     </div>
   );
