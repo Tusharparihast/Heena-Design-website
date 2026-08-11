@@ -10,7 +10,7 @@ import { logWebsiteBooking } from "@/lib/bookings-db";
 import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffectiveAppointmentPage } from "@/lib/appointments";
+import { dateAvailability, useAppointmentSettings, useEffectiveAppointmentPage } from "@/lib/appointments";
 import { signReferenceUpload } from "@/lib/design-refs.functions";
 
 const title = "Custom Mehndi Design Requests — Weddings & Events | Nagma Designs";
@@ -41,7 +41,12 @@ type StyleKey = "traditional" | "modern" | "both";
 async function uploadReferenceImages(items: { file: File }[]): Promise<string[]> {
   const urls: string[] = [];
   for (const { file } of items) {
-    const ext = file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+    const ext =
+      file.name
+        .split(".")
+        .pop()
+        ?.toLowerCase()
+        .replace(/[^a-z0-9]/g, "") || "jpg";
     const path = `${crypto.randomUUID()}.${ext}`;
     const { error } = await supabase.storage.from("custom-design-refs").upload(path, file);
     if (error) continue;
@@ -69,6 +74,8 @@ function CustomDesignPage() {
   const [date, setDate] = useState("");
 
   const page = useEffectiveAppointmentPage(locale);
+  const apptSettings = useAppointmentSettings();
+  const availability = date ? dateAvailability(apptSettings, date) : "open";
   const [timeIdx, setTimeIdx] = useState(0);
   const time = page.timeSlots[timeIdx] ?? page.timeSlots[0] ?? "";
 
@@ -145,6 +152,10 @@ function CustomDesignPage() {
   async function submitRequest(channel: "whatsapp" | "wechat" | "email"): Promise<string | null> {
     if (!name.trim()) {
       toast.error(zh ? "请填写您的姓名。" : "Please enter your name.");
+      return null;
+    }
+    if (date && availability !== "open") {
+      toast.error(zh ? "所选日期暂不可预约，请选择其他日期。" : "That date isn't available — please pick another.");
       return null;
     }
     setSending(true);
@@ -355,15 +366,24 @@ function CustomDesignPage() {
                           className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                         />
                       </Field>
-                      <Field label={b.details.date}>
-                        <input
-                          type="date"
-                          min={today}
-                          value={date}
-                          onChange={(e) => setDate(e.target.value)}
-                          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                        />
-                      </Field>
+                      <div>
+                        <Field label={b.details.date}>
+                          <input
+                            type="date"
+                            min={today}
+                            value={date}
+                            onChange={(e) => setDate(e.target.value)}
+                            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                          />
+                        </Field>
+                        {availability !== "open" && (
+                          <p className="mt-1.5 text-xs font-medium text-destructive">
+                            {availability === "blocked"
+                              ? t.appointment.page.availability.blocked
+                              : t.appointment.page.availability.closedDay}
+                          </p>
+                        )}
+                      </div>
                       <Field label={t.appointment.page.form.time}>
                         <select
                           value={timeIdx}
