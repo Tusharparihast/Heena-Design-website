@@ -20,6 +20,7 @@ import { searchAdminData, type AdminSearchResult } from "@/lib/admin-search";
 import { relativeTime, useAdminNotifications } from "@/lib/admin-notifications";
 import { useAdminCatalog } from "@/lib/shop-catalog-db";
 import { useEffectiveGalleryItems } from "@/lib/gallery-overrides";
+import { useDbBookings } from "@/lib/bookings-db";
 import { getInitials, useCurrentAdmin } from "@/lib/use-current-admin";
 
 interface AdminTopbarProps {
@@ -36,7 +37,7 @@ export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopb
   const { products } = useAdminCatalog();
   const galleryItems = useEffectiveGalleryItems("gallery");
   const studentWorkItems = useEffectiveGalleryItems("student");
-
+  const { bookings } = useDbBookings();
   const [searchQuery, setSearchQuery] = useState("");
 
   const searchData: AdminSearchResult[] = [
@@ -62,6 +63,14 @@ export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopb
       description: item.categories.join(", "),
       section: "Student Work",
       to: "/admin/gallery",
+    })),
+
+    ...bookings.map((booking) => ({
+      id: booking.id,
+      title: booking.name,
+      description: `${booking.service} · ${booking.date}`,
+      section: "Appointments",
+      to: "/admin/appointments",
     })),
   ];
 
