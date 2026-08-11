@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { searchAdminData, type AdminSearchResult } from "@/lib/admin-search";
 import { relativeTime, useAdminNotifications } from "@/lib/admin-notifications";
 import { useAdminCatalog } from "@/lib/shop-catalog-db";
+import { useEffectiveGalleryItems } from "@/lib/gallery-overrides";
 import { getInitials, useCurrentAdmin } from "@/lib/use-current-admin";
 
 interface AdminTopbarProps {
@@ -33,16 +34,36 @@ export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopb
   const { name, email } = useCurrentAdmin();
   const { notifications, unreadCount, loading: notifLoading, markAllRead } = useAdminNotifications();
   const { products } = useAdminCatalog();
+  const galleryItems = useEffectiveGalleryItems("gallery");
+  const studentWorkItems = useEffectiveGalleryItems("student");
 
   const [searchQuery, setSearchQuery] = useState("");
 
-  const searchData: AdminSearchResult[] = products.map((product) => ({
-    id: product.id,
-    title: product.nameEn,
-    description: product.bodyEn,
-    section: "Products",
-    to: "/admin/products",
-  }));
+  const searchData: AdminSearchResult[] = [
+    ...products.map((product) => ({
+      id: product.id,
+      title: product.nameEn,
+      description: product.bodyEn,
+      section: "Products",
+      to: "/admin/products",
+    })),
+
+    ...galleryItems.map((item) => ({
+      id: item.id,
+      title: item.en,
+      description: item.categories.join(", "),
+      section: "Gallery",
+      to: "/admin/gallery",
+    })),
+
+    ...studentWorkItems.map((item) => ({
+      id: item.id,
+      title: item.en,
+      description: item.categories.join(", "),
+      section: "Student Work",
+      to: "/admin/gallery",
+    })),
+  ];
 
   const searchResults = searchAdminData(searchQuery, searchData);
 
