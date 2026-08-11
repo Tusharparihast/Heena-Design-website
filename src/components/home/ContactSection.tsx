@@ -4,17 +4,19 @@ import { toast } from "sonner";
 import { WeChatIcon, WhatsAppIcon } from "@/components/site/BrandIcons";
 import { Section, SectionHeading } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
-import { site } from "@/lib/site";
+import { useContactInfo, waLink } from "@/lib/contact-info";
 
 export function ContactSection() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
+  const info = useContactInfo();
+  const zh = locale === "zh";
 
   const copyWechatId = async () => {
     try {
-      await navigator.clipboard.writeText(site.wechatId);
+      await navigator.clipboard.writeText(info.wechatId);
       toast.success(t.contact.copied);
     } catch {
-      toast.error(site.wechatId);
+      toast.error(info.wechatId);
     }
   };
 
@@ -29,25 +31,32 @@ export function ContactSection() {
     {
       icon: WeChatIcon,
       label: t.contact.wechat,
-      value: site.wechatId,
+      value: info.wechatId,
       onClick: copyWechatId,
       hint: t.contact.copyWechat,
     },
     {
       icon: WhatsAppIcon,
       label: t.contact.whatsapp,
-      value: site.whatsapp,
-      href: `https://wa.me/${site.whatsapp.replace(/[^0-9]/g, "")}`,
+      value: info.whatsapp,
+      href: waLink(info.whatsapp),
     },
-    { icon: Phone, label: t.contact.phone, value: site.phone, href: `tel:${site.phone}` },
-    { icon: Instagram, label: t.contact.instagram, value: "@mehndi", href: site.instagram },
-    { icon: Facebook, label: t.contact.facebook, value: site.name, href: site.facebook },
-    { icon: Mail, label: t.contact.email, value: site.email, href: `mailto:${site.email}` },
-  ];
+    { icon: Phone, label: t.contact.phone, value: info.phone, href: `tel:${info.phone}` },
+    { icon: Instagram, label: t.contact.instagram, value: "@mehndi", href: info.instagram },
+    { icon: Facebook, label: t.contact.facebook, value: "Nagma Designs", href: info.facebook },
+    { icon: Mail, label: t.contact.email, value: info.email, href: `mailto:${info.email}` },
+  ].filter((c) => c.value);
+
+  const city = zh ? info.cityZh || info.cityEn : info.cityEn;
+  const hours = zh ? info.hoursZh || info.hoursEn : info.hoursEn;
 
   return (
     <Section id="contact" className="bg-card">
-      <SectionHeading label={t.contact.label} title={t.contact.title} body={t.contact.body} />
+      <SectionHeading
+        label={zh ? info.labelZh || info.labelEn : info.labelEn}
+        title={zh ? info.titleZh || info.titleEn : info.titleEn}
+        body={zh ? info.bodyZh || info.bodyEn : info.bodyEn}
+      />
 
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
         <ul className="grid gap-4 sm:grid-cols-2">
@@ -97,15 +106,15 @@ export function ContactSection() {
           <h3 className="text-lg font-semibold">{t.contact.location}</h3>
           <p className="mt-2 flex items-start gap-2 text-sm text-muted-foreground">
             <MapPin className="mt-0.5 h-4 w-4 text-primary" aria-hidden />
-            {site.city}
+            {city}
           </p>
           <h3 className="mt-6 text-lg font-semibold">{t.contact.hours}</h3>
           <p className="mt-2 flex items-start gap-2 text-sm text-muted-foreground">
             <Clock className="mt-0.5 h-4 w-4 text-primary" aria-hidden />
-            {site.hours}
+            {hours}
           </p>
           <a
-            href={site.mapUrl}
+            href={info.mapUrl}
             target="_blank"
             rel="noreferrer"
             className="mt-6 inline-flex items-center rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
