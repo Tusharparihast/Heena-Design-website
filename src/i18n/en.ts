@@ -741,6 +741,6 @@ export const en = {
     rights: "All rights reserved.",
     motto: "Nepali artistry · Global mehndi",
   },
-};
+} as const;
 
 export type Dict = typeof en;
