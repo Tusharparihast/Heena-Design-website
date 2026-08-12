@@ -3,19 +3,22 @@ import { Clock, GraduationCap } from "lucide-react";
 
 import { Section, SectionHeading } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { useCoursesNote, useEffectiveCourses } from "@/lib/courses-overrides";
 
 export function CoursesSection() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
+  const courses = useEffectiveCourses(locale).slice(0, 3);
+  const note = useCoursesNote(locale, t.courses.note);
 
   return (
     <Section id="courses" className="bg-secondary/40">
       <SectionHeading label={t.courses.label} title={t.courses.title} />
-      <p className="mt-3 text-xs text-muted-foreground italic">{t.courses.note}</p>
+      {note ? <p className="mt-3 text-xs text-muted-foreground italic">{note}</p> : null}
 
       <div className="mt-10 grid gap-6 md:grid-cols-3">
-        {t.courses.items.map((course) => (
+        {courses.map((course) => (
           <article
-            key={course.name}
+            key={course.id}
             className="flex flex-col rounded-2xl border border-border bg-card p-6"
           >
             <h3 className="text-xl font-semibold">{course.name}</h3>
