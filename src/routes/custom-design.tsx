@@ -1,13 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Check, Copy, Mail, MessageCircle, Upload, X } from "lucide-react";
+import { ArrowRight, Check, CheckCircle2, Clock, Copy, Send, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { MehndiPattern } from "@/components/site/MehndiPattern";
 import { Section } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { logWebsiteBooking } from "@/lib/bookings-db";
-import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { dateAvailability, useAppointmentSettings, useEffectiveAppointmentPage } from "@/lib/appointments";
@@ -38,9 +37,7 @@ type StyleKey = "traditional" | "modern" | "both";
  * long-lived signed links (best-effort). The bucket is not publicly
  * browsable — only the studio can list or open files in it.
  */
-async function uploadReferenceImages(
-  items: { file: File }[],
-): Promise<{ paths: string[]; urls: string[] }> {
+async function uploadReferenceImages(items: { file: File }[]): Promise<{ paths: string[]; urls: string[] }> {
   const paths: string[] = [];
   const urls: string[] = [];
   for (const { file } of items) {
@@ -141,6 +138,11 @@ function CustomDesignPage() {
     t.appointment.page.form.time,
   ]);
 
+  const message = useMemo(
+    () => [b.hero.title, ...rows.map((r) => `${r.label}: ${r.value}`)].join("\n"),
+    [b.hero.title, rows],
+  );
+
   function addFiles(list: FileList | null) {
     if (!list) return;
     const next = Array.from(list)
@@ -150,22 +152,22 @@ function CustomDesignPage() {
   }
 
   const zh = locale === "zh";
-  const [sending, setSending] = useState(false);
+  const [status, setStatus] = useState<"idle" | "sending" | "done">("idle");
+  const sending = status === "sending";
 
-  /** Saves the request to the studio dashboard, then hands off to the channel. */
-  async function submitRequest(channel: "whatsapp" | "wechat" | "email"): Promise<string | null> {
+  /** Saves the request to the studio dashboard. */
+  async function submitRequest(): Promise<boolean> {
     if (!name.trim()) {
       toast.error(zh ? "请填写您的姓名。" : "Please enter your name.");
-      return null;
+      return false;
     }
     if (date && availability !== "open") {
       toast.error(zh ? "所选日期暂不可预约，请选择其他日期。" : "That date isn't available — please pick another.");
-      return null;
+      return false;
     }
-    setSending(true);
+    setStatus("sending");
     try {
-      const { paths: referencePaths, urls: referenceUrls } =
-        files.length > 0 ? await uploadReferenceImages(files) : { paths: [], urls: [] };
+      const { paths: referencePaths } = files.length > 0 ? await uploadReferenceImages(files) : { paths: [], urls: [] };
       if (files.length > 0 && referencePaths.length === 0) {
         toast.error(
           zh
@@ -173,13 +175,6 @@ function CustomDesignPage() {
             : "Reference photos failed to upload — the rest of your request will still be sent.",
         );
       }
-      const outgoingMessage = [
-        b.hero.title,
-        ...rows.filter((r) => r.label !== b.upload.title).map((r) => `${r.label}: ${r.value}`),
-        referenceUrls.length > 0 ? `${b.upload.title}: ${referenceUrls.join(", ")}` : "",
-      ]
-        .filter(Boolean)
-        .join("\n");
 
       const ok = await logWebsiteBooking({
         kind: "custom-design",
@@ -197,33 +192,31 @@ function CustomDesignPage() {
           .filter(Boolean)
           .join("\n"),
         locale,
-        channel,
+        channel: "other",
         referencePaths,
       });
       if (ok) {
-        toast.success(zh ? "设计请求已发送，我们会尽快联系您。" : "Request sent — we'll get back to you shortly.");
+        setStatus("done");
       } else {
+        setStatus("idle");
         toast.error(
           zh
             ? "保存失败，请直接通过微信或 WhatsApp 联系我们。"
             : "Couldn't save the request — please message us directly.",
         );
       }
-      return outgoingMessage;
+      return ok;
     } catch (err) {
       console.error("submitRequest failed:", err);
+      setStatus("idle");
       toast.error(zh ? "出现错误，请直接联系我们。" : "Something went wrong — please message us directly.");
-      return null;
-    } finally {
-      setSending(false);
+      return false;
     }
   }
 
-  async function copyMessage() {
-    const outgoing = await submitRequest("wechat");
-    if (!outgoing) return;
+  async function copySummary() {
     try {
-      await navigator.clipboard.writeText(outgoing);
+      await navigator.clipboard.writeText(message);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -491,70 +484,59 @@ function CustomDesignPage() {
           </div>
 
           <aside className="rounded-2xl border border-border bg-secondary/50 p-6 lg:sticky lg:top-24 lg:self-start">
-            <h2 className="text-lg font-semibold">{b.summary.title}</h2>
-            <div className="mt-4 max-h-64 overflow-auto rounded-xl border border-border bg-background p-4 text-sm">
-              <p className="font-semibold">{b.hero.title}</p>
-              <dl className="mt-2 space-y-1.5">
-                {rows.map((r) => (
-                  <div key={r.label} className="flex flex-wrap gap-x-2">
-                    <dt className="shrink-0 font-semibold text-foreground">{r.label}:</dt>
-                    <dd className="min-w-0 break-words text-muted-foreground">{r.value}</dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
+            {status === "done" ? (
+              <div className="flex flex-col items-center gap-4 py-2 text-center">
+                <span className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <CheckCircle2 className="h-8 w-8" aria-hidden />
+                </span>
+                <h2 className="text-lg font-semibold">{b.confirm.title}</h2>
+                <p className="text-sm leading-relaxed text-muted-foreground">{b.confirm.body}</p>
 
-            <div className="mt-5 space-y-2">
-              <button
-                type="button"
-                disabled={sending}
-                onClick={() => {
-                  const win = window.open("", "_blank", "noreferrer");
-                  void (async () => {
-                    const outgoing = await submitRequest("whatsapp");
-                    if (!outgoing) {
-                      win?.close();
-                      return;
-                    }
-                    const url = `https://wa.me/${site.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(outgoing)}`;
-                    if (win) win.location.href = url;
-                    else window.open(url, "_blank", "noreferrer");
-                  })();
-                }}
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
-              >
-                <MessageCircle className="h-4 w-4" aria-hidden />
-                {b.summary.send}
-              </button>
-              <button
-                type="button"
-                disabled={sending}
-                onClick={copyMessage}
-                className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm font-medium transition-colors hover:bg-accent disabled:opacity-60"
-              >
-                {copied ? (
-                  <Check className="h-4 w-4 text-primary" aria-hidden />
-                ) : (
-                  <Copy className="h-4 w-4" aria-hidden />
-                )}
-                {copied ? b.summary.copied : `${b.summary.wechat} · ${site.wechatId}`}
-              </button>
-              <button
-                type="button"
-                disabled={sending}
-                onClick={async () => {
-                  const outgoing = await submitRequest("email");
-                  if (!outgoing) return;
-                  window.location.href = `mailto:${site.email}?subject=${encodeURIComponent(b.hero.title)}&body=${encodeURIComponent(outgoing)}`;
-                }}
-                className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm font-medium transition-colors hover:bg-accent disabled:opacity-60"
-              >
-                <Mail className="h-4 w-4" aria-hidden />
-                {b.summary.email}
-              </button>
-            </div>
+                <div className="w-full rounded-xl border border-border bg-background p-4 text-left">
+                  <p className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.15em] text-primary uppercase">
+                    <Clock className="h-3.5 w-3.5" aria-hidden />
+                    {b.confirm.responseLabel}
+                  </p>
+                  <p className="mt-1.5 text-sm">{b.confirm.responseTime}</p>
+                </div>
 
-            <p className="mt-4 text-xs text-muted-foreground italic">{b.summary.note}</p>
+                <button
+                  type="button"
+                  onClick={() => void copySummary()}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-primary transition-colors hover:underline"
+                >
+                  <Copy className="h-3.5 w-3.5" aria-hidden />
+                  {copied ? b.summary.copied : b.confirm.copyDetails}
+                </button>
+              </div>
+            ) : (
+              <>
+                <h2 className="text-lg font-semibold">{b.summary.title}</h2>
+                <div className="mt-4 max-h-64 overflow-auto rounded-xl border border-border bg-background p-4 text-sm">
+                  <p className="font-semibold">{b.hero.title}</p>
+                  <dl className="mt-2 space-y-1.5">
+                    {rows.map((r) => (
+                      <div key={r.label} className="flex flex-wrap gap-x-2">
+                        <dt className="shrink-0 font-semibold text-foreground">{r.label}:</dt>
+                        <dd className="min-w-0 break-words text-muted-foreground">{r.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+
+                <button
+                  type="button"
+                  disabled={sending}
+                  onClick={() => void submitRequest()}
+                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
+                >
+                  <Send className="h-4 w-4" aria-hidden />
+                  {sending ? b.summary.sending : b.summary.submit}
+                </button>
+
+                <p className="mt-4 text-xs text-muted-foreground italic">{b.summary.note}</p>
+              </>
+            )}
           </aside>
         </div>
       </Section>
