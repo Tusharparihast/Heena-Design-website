@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
 /**
  * The reference bucket is private: only the studio (admins) can browse it.
  * A visitor who just uploaded a file gets back a long-lived signed link for
@@ -22,4 +24,32 @@ export const signReferenceUpload = createServerFn({ method: "POST" })
       return { url: "" };
     }
     return { url: signed.signedUrl };
+  });
+
+/**
+ * Admin-side viewer links. The dashboard stores only the storage paths of a
+ * customer's reference photos, so links are minted fresh (and never truncated
+ * inside the booking notes).
+ */
+export const signReferencePaths = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ paths: z.array(z.string().regex(PATH)).max(20) }).parse(data))
+  .handler(async ({ data, context }) => {
+    const { data: role } = await context.supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .eq("role", "admin")
+      .maybeSingle();
+    if (!role) throw new Response("Forbidden", { status: 403 });
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const urls: string[] = [];
+    for (const path of data.paths) {
+      const { data: signed } = await supabaseAdmin.storage
+        .from("custom-design-refs")
+        .createSignedUrl(path, 60 * 60);
+      if (signed?.signedUrl) urls.push(signed.signedUrl);
+    }
+    return { urls };
   });

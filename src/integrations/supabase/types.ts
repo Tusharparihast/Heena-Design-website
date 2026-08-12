@@ -27,6 +27,7 @@ export type Database = {
           name: string
           notes: string
           people: number
+          reference_paths: string[]
           service: string
           source: string
           status: string
@@ -44,6 +45,7 @@ export type Database = {
           name: string
           notes?: string
           people?: number
+          reference_paths?: string[]
           service?: string
           source?: string
           status?: string
@@ -61,6 +63,7 @@ export type Database = {
           name?: string
           notes?: string
           people?: number
+          reference_paths?: string[]
           service?: string
           source?: string
           status?: string
@@ -254,6 +257,27 @@ export type Database = {
           usage_en?: string[]
           usage_zh?: string[]
           visible?: boolean
+        }
+        Relationships: []
+      }
+      site_content: {
+        Row: {
+          created_at: string
+          data: Json
+          key: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          key: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          key?: string
+          updated_at?: string
         }
         Relationships: []
       }

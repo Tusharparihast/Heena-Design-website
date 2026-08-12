@@ -38,7 +38,10 @@ type StyleKey = "traditional" | "modern" | "both";
  * long-lived signed links (best-effort). The bucket is not publicly
  * browsable — only the studio can list or open files in it.
  */
-async function uploadReferenceImages(items: { file: File }[]): Promise<string[]> {
+async function uploadReferenceImages(
+  items: { file: File }[],
+): Promise<{ paths: string[]; urls: string[] }> {
+  const paths: string[] = [];
   const urls: string[] = [];
   for (const { file } of items) {
     const ext =
@@ -50,6 +53,7 @@ async function uploadReferenceImages(items: { file: File }[]): Promise<string[]>
     const path = `${crypto.randomUUID()}.${ext}`;
     const { error } = await supabase.storage.from("custom-design-refs").upload(path, file);
     if (error) continue;
+    paths.push(path);
     try {
       const { url } = await signReferenceUpload({ data: { path } });
       if (url) urls.push(url);
@@ -57,7 +61,7 @@ async function uploadReferenceImages(items: { file: File }[]): Promise<string[]>
       console.error("signReferenceUpload failed:", err);
     }
   }
-  return urls;
+  return { paths, urls };
 }
 
 function CustomDesignPage() {
@@ -160,8 +164,9 @@ function CustomDesignPage() {
     }
     setSending(true);
     try {
-      const referenceUrls = files.length > 0 ? await uploadReferenceImages(files) : [];
-      if (files.length > 0 && referenceUrls.length === 0) {
+      const { paths: referencePaths, urls: referenceUrls } =
+        files.length > 0 ? await uploadReferenceImages(files) : { paths: [], urls: [] };
+      if (files.length > 0 && referencePaths.length === 0) {
         toast.error(
           zh
             ? "参考图片上传失败，其余信息仍会发送。"
@@ -187,12 +192,13 @@ function CustomDesignPage() {
           notes,
           placement && `Placement: ${placement}`,
           budget && `Budget: ${budget}`,
-          referenceUrls.length > 0 ? `Reference photos:\n${referenceUrls.join("\n")}` : "",
+          referencePaths.length > 0 ? `Reference photos: ${referencePaths.length} attached` : "",
         ]
           .filter(Boolean)
           .join("\n"),
         locale,
         channel,
+        referencePaths,
       });
       if (ok) {
         toast.success(zh ? "设计请求已发送，我们会尽快联系您。" : "Request sent — we'll get back to you shortly.");

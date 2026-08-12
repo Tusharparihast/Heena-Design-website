@@ -1,5 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { CalendarCheck, CalendarDays, CheckCircle2, Clock, Pencil, Plus, RotateCcw, Trash2, X } from "lucide-react";
+import {
+  CalendarCheck,
+  CalendarDays,
+  CheckCircle2,
+  Clock,
+  Image as ImageIcon,
+  Pencil,
+  Plus,
+  RotateCcw,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -28,12 +39,14 @@ import {
   type BookingStatus,
 } from "@/lib/appointments";
 import {
+  type AdminBooking,
   deleteDbBooking,
   insertDbBooking,
   setDbBookingTrashed,
   updateDbBooking,
   useDbBookings,
 } from "@/lib/bookings-db";
+import { signReferencePaths } from "@/lib/design-refs.functions";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/appointments")({
@@ -60,6 +73,7 @@ function fmtDate(date: string) {
   });
 }
 
+/** Legacy rows stored links inside the notes text; newer rows use reference_paths. */
 function extractImageUrls(notes: string): string[] {
   const matches = notes.match(/https?:\/\/\S+/g) ?? [];
   return matches.filter((u) => /\.(jpe?g|png|webp)(\?|$)/i.test(u) || u.includes("/storage/v1/object/"));
@@ -82,6 +96,28 @@ function AdminAppointmentsPage() {
   const [editing, setEditing] = useState<Booking | undefined>(undefined);
   const [blockedInput, setBlockedInput] = useState("");
   const [photos, setPhotos] = useState<{ name: string; urls: string[] } | null>(null);
+  const [photosLoading, setPhotosLoading] = useState(false);
+
+  /** Signs the stored file paths on demand (links expire, paths do not). */
+  async function openPhotos(b: AdminBooking) {
+    const legacy = extractImageUrls(b.notes);
+    if (b.referencePaths.length === 0) {
+      setPhotos({ name: b.name, urls: legacy });
+      return;
+    }
+    setPhotos({ name: b.name, urls: [] });
+    setPhotosLoading(true);
+    try {
+      const { urls } = await signReferencePaths({ data: { paths: b.referencePaths } });
+      setPhotos({ name: b.name, urls: urls.length > 0 ? urls : legacy });
+    } catch (err) {
+      console.error("signReferencePaths failed:", err);
+      setPhotos({ name: b.name, urls: legacy });
+      if (legacy.length === 0) toast.error("Couldn't load the reference photos.");
+    } finally {
+      setPhotosLoading(false);
+    }
+  }
 
   const today = todayStr();
 
@@ -279,32 +315,23 @@ function AdminAppointmentsPage() {
                         </TableCell>
                         <TableCell>
                           {(() => {
-                            const urls = extractImageUrls(b.notes);
-                            if (urls.length === 0) return <span className="text-muted-foreground">—</span>;
+                            const count =
+                              b.referencePaths.length > 0
+                                ? b.referencePaths.length
+                                : extractImageUrls(b.notes).length;
+                            if (count === 0) return <span className="text-muted-foreground">—</span>;
                             return (
                               <button
                                 type="button"
-                                className="flex items-center gap-1"
-                                aria-label={`View ${urls.length} photo(s) from ${b.name}`}
-                                onClick={() => setPhotos({ name: b.name, urls })}
+                                className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-accent"
+                                aria-label={`View ${count} photo(s) from ${b.name}`}
+                                onClick={() => void openPhotos(b)}
                               >
-                                <span className="flex -space-x-2">
-                                  {urls.slice(0, 3).map((url, i) => (
-                                    <span
-                                      key={url}
-                                      className="block h-8 w-8 overflow-hidden rounded-full border-2 border-background ring-1 ring-border"
-                                      style={{ zIndex: 3 - i }}
-                                    >
-                                      <img src={url} alt="" className="h-full w-full object-cover" />
-                                    </span>
-                                  ))}
-                                </span>
-                                <span className="ml-1 text-xs font-medium text-primary">
-                                  {urls.length > 3 ? `+${urls.length - 3} · View all` : "View"}
-                                </span>
+                                <ImageIcon className="h-3.5 w-3.5" aria-hidden />
+                                {count} photo{count > 1 ? "s" : ""} · View all
                               </button>
                             );
-                          })()}
+                                                    })()}
                         </TableCell>
                         <TableCell>
                           <Badge variant={statusVariant(b.status)}>{statusLabels[b.status]}</Badge>
@@ -554,7 +581,11 @@ function AdminAppointmentsPage() {
           <DialogHeader>
             <DialogTitle className="font-display">Reference photos</DialogTitle>
             <DialogDescription>
-              {photos ? `${photos.urls.length} photo(s) sent by ${photos.name}` : ""}
+              {photosLoading
+                ? "Loading photos…"
+                : photos
+                  ? `${photos.urls.length} photo(s) sent by ${photos.name}`
+                  : ""}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-3 sm:grid-cols-2">

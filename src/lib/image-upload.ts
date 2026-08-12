@@ -48,3 +48,23 @@ export async function qrFileToDataUrl(file: File): Promise<string> {
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
   return canvas.toDataURL("image/png"); // lossless
 }
+
+/**
+ * Uploads a gallery photo to the private `gallery` bucket and returns a
+ * long-lived signed link. Photos are downscaled first so the site stays fast.
+ */
+export async function uploadGalleryImage(file: File): Promise<string> {
+  const { supabase } = await import("@/integrations/supabase/client");
+  const { signGalleryUpload } = await import("@/lib/gallery-uploads.functions");
+
+  const dataUrl = await fileToDataUrl(file);
+  const blob = await (await fetch(dataUrl)).blob();
+  const path = `${crypto.randomUUID()}.jpg`;
+  const { error } = await supabase.storage
+    .from("gallery")
+    .upload(path, blob, { contentType: "image/jpeg", upsert: false });
+  if (error) throw new Error(error.message);
+  const { url } = await signGalleryUpload({ data: { path } });
+  if (!url) throw new Error("Could not create a link for that photo.");
+  return url;
+}
