@@ -124,7 +124,7 @@ export async function deleteDbBooking(id: string): Promise<boolean> {
 
 // ---------- Public auto-logging (anonymous inserts) ----------
 
-export type BookingChannel = "whatsapp" | "wechat" | "email";
+export type BookingChannel = "whatsapp" | "wechat" | "email" | "other";
 
 /**
  * Logs a booking / custom-design request submitted from the public site.
