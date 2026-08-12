@@ -76,6 +76,8 @@ export function OrderRequestModal({ target, onClose }: { target: OrderTarget | n
 
   useModalBackClose(target !== null, onClose);
 
+  const targetKey = target ? (target.kind === "single" ? `single:${target.productId}:${target.qty}` : "cart") : null;
+
   useEffect(() => {
     if (!target) {
       setMounted(false);
@@ -92,7 +94,8 @@ export function OrderRequestModal({ target, onClose }: { target: OrderTarget | n
       document.body.classList.remove("overflow-hidden");
       window.clearTimeout(timer);
     };
-  }, [target]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [targetKey]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
