@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ArrowLeft, Check, Copy, Mail, MessageCircle } from "lucide-react";
+import { ArrowLeft, Check, CheckCircle2, Clock, Copy, Send } from "lucide-react";
 import { toast } from "sonner";
 
 import { MehndiPattern } from "@/components/site/MehndiPattern";
@@ -8,7 +8,6 @@ import { Section } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { dateAvailability, useAppointmentSettings, useEffectiveAppointmentPage } from "@/lib/appointments";
 import { logWebsiteBooking } from "@/lib/bookings-db";
-import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 const title = "Book a Mehndi Appointment in Kathmandu | Nagma Designs";
@@ -81,13 +80,10 @@ function AppointmentPage() {
   );
 
   const zh = locale === "zh";
-  const [sending, setSending] = useState(false);
+  const [status, setStatus] = useState<"idle" | "sending" | "done">("idle");
+  const sending = status === "sending";
 
-  /**
-   * Saves the request to the studio dashboard, then hands off to the chosen
-   * channel. Returns false when the form is incomplete or unavailable.
-   */
-  async function submitRequest(channel: "whatsapp" | "wechat" | "email") {
+  async function submitRequest() {
     if (!name.trim()) {
       toast.error(zh ? "请填写您的姓名。" : "Please enter your name.");
       return false;
@@ -104,7 +100,7 @@ function AppointmentPage() {
       toast.error(zh ? "所选日期暂不可预约，请选择其他日期。" : "That date isn't available — please pick another.");
       return false;
     }
-    setSending(true);
+    setStatus("sending");
     const ok = await logWebsiteBooking({
       kind: "appointment",
       name,
@@ -115,23 +111,22 @@ function AppointmentPage() {
       people: Number(people) || 1,
       notes,
       locale,
-      channel,
+      channel: "other",
     });
-    setSending(false);
     if (ok) {
-      toast.success(zh ? "预约请求已发送，我们会尽快联系您。" : "Request sent — we'll confirm shortly.");
+      setStatus("done");
     } else {
+      setStatus("idle");
       toast.error(
         zh
           ? "保存失败，请直接通过微信或 WhatsApp 联系我们。"
           : "Couldn't save the request — please message us directly.",
       );
     }
-    return true;
+    return ok;
   }
 
-  async function copyMessage() {
-    if (!(await submitRequest("wechat"))) return;
+  async function copySummary() {
     try {
       await navigator.clipboard.writeText(message);
       setCopied(true);
@@ -262,64 +257,59 @@ function AppointmentPage() {
           </div>
 
           <aside className="rounded-2xl border border-border bg-secondary/50 p-6 lg:sticky lg:top-24 lg:self-start">
-            <h2 className="text-lg font-semibold">{a.summary.title}</h2>
-            <div className="mt-4 max-h-64 overflow-auto rounded-xl border border-border bg-background p-4 text-sm">
-              <p className="font-semibold">{a.title}</p>
-              <dl className="mt-2 space-y-1.5">
-                {rows.map((r) => (
-                  <div key={r.label} className="flex flex-wrap gap-x-2">
-                    <dt className="shrink-0 font-semibold text-foreground">{r.label}:</dt>
-                    <dd className="min-w-0 break-words text-muted-foreground">{r.value}</dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
+            {status === "done" ? (
+              <div className="flex flex-col items-center gap-4 py-2 text-center">
+                <span className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <CheckCircle2 className="h-8 w-8" aria-hidden />
+                </span>
+                <h2 className="text-lg font-semibold">{a.confirm.title}</h2>
+                <p className="text-sm leading-relaxed text-muted-foreground">{a.confirm.body}</p>
 
-            <div className="mt-5 space-y-2">
-              <button
-                type="button"
-                disabled={sending}
-                onClick={async () => {
-                  if (!(await submitRequest("whatsapp"))) return;
-                  window.open(
-                    `https://wa.me/${site.whatsapp.replace(/[^0-9]/g, "")}?text=${encodeURIComponent(message)}`,
-                    "_blank",
-                    "noreferrer",
-                  );
-                }}
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
-              >
-                <MessageCircle className="h-4 w-4" aria-hidden />
-                {a.summary.send}
-              </button>
-              <button
-                type="button"
-                disabled={sending}
-                onClick={copyMessage}
-                className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm font-medium transition-colors hover:bg-accent disabled:opacity-60"
-              >
-                {copied ? (
-                  <Check className="h-4 w-4 text-primary" aria-hidden />
-                ) : (
-                  <Copy className="h-4 w-4" aria-hidden />
-                )}
-                {copied ? a.summary.copied : `${a.summary.wechat} · ${site.wechatId}`}
-              </button>
-              <button
-                type="button"
-                disabled={sending}
-                onClick={async () => {
-                  if (!(await submitRequest("email"))) return;
-                  window.location.href = `mailto:${site.email}?subject=${encodeURIComponent(a.title)}&body=${encodeURIComponent(message)}`;
-                }}
-                className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm font-medium transition-colors hover:bg-accent disabled:opacity-60"
-              >
-                <Mail className="h-4 w-4" aria-hidden />
-                {a.summary.email}
-              </button>
-            </div>
+                <div className="w-full rounded-xl border border-border bg-background p-4 text-left">
+                  <p className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.15em] text-primary uppercase">
+                    <Clock className="h-3.5 w-3.5" aria-hidden />
+                    {a.confirm.responseLabel}
+                  </p>
+                  <p className="mt-1.5 text-sm">{a.confirm.responseTime}</p>
+                </div>
 
-            <p className="mt-4 text-xs text-muted-foreground italic">{page.note}</p>
+                <button
+                  type="button"
+                  onClick={() => void copySummary()}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-primary transition-colors hover:underline"
+                >
+                  <Copy className="h-3.5 w-3.5" aria-hidden />
+                  {copied ? a.summary.copied : a.confirm.copyDetails}
+                </button>
+              </div>
+            ) : (
+              <>
+                <h2 className="text-lg font-semibold">{a.summary.title}</h2>
+                <div className="mt-4 max-h-64 overflow-auto rounded-xl border border-border bg-background p-4 text-sm">
+                  <p className="font-semibold">{a.title}</p>
+                  <dl className="mt-2 space-y-1.5">
+                    {rows.map((r) => (
+                      <div key={r.label} className="flex flex-wrap gap-x-2">
+                        <dt className="shrink-0 font-semibold text-foreground">{r.label}:</dt>
+                        <dd className="min-w-0 break-words text-muted-foreground">{r.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+
+                <button
+                  type="button"
+                  disabled={sending}
+                  onClick={() => void submitRequest()}
+                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-60"
+                >
+                  <Send className="h-4 w-4" aria-hidden />
+                  {sending ? a.summary.sending : a.summary.submit}
+                </button>
+
+                <p className="mt-4 text-xs text-muted-foreground italic">{page.note}</p>
+              </>
+            )}
           </aside>
         </div>
       </Section>
