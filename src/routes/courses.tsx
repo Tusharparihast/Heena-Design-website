@@ -3,6 +3,7 @@ import { ArrowDown, ArrowRight, Award, Check, Clock, GraduationCap, Package, Use
 import { Section, SectionHeading } from "@/components/site/Section";
 import { MehndiPattern } from "@/components/site/MehndiPattern";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { useCoursesNote, useEffectiveCourses } from "@/lib/courses-overrides";
 
 const title = "Mehndi Courses in Kathmandu — Beginner to Bridal | Nagma Designs";
 const description =
@@ -23,9 +24,11 @@ export const Route = createFileRoute("/courses")({
 });
 
 function CoursesPage() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
   const c = t.coursesPage;
   const L = c.detailLabels;
+  const courses = useEffectiveCourses(locale);
+  const note = useCoursesNote(locale, c.note);
 
   return (
     <main>
@@ -72,10 +75,10 @@ function CoursesPage() {
 
       <Section className="bg-secondary/40">
         <SectionHeading label={t.courses.label} title={t.courses.title} />
-        <p className="mt-3 text-xs text-muted-foreground italic">{c.note}</p>
+        {note ? <p className="mt-3 text-xs text-muted-foreground italic">{note}</p> : null}
 
         <div className="mt-10 space-y-6">
-          {c.items.map((course) => (
+          {courses.map((course) => (
             <article
               key={course.id}
               id={course.id}

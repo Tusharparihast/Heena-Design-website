@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 
 import {
   galleryCategories,
@@ -7,6 +7,7 @@ import {
   type GalleryCollection,
   type GalleryItem,
 } from "./gallery";
+import { migrateLocalContent, readSiteContent, saveSiteContent, useSiteContent } from "./site-content";
 
 /**
  * Studio-managed gallery overrides.
@@ -23,7 +24,7 @@ import {
  */
 
 const STORAGE_KEY = "nd-gallery-overrides";
-const CHANGE_EVENT = "nd:gallery-overrides";
+const CONTENT_KEY = "gallery";
 
 /** Editable fields for a built-in gallery photo. Missing keys keep the defaults. */
 export interface GalleryItemEdit {
@@ -107,7 +108,8 @@ function cleanText(value: unknown): string | undefined {
 
 function cleanImage(value: unknown): string | undefined {
   if (typeof value !== "string") return undefined;
-  return value.startsWith("data:image/") ? value : undefined;
+  // Uploaded photos live in Storage (https link); legacy edits kept a data URL.
+  return value.startsWith("data:image/") || /^https?:\/\//.test(value) ? value : undefined;
 }
 
 function cleanCategories(value: unknown): string[] | undefined {
@@ -262,25 +264,19 @@ function sanitize(raw: unknown): GalleryOverrides {
 }
 
 /* ------------------------------------------------------------------ */
-/* Persistence                                                         */
+/* Persistence (database-backed)                                       */
 /* ------------------------------------------------------------------ */
 
+/** Latest gallery overrides from the shared database document. */
 export function readGalleryOverrides(): GalleryOverrides {
-  if (typeof window === "undefined") return emptyGalleryOverrides;
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return emptyGalleryOverrides;
-    return sanitize(JSON.parse(raw));
-  } catch {
-    return emptyGalleryOverrides;
-  }
+  return sanitize(readSiteContent(CONTENT_KEY));
 }
 
+/** Saves the overrides for every visitor and device (admins only). */
 export function writeGalleryOverrides(overrides: GalleryOverrides) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitize(overrides)));
-  window.dispatchEvent(new CustomEvent(CHANGE_EVENT));
+  void saveSiteContent(CONTENT_KEY, sanitize(overrides));
 }
+
 
 export function isGalleryPristine(overrides: GalleryOverrides): boolean {
   return (
@@ -539,25 +535,18 @@ export function makeGalleryCategoryId(name: string, taken: ReadonlySet<string>):
 /* ------------------------------------------------------------------ */
 
 /**
- * Client-side overrides state. Starts empty so SSR/hydration matches the
- * static defaults, then syncs from localStorage and live admin edits
- * (custom event + cross-tab storage event).
+ * Overrides state. Starts empty so SSR/hydration matches the static defaults,
+ * then syncs from the shared database document (and live admin edits through
+ * the realtime subscription).
  */
 export function useGalleryOverrides(): GalleryOverrides {
-  const [overrides, setOverrides] = useState<GalleryOverrides>(emptyGalleryOverrides);
+  const { doc } = useSiteContent(CONTENT_KEY);
 
   useEffect(() => {
-    const sync = () => setOverrides(readGalleryOverrides());
-    sync();
-    window.addEventListener(CHANGE_EVENT, sync);
-    window.addEventListener("storage", sync);
-    return () => {
-      window.removeEventListener(CHANGE_EVENT, sync);
-      window.removeEventListener("storage", sync);
-    };
+    migrateLocalContent(CONTENT_KEY, STORAGE_KEY, (value) => isGalleryPristine(sanitize(value)));
   }, []);
 
-  return overrides;
+  return useMemo(() => sanitize(doc), [doc]);
 }
 
 /** Effective public photo list for a collection, reactive to admin edits. */

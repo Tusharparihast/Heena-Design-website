@@ -23,6 +23,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminSectionRouteImport } from './routes/admin/$section'
 import { Route as AdminAppointmentsRouteImport } from './routes/admin/appointments'
 import { Route as AdminContactInfoRouteImport } from './routes/admin/contact-info'
+import { Route as AdminCoursesRouteImport } from './routes/admin/courses'
 import { Route as AdminFaqRouteImport } from './routes/admin/faq'
 import { Route as AdminGalleryRouteImport } from './routes/admin/gallery'
 import { Route as AdminHomepageRouteImport } from './routes/admin/homepage'
@@ -107,6 +108,11 @@ const AdminContactInfoRoute = AdminContactInfoRouteImport.update({
   path: '/contact-info',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const AdminCoursesRoute = AdminCoursesRouteImport.update({
+  id: '/courses',
+  path: '/courses',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const AdminFaqRoute = AdminFaqRouteImport.update({
   id: '/faq',
   path: '/faq',
@@ -187,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/admin/$section': typeof AdminSectionRoute
   '/admin/appointments': typeof AdminAppointmentsRoute
   '/admin/contact-info': typeof AdminContactInfoRoute
+  '/admin/courses': typeof AdminCoursesRoute
   '/admin/faq': typeof AdminFaqRoute
   '/admin/gallery': typeof AdminGalleryRoute
   '/admin/homepage': typeof AdminHomepageRoute
@@ -214,6 +221,7 @@ export interface FileRoutesByTo {
   '/admin/$section': typeof AdminSectionRoute
   '/admin/appointments': typeof AdminAppointmentsRoute
   '/admin/contact-info': typeof AdminContactInfoRoute
+  '/admin/courses': typeof AdminCoursesRoute
   '/admin/faq': typeof AdminFaqRoute
   '/admin/gallery': typeof AdminGalleryRoute
   '/admin/homepage': typeof AdminHomepageRoute
@@ -244,6 +252,7 @@ export interface FileRoutesById {
   '/admin/$section': typeof AdminSectionRoute
   '/admin/appointments': typeof AdminAppointmentsRoute
   '/admin/contact-info': typeof AdminContactInfoRoute
+  '/admin/courses': typeof AdminCoursesRoute
   '/admin/faq': typeof AdminFaqRoute
   '/admin/gallery': typeof AdminGalleryRoute
   '/admin/homepage': typeof AdminHomepageRoute
@@ -275,6 +284,7 @@ export interface FileRouteTypes {
     | '/admin/$section'
     | '/admin/appointments'
     | '/admin/contact-info'
+    | '/admin/courses'
     | '/admin/faq'
     | '/admin/gallery'
     | '/admin/homepage'
@@ -302,6 +312,7 @@ export interface FileRouteTypes {
     | '/admin/$section'
     | '/admin/appointments'
     | '/admin/contact-info'
+    | '/admin/courses'
     | '/admin/faq'
     | '/admin/gallery'
     | '/admin/homepage'
@@ -331,6 +342,7 @@ export interface FileRouteTypes {
     | '/admin/$section'
     | '/admin/appointments'
     | '/admin/contact-info'
+    | '/admin/courses'
     | '/admin/faq'
     | '/admin/gallery'
     | '/admin/homepage'
@@ -460,6 +472,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminContactInfoRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/courses': {
+      id: '/admin/courses'
+      path: '/courses'
+      fullPath: '/admin/courses'
+      preLoaderRoute: typeof AdminCoursesRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/faq': {
       id: '/admin/faq'
       path: '/faq'
@@ -558,6 +577,7 @@ interface AdminRouteRouteChildren {
   AdminSectionRoute: typeof AdminSectionRoute
   AdminAppointmentsRoute: typeof AdminAppointmentsRoute
   AdminContactInfoRoute: typeof AdminContactInfoRoute
+  AdminCoursesRoute: typeof AdminCoursesRoute
   AdminFaqRoute: typeof AdminFaqRoute
   AdminGalleryRoute: typeof AdminGalleryRoute
   AdminHomepageRoute: typeof AdminHomepageRoute
@@ -576,6 +596,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminSectionRoute: AdminSectionRoute,
   AdminAppointmentsRoute: AdminAppointmentsRoute,
   AdminContactInfoRoute: AdminContactInfoRoute,
+  AdminCoursesRoute: AdminCoursesRoute,
   AdminFaqRoute: AdminFaqRoute,
   AdminGalleryRoute: AdminGalleryRoute,
   AdminHomepageRoute: AdminHomepageRoute,

@@ -64,7 +64,7 @@ import {
   writeGalleryOverrides,
 } from "@/lib/gallery-overrides";
 import type { GalleryCollection } from "@/lib/gallery";
-import { fileToDataUrl } from "@/lib/image-upload";
+import { uploadGalleryImage } from "@/lib/image-upload";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/gallery")({
@@ -824,11 +824,11 @@ function PhotoEditorDialog({
     if (!file) return;
     setBusy(true);
     try {
-      const dataUrl = await fileToDataUrl(file);
-      setImage(dataUrl);
-    } catch {
-      toast.error("Could not read that image", {
-        description: "Please try a different photo (JPG or PNG).",
+      const url = await uploadGalleryImage(file);
+      setImage(url);
+    } catch (err) {
+      toast.error("Could not upload that image", {
+        description: err instanceof Error ? err.message : "Please try a different photo (JPG or PNG).",
       });
     } finally {
       setBusy(false);

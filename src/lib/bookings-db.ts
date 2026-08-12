@@ -9,6 +9,8 @@ import { bookingSources, bookingStatuses, type Booking, type BookingSource, type
 
 export interface AdminBooking extends Booking {
   trashed: boolean;
+  /** Storage paths of reference photos sent with a custom-design request. */
+  referencePaths: string[];
 }
 
 interface BookingRow {
@@ -25,6 +27,7 @@ interface BookingRow {
   source: string;
   status: string;
   trashed_at: string | null;
+  reference_paths: string[] | null;
 }
 
 function asSource(value: string): BookingSource {
@@ -49,6 +52,7 @@ function rowToBooking(row: BookingRow): AdminBooking {
     status: asStatus(row.status),
     createdAt: row.created_at,
     trashed: row.trashed_at != null,
+    referencePaths: Array.isArray(row.reference_paths) ? row.reference_paths : [],
   };
 }
 
@@ -137,6 +141,8 @@ export async function logWebsiteBooking(input: {
   notes?: string;
   locale?: string;
   channel: BookingChannel;
+  /** Storage paths (not links) of uploaded reference photos. */
+  referencePaths?: string[];
 }): Promise<boolean> {
   if (!input.name.trim()) return false;
   try {
@@ -152,6 +158,7 @@ export async function logWebsiteBooking(input: {
       source: input.channel,
       status: "pending",
       locale: input.locale ?? "en",
+      reference_paths: (input.referencePaths ?? []).slice(0, 20),
     });
     return !error;
   } catch {
