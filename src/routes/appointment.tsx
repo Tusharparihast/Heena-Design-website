@@ -96,6 +96,12 @@ function AppointmentPage() {
       toast.error(zh ? "请选择日期。" : "Please pick a date.");
       return false;
     }
+    if (date < today) {
+      toast.error(
+        zh ? "不能选择过去的日期，请选择今天或以后的日期。" : "That date is in the past — please pick today or later.",
+      );
+      return false;
+    }
     if (availability !== "open") {
       toast.error(zh ? "所选日期暂不可预约，请选择其他日期。" : "That date isn't available — please pick another.");
       return false;
