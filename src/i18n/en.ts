@@ -143,7 +143,6 @@ export const en = {
     zoom: "Zoom",
     fullscreen: "Fullscreen",
   },
-
   video: {
     label: "Watch",
     title: "See the cone in motion",
