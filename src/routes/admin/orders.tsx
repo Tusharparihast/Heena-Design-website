@@ -103,14 +103,11 @@ function AdminOrdersPage() {
 
   function toggleDelivery(method: DeliveryMethod) {
     setDeliveryOn((prev) => {
-      const next = new Set(prev);
-      if (next.has(method)) {
-        if (next.size === 1) return prev; // keep at least one selected
-        next.delete(method);
-      } else {
-        next.add(method);
-      }
-      return next;
+      const isOnlyActive = prev.has(method) && prev.size === 1;
+      if (isOnlyActive) return prev; // it's the only one on — clicking it does nothing
+
+      // Otherwise (both on, or the other one is the only one on) — switch to just this method.
+      return new Set<DeliveryMethod>([method]);
     });
   }
 
