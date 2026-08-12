@@ -136,7 +136,7 @@ export const en = {
     results: "designs",
     empty: "No designs match that search yet.",
     loadMore: "Load more",
-    note: "Images are watermarked and loaded in small batches so the page stays fast on slow connections.",
+    note: "Images are watermarked."
     close: "Close",
     prev: "Previous design",
     next: "Next design",
