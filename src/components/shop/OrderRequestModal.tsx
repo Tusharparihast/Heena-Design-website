@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Clock, Copy, MapPin, QrCode, Send, Store, X } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { WeChatIcon, WhatsAppIcon } from "@/components/site/BrandIcons";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useCart } from "@/lib/cart";
@@ -161,7 +160,7 @@ export function OrderRequestModal({ target, onClose }: { target: OrderTarget | n
     });
   }, [f, fields.contactMethod, fields.deliveryMethod, locale]);
 
-  if (!target || orderLines.length === 0) return null;
+  if (!target || (orderLines.length === 0 && status !== "done")) return null;
 
   const set = (key: keyof Fields) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setFields((prev) => ({ ...prev, [key]: e.target.value }));
@@ -243,8 +242,6 @@ export function OrderRequestModal({ target, onClose }: { target: OrderTarget | n
     });
   };
 
-  const waHref = `https://wa.me/${site.whatsapp.replace(/[^\d]/g, "")}?text=${encodeURIComponent(summaryText)}`;
-
   const copySummary = async () => {
     try {
       await navigator.clipboard.writeText(summaryText);
@@ -254,11 +251,6 @@ export function OrderRequestModal({ target, onClose }: { target: OrderTarget | n
     } catch {
       toast.error(c.copyFailed);
     }
-  };
-
-  const sendWeChat = async () => {
-    await copySummary();
-    toast.message(c.wechatHint.replace("{id}", site.wechatId));
   };
 
   return (
@@ -342,26 +334,6 @@ export function OrderRequestModal({ target, onClose }: { target: OrderTarget | n
                   ))}
                 </div>
               ) : null}
-            </div>
-
-            <div className="grid w-full gap-2 sm:grid-cols-2">
-              <a
-                href={waHref}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-              >
-                <WhatsAppIcon className="h-4 w-4" aria-hidden />
-                {c.orderWhatsapp}
-              </a>
-              <button
-                type="button"
-                onClick={() => void sendWeChat()}
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-border px-4 py-3 text-sm font-medium transition-colors hover:bg-accent"
-              >
-                <WeChatIcon className="h-4 w-4" aria-hidden />
-                {c.orderWechat}
-              </button>
             </div>
 
             <button
