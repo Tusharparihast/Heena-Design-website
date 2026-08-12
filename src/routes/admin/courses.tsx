@@ -6,6 +6,7 @@ import { BilingualField } from "@/components/admin/BilingualField";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { en } from "@/i18n/en";
+import { useEffect, useState } from "react";
 import {
   adminCourses,
   emptyCoursesOverrides,
@@ -69,9 +70,7 @@ function AdminCoursesPage() {
   function toggleHidden(id: string) {
     persist({
       ...overrides,
-      hidden: overrides.hidden.includes(id)
-        ? overrides.hidden.filter((x) => x !== id)
-        : [...overrides.hidden, id],
+      hidden: overrides.hidden.includes(id) ? overrides.hidden.filter((x) => x !== id) : [...overrides.hidden, id],
     });
   }
 
@@ -106,8 +105,7 @@ function AdminCoursesPage() {
         <div>
           <h2 className="font-display text-2xl font-bold sm:text-3xl">Courses</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Course cards on the homepage and the Courses page. Changes save automatically in both
-            languages.
+            Course cards on the homepage and the Courses page. Changes save automatically in both languages.
           </p>
         </div>
         <div className="flex gap-2">
@@ -130,9 +128,7 @@ function AdminCoursesPage() {
             label="Note"
             valueEn={overrides.noteEn ?? en.coursesPage.note}
             valueZh={overrides.noteZh ?? ""}
-            onChange={(locale, value) =>
-              persist({ ...overrides, [locale === "en" ? "noteEn" : "noteZh"]: value })
-            }
+            onChange={(locale, value) => persist({ ...overrides, [locale === "en" ? "noteEn" : "noteZh"]: value })}
             multiline
           />
         </CardContent>
@@ -180,12 +176,7 @@ function AdminCoursesPage() {
               >
                 {hidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                aria-label="Remove course"
-                onClick={() => removeCourse(course.id)}
-              >
+              <Button variant="outline" size="icon" aria-label="Remove course" onClick={() => removeCourse(course.id)}>
                 <Trash2 className="h-4 w-4" />
               </Button>
             </div>
@@ -240,23 +231,17 @@ function AdminCoursesPage() {
               onChange={(l, v) => edit(course.id, l === "en" ? { priceEn: v } : { priceZh: v })}
             />
 
-            <BilingualField
+            <CourseListField
               label="What you learn (one per line)"
-              valueEn={course.learnEn.join("\n")}
-              valueZh={course.learnZh.join("\n")}
-              multiline
-              onChange={(l, v) =>
-                edit(course.id, l === "en" ? { learnEn: toLines(v) } : { learnZh: toLines(v) })
-              }
+              valueEn={course.learnEn}
+              valueZh={course.learnZh}
+              onChange={(l, v) => edit(course.id, l === "en" ? { learnEn: v } : { learnZh: v })}
             />
-            <BilingualField
+            <CourseListField
               label="What's included (one per line)"
-              valueEn={course.includesEn.join("\n")}
-              valueZh={course.includesZh.join("\n")}
-              multiline
-              onChange={(l, v) =>
-                edit(course.id, l === "en" ? { includesEn: toLines(v) } : { includesZh: toLines(v) })
-              }
+              valueEn={course.includesEn}
+              valueZh={course.includesZh}
+              onChange={(l, v) => edit(course.id, l === "en" ? { includesEn: v } : { includesZh: v })}
             />
           </CardContent>
         </Card>
@@ -271,9 +256,68 @@ function AdminCoursesPage() {
   );
 }
 
+function CourseListField({
+  label,
+  valueEn,
+  valueZh,
+  onChange,
+}: {
+  label: string;
+  valueEn: string[];
+  valueZh: string[];
+  onChange: (locale: "en" | "zh", value: string[]) => void;
+}) {
+  const [en, setEn] = useState(valueEn.join("\n"));
+  const [zh, setZh] = useState(valueZh.join("\n"));
+
+  useEffect(() => {
+    setEn(valueEn.join("\n"));
+  }, [valueEn]);
+
+  useEffect(() => {
+    setZh(valueZh.join("\n"));
+  }, [valueZh]);
+
+  return (
+    <div className="space-y-2">
+      <label className="text-sm font-medium">{label}</label>
+
+      <div className="space-y-2">
+        <div className="flex gap-2 items-start">
+          <span className="inline-flex w-12 shrink-0 items-center justify-center rounded-md border border-border bg-muted px-1.5 py-1 text-[11px] font-semibold text-muted-foreground">
+            EN
+          </span>
+
+          <textarea
+            value={en}
+            onChange={(e) => setEn(e.target.value)}
+            onBlur={() => onChange("en", toLines(en))}
+            rows={4}
+            className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          />
+        </div>
+
+        <div className="flex gap-2 items-start">
+          <span className="inline-flex w-12 shrink-0 items-center justify-center rounded-md border border-border bg-muted px-1.5 py-1 text-[11px] font-semibold text-muted-foreground">
+            中文
+          </span>
+
+          <textarea
+            value={zh}
+            onChange={(e) => setZh(e.target.value)}
+            onBlur={() => onChange("zh", toLines(zh))}
+            rows={4}
+            className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function toLines(value: string): string[] {
   return value
-    .split("\n")
+    .split(/\r?\n/)
     .map((line) => line.trim())
     .filter(Boolean);
 }
