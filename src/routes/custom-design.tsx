@@ -161,9 +161,9 @@ function CustomDesignPage() {
       toast.error(zh ? "请填写您的姓名。" : "Please enter your name.");
       return false;
     }
-    if (date && date < today) {
+    if (date && availability === "past") {
       toast.error(
-        zh ? "不能选择过去的日期，请选择今天或以后的日期。" : "That date is in the past — please pick today or later.",
+        zh ? "该日期已过去，请选择今天或以后的日期。" : "That date has already passed — please pick today or later.",
       );
       return false;
     }
@@ -375,7 +375,6 @@ function CustomDesignPage() {
                         <Field label={b.details.date}>
                           <input
                             type="date"
-                            min={today}
                             value={date}
                             onChange={(e) => {
                               const val = e.target.value;
@@ -386,9 +385,11 @@ function CustomDesignPage() {
                         </Field>
                         {availability !== "open" && (
                           <p className="mt-1.5 text-xs font-medium text-destructive">
-                            {availability === "blocked"
-                              ? t.appointment.page.availability.blocked
-                              : t.appointment.page.availability.closedDay}
+                            {availability === "past"
+                              ? t.appointment.page.availability.past
+                              : availability === "blocked"
+                                ? t.appointment.page.availability.blocked
+                                : t.appointment.page.availability.closedDay}
                           </p>
                         )}
                       </div>
