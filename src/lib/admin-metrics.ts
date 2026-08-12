@@ -5,10 +5,10 @@
 import { useEffect, useMemo } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
-import { en } from "@/i18n/en";
 import { useDbBookings } from "./bookings-db";
 import { useDbOrders } from "./orders-db";
 import { useAdminCatalog } from "./shop-catalog-db";
+import { effectiveCourses, useCoursesOverrides } from "./courses-overrides";
 import { useEffectiveGalleryItems } from "./gallery-overrides";
 import { adminTestimonials, useTestimonialOverrides } from "./testimonial-overrides";
 
@@ -55,6 +55,7 @@ export function useAdminMetrics(): AdminMetrics {
   const designs = useEffectiveGalleryItems("gallery");
   const student = useEffectiveGalleryItems("student");
   const testimonialOverrides = useTestimonialOverrides();
+  const coursesOverrides = useCoursesOverrides();
 
   useRealtimeTables(["bookings"], refreshBookings);
   useRealtimeTables(["order_requests"], refreshOrders);
@@ -75,7 +76,7 @@ export function useAdminMetrics(): AdminMetrics {
       galleryImages: designs.length + student.length,
       galleryDesigns: designs.length,
       galleryStudent: student.length,
-      activeCourses: en.coursesPage.items.length,
+      activeCourses: effectiveCourses(coursesOverrides).length,
       shopProducts: liveProducts.filter((p) => p.visible).length,
       hiddenProducts: liveProducts.filter((p) => !p.visible).length,
       newOrders: liveOrders.filter((o) => o.status === "new").length,
@@ -90,6 +91,7 @@ export function useAdminMetrics(): AdminMetrics {
     designs,
     student,
     testimonialOverrides,
+    coursesOverrides,
     bookingsLoading,
     ordersLoading,
     productsLoading,
