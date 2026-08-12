@@ -31,20 +31,8 @@ const SETTINGS_EVENT = "nd:appointment-settings";
 export type BookingStatus = "pending" | "confirmed" | "completed" | "cancelled";
 export type BookingSource = "whatsapp" | "wechat" | "phone" | "walk-in" | "email" | "other";
 
-export const bookingStatuses: BookingStatus[] = [
-  "pending",
-  "confirmed",
-  "completed",
-  "cancelled",
-];
-export const bookingSources: BookingSource[] = [
-  "whatsapp",
-  "wechat",
-  "phone",
-  "walk-in",
-  "email",
-  "other",
-];
+export const bookingStatuses: BookingStatus[] = ["pending", "confirmed", "completed", "cancelled"];
+export const bookingSources: BookingSource[] = ["whatsapp", "wechat", "phone", "walk-in", "email", "other"];
 
 /** One booking logged by the studio. */
 export interface Booking {
@@ -136,14 +124,12 @@ export function effectiveTimeSlots(s: AppointmentSettings): BilingualOption[] {
 /* Availability                                                        */
 /* ------------------------------------------------------------------ */
 
-export type DateAvailability = "open" | "closed-day" | "blocked";
+export type DateAvailability = "open" | "closed-day" | "blocked" | "past";
 
 /** Whether a YYYY-MM-DD date can be booked under the current settings. */
-export function dateAvailability(
-  settings: AppointmentSettings,
-  dateStr: string,
-): DateAvailability {
+export function dateAvailability(settings: AppointmentSettings, dateStr: string): DateAvailability {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return "open";
+  if (dateStr < todayStr()) return "past";
   if (settings.blockedDates.includes(dateStr)) return "blocked";
   // Parse as local noon so timezone shifts never move the weekday.
   const day = new Date(`${dateStr}T12:00:00`).getDay();
@@ -175,15 +161,11 @@ function cleanDate(value: unknown): string | undefined {
 }
 
 function cleanStatus(value: unknown): BookingStatus {
-  return bookingStatuses.includes(value as BookingStatus)
-    ? (value as BookingStatus)
-    : "pending";
+  return bookingStatuses.includes(value as BookingStatus) ? (value as BookingStatus) : "pending";
 }
 
 function cleanSource(value: unknown): BookingSource {
-  return bookingSources.includes(value as BookingSource)
-    ? (value as BookingSource)
-    : "other";
+  return bookingSources.includes(value as BookingSource) ? (value as BookingSource) : "other";
 }
 
 function cleanBooking(raw: unknown): Booking | undefined {
@@ -226,13 +208,11 @@ function cleanOption(raw: unknown): BilingualOption | undefined {
 function cleanOptionList(value: unknown): BilingualOption[] | undefined {
   if (!Array.isArray(value)) return undefined;
   const seen = new Set<string>();
-  const list = value
-    .map(cleanOption)
-    .filter((o): o is BilingualOption => {
-      if (!o || seen.has(o.id)) return false;
-      seen.add(o.id);
-      return true;
-    });
+  const list = value.map(cleanOption).filter((o): o is BilingualOption => {
+    if (!o || seen.has(o.id)) return false;
+    seen.add(o.id);
+    return true;
+  });
   return list.length > 0 ? list : undefined;
 }
 
@@ -241,13 +221,11 @@ function sanitizeBookings(raw: unknown): BookingStore {
   const obj = raw as Record<string, unknown>;
   const seen = new Set<string>();
   const cleanList = (value: unknown): Booking[] =>
-    (Array.isArray(value) ? value : [])
-      .map(cleanBooking)
-      .filter((b): b is Booking => {
-        if (!b || seen.has(b.id)) return false;
-        seen.add(b.id);
-        return true;
-      });
+    (Array.isArray(value) ? value : []).map(cleanBooking).filter((b): b is Booking => {
+      if (!b || seen.has(b.id)) return false;
+      seen.add(b.id);
+      return true;
+    });
   return { active: cleanList(obj["active"]), trashed: cleanList(obj["trashed"]) };
 }
 

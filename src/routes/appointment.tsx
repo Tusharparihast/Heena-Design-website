@@ -96,9 +96,9 @@ function AppointmentPage() {
       toast.error(zh ? "请选择日期。" : "Please pick a date.");
       return false;
     }
-    if (date < today) {
+    if (availability === "past") {
       toast.error(
-        zh ? "不能选择过去的日期，请选择今天或以后的日期。" : "That date is in the past — please pick today or later.",
+        zh ? "该日期已过去，请选择今天或以后的日期。" : "That date has already passed — please pick today or later.",
       );
       return false;
     }
@@ -212,7 +212,6 @@ function AppointmentPage() {
                 <Field label={a.form.date}>
                   <input
                     type="date"
-                    min={today}
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
@@ -220,7 +219,11 @@ function AppointmentPage() {
                 </Field>
                 {availability !== "open" && (
                   <p className="mt-1.5 text-xs font-medium text-destructive">
-                    {availability === "blocked" ? a.availability.blocked : a.availability.closedDay}
+                    {availability === "past"
+                      ? a.availability.past
+                      : availability === "blocked"
+                        ? a.availability.blocked
+                        : a.availability.closedDay}
                   </p>
                 )}
               </div>

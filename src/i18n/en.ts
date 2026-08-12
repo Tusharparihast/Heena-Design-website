@@ -471,6 +471,7 @@ export const en = {
       availability: {
         closedDay: "The studio is closed on this day of the week — please pick another date.",
         blocked: "The studio is fully booked or closed on this date — please pick another date.",
+        past: "That date has already passed — please pick today or a later date.",
       },
     },
   },

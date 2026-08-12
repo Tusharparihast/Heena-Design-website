@@ -416,6 +416,7 @@ export const zh: Dict = {
       availability: {
         closedDay: "工作室每周这一天休息，请选择其他日期。",
         blocked: "当天预约已满或工作室休息，请选择其他日期。",
+        past: "该日期已过去，请选择今天或以后的日期。",
       },
     },
   },
