@@ -94,8 +94,8 @@ const builtinIds = new Set(builtinCourses.map((c) => c.id));
 
 function cleanText(value: unknown, max = 600): string | undefined {
   if (typeof value !== "string") return undefined;
-  const trimmed = value.trim();
-  return trimmed ? trimmed.slice(0, max) : undefined;
+  if (!value.trim()) return undefined;
+  return value.slice(0, max);
 }
 
 function cleanList(value: unknown): string[] | undefined {
