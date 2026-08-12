@@ -136,7 +136,7 @@ export const en = {
     results: "designs",
     empty: "No designs match that search yet.",
     loadMore: "Load more",
-    note: "Images are watermarked."
+    note: "Images are watermarked.",
     close: "Close",
     prev: "Previous design",
     next: "Next design",
@@ -399,13 +399,7 @@ export const en = {
       placement: "Placement",
       placementOptions: ["Front hand", "Back hand", "Both hands", "Feet", "Arms", "Other"],
       budget: "Budget",
-      budgetOptions: [
-        "Under NPR 3,000",
-        "NPR 3,000 – 7,000",
-        "NPR 7,000 – 15,000",
-        "NPR 15,000+",
-        "Not sure yet",
-      ],
+      budgetOptions: ["Under NPR 3,000", "NPR 3,000 – 7,000", "NPR 7,000 – 15,000", "NPR 15,000+", "Not sure yet"],
       budgetCustom: "Custom amount",
       budgetCustomPh: "e.g. NPR 5,000",
       notes: "Anything else?",
@@ -583,7 +577,6 @@ export const en = {
         title: "Order request sent",
         description: "We will review availability and contact you to confirm.",
       },
-
     },
     items: [
       {
