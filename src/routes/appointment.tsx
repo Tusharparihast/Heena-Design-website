@@ -214,10 +214,7 @@ function AppointmentPage() {
                     type="date"
                     min={today}
                     value={date}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setDate(val && val < today ? today : val);
-                    }}
+                    onChange={(e) => setDate(e.target.value)}
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
                   />
                 </Field>
