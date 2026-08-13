@@ -23,7 +23,50 @@ export interface AdminNotification {
 }
 
 const READ_KEY = "nd-admin-read-notifications";
+const ANNOUNCED_KEY = "nd-admin-announced-notifications";
 const MAX_ITEMS = 20;
+
+// ---- Alert de-duplication -------------------------------------------------
+// Every appointment/order/product event has a stable id. We remember which ids
+// have already chimed / raised a desktop notification, in localStorage, so that
+// coming back to the tab (or a second copy of this hook in the topbar) never
+// re-announces something the admin was already told about.
+const announcedMemory = new Set<string>();
+let announcedLoaded = false;
+
+function loadAnnounced(): Set<string> {
+  if (announcedLoaded || typeof window === "undefined") return announcedMemory;
+  announcedLoaded = true;
+  try {
+    const raw = window.localStorage.getItem(ANNOUNCED_KEY);
+    const parsed = raw ? (JSON.parse(raw) as unknown) : [];
+    if (Array.isArray(parsed)) for (const id of parsed) announcedMemory.add(String(id));
+  } catch {
+    /* storage unavailable — de-dup falls back to this session only */
+  }
+  return announcedMemory;
+}
+
+function persistAnnounced() {
+  try {
+    window.localStorage.setItem(ANNOUNCED_KEY, JSON.stringify([...announcedMemory].slice(-500)));
+  } catch {
+    /* storage unavailable */
+  }
+}
+
+/**
+ * Marks the given ids as announced and returns only the ones that were new.
+ * Idempotent: calling it twice with the same ids yields nothing the second time.
+ */
+function claimNewIds(ids: string[]): string[] {
+  const seen = loadAnnounced();
+  const fresh = ids.filter((id) => !seen.has(id));
+  if (fresh.length === 0) return [];
+  for (const id of fresh) seen.add(id);
+  persistAnnounced();
+  return fresh;
+}
 
 function readIds(): Set<string> {
   if (typeof window === "undefined") return new Set();
