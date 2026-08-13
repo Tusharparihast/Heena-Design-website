@@ -3,7 +3,7 @@
 // shop order requests and catalogue changes), keeps it in sync through
 // Postgres realtime, and remembers which items have been read in this browser.
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeTables } from "./admin-metrics";
