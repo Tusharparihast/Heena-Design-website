@@ -110,6 +110,7 @@ function AdminProductsPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [purgeId, setPurgeId] = useState<string | null>(null);
   const [purgeCategoryId, setPurgeCategoryId] = useState<string | null>(null);
+  const [clearTrashOpen, setClearTrashOpen] = useState(false);
 
   const [catNameEn, setCatNameEn] = useState("");
   const [catNameZh, setCatNameZh] = useState("");
@@ -386,6 +387,15 @@ function AdminProductsPage() {
     setPurgeCategoryId(null);
   };
 
+  /** Permanently deletes every trashed product and category in this section. */
+  const clearTrash = async () => {
+    setClearTrashOpen(false);
+    await Promise.all(trashProducts.map((p) => purgeProduct(p.id)));
+    await Promise.all(trashCategories.map((c) => purgeCategory(c.id)));
+    await refresh();
+    toast.success("Trash emptied", { description: "All trashed products and categories were deleted." });
+  };
+
   const saveRenameCategory = async () => {
     if (!renameCategory) return;
     const nameEn = renameEn.trim();
@@ -642,10 +652,16 @@ function AdminProductsPage() {
       {trashProducts.length > 0 || trashCategories.length > 0 ? (
         <Card className="shadow-none">
           <CardContent className="p-4 sm:p-5">
-            <h3 className="flex items-center gap-2 text-sm font-semibold">
-              <Trash2 className="h-4 w-4 text-muted-foreground" aria-hidden />
-              Trash
-            </h3>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h3 className="flex items-center gap-2 text-sm font-semibold">
+                <Trash2 className="h-4 w-4 text-muted-foreground" aria-hidden />
+                Trash
+              </h3>
+              <Button variant="destructive" size="sm" onClick={() => setClearTrashOpen(true)}>
+                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                Clear Trash ({trashProducts.length + trashCategories.length})
+              </Button>
+            </div>
             <p className="mt-1 text-xs text-muted-foreground">
               Deleted products and categories stay here until you restore them or delete them permanently.
             </p>
@@ -728,6 +744,28 @@ function AdminProductsPage() {
           </CardContent>
         </Card>
       ) : null}
+
+      <AlertDialog open={clearTrashOpen} onOpenChange={setClearTrashOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Empty the shop trash?</AlertDialogTitle>
+            <AlertDialogDescription>
+              All {trashProducts.length} product{trashProducts.length === 1 ? "" : "s"} and {trashCategories.length}{" "}
+              categor{trashCategories.length === 1 ? "y" : "ies"} in this trash will be deleted permanently. This
+              cannot be undone and only affects the shop.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => void clearTrash()}
+            >
+              Delete permanently
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <ProductEditorDialog
         open={editor !== null}
