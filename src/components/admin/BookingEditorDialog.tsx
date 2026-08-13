@@ -25,6 +25,11 @@ import {
   type BookingSource,
   type BookingStatus,
 } from "@/lib/appointments";
+import {
+  preferredContactLabels,
+  preferredContactOptions,
+  type PreferredContact,
+} from "@/components/site/PreferredContactPicker";
 import { cn } from "@/lib/utils";
 
 const statusLabels: Record<BookingStatus, string> = {
@@ -68,6 +73,7 @@ export function BookingEditorDialog({ open, onOpenChange, booking, onSave }: Boo
   const [notes, setNotes] = useState("");
   const [source, setSource] = useState<BookingSource>("whatsapp");
   const [status, setStatus] = useState<BookingStatus>("pending");
+  const [preferred, setPreferred] = useState<PreferredContact[]>([]);
 
   // Reset the form whenever the dialog opens for a different booking.
   useEffect(() => {
@@ -81,6 +87,11 @@ export function BookingEditorDialog({ open, onOpenChange, booking, onSave }: Boo
     setNotes(booking?.notes ?? "");
     setSource(booking?.source ?? "whatsapp");
     setStatus(booking?.status ?? "pending");
+    setPreferred(
+      ((booking?.preferredContacts ?? []) as string[]).filter((v): v is PreferredContact =>
+        (preferredContactOptions as readonly string[]).includes(v),
+      ),
+    );
   }, [open, booking]);
 
   function handleSave() {
@@ -108,6 +119,7 @@ export function BookingEditorDialog({ open, onOpenChange, booking, onSave }: Boo
       notes: notes.trim(),
       source,
       status,
+      preferredContacts: preferred,
       createdAt: booking?.createdAt ?? new Date().toISOString(),
     });
     onOpenChange(false);
@@ -204,6 +216,33 @@ export function BookingEditorDialog({ open, onOpenChange, booking, onSave }: Boo
                   <option key={s.id} value={s.en} />
                 ))}
               </datalist>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Preferred contact options</Label>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {preferredContactOptions.map((id) => {
+                const active = preferred.includes(id);
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() =>
+                      setPreferred((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+                    }
+                    className={cn(
+                      "rounded-lg border py-2 text-xs font-medium transition-colors",
+                      active
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border bg-background text-muted-foreground hover:bg-accent",
+                    )}
+                  >
+                    {preferredContactLabels[id].en}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
