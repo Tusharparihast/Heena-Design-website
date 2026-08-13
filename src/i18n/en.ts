@@ -763,7 +763,7 @@ type Widen<T> = T extends string
     : T extends boolean
       ? boolean
       : T extends readonly (infer U)[]
-        ? Widen<U>[]
-        : { -readonly [K in keyof T]: Widen<T[K]> };
+        ? readonly Widen<U>[]
+        : { readonly [K in keyof T]: Widen<T[K]> };
 
 export type Dict = Widen<typeof en>;
