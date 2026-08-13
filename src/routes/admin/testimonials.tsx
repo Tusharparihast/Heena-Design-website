@@ -366,6 +366,7 @@ function AdminTestimonialsPage() {
 
   const [editor, setEditor] = useState<EditorState | undefined>(undefined);
   const [purgeTarget, setPurgeTarget] = useState<AdminTestimonialRow | undefined>(undefined);
+  const [clearTrashOpen, setClearTrashOpen] = useState(false);
 
   const avgRating =
     liveItems.length > 0
@@ -419,6 +420,21 @@ function AdminTestimonialsPage() {
     }
     toast.success("Deleted permanently");
     setPurgeTarget(undefined);
+  };
+
+  /** Permanently deletes every trashed testimonial. */
+  const clearTrash = () => {
+    const customIds = new Set(trash.filter((r) => r.custom).map((r) => r.item.id));
+    const builtinIds = trash.filter((r) => !r.custom).map((r) => r.item.id);
+    writeTestimonialOverrides({
+      ...overrides,
+      added: overrides.added.filter((c) => !customIds.has(c.id)),
+      hidden: overrides.hidden.filter((id) => !customIds.has(id)),
+      deleted: [],
+      purged: [...overrides.purged, ...builtinIds],
+    });
+    setClearTrashOpen(false);
+    toast.success("Trash emptied");
   };
 
   const openEditor = (row?: AdminTestimonialRow) => {
@@ -658,14 +674,20 @@ function AdminTestimonialsPage() {
       {/* Trash */}
       {trash.length > 0 && (
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Trash2 className="h-5 w-5" />
-              Trash ({trash.length})
-            </CardTitle>
-            <CardDescription>
-              Trashed testimonials stay here until you restore them or delete them permanently.
-            </CardDescription>
+          <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Trash2 className="h-5 w-5" />
+                Trash ({trash.length})
+              </CardTitle>
+              <CardDescription>
+                Trashed testimonials stay here until you restore them or delete them permanently.
+              </CardDescription>
+            </div>
+            <Button variant="destructive" size="sm" onClick={() => setClearTrashOpen(true)}>
+              <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+              Clear Trash ({trash.length})
+            </Button>
           </CardHeader>
           <CardContent className="space-y-2">
             {trash.map((row) => (
@@ -703,6 +725,27 @@ function AdminTestimonialsPage() {
           </CardContent>
         </Card>
       )}
+
+      <AlertDialog open={clearTrashOpen} onOpenChange={setClearTrashOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Empty the testimonials trash?</AlertDialogTitle>
+            <AlertDialogDescription>
+              All {trash.length} trashed testimonial{trash.length === 1 ? "" : "s"} will be removed forever. This
+              cannot be undone and only affects testimonials.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={clearTrash}
+            >
+              Delete permanently
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Editor dialog */}
       <TestimonialEditorDialog
