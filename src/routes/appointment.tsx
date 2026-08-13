@@ -116,6 +116,14 @@ function AppointmentPage() {
       toast.error(zh ? "所选日期暂不可预约，请选择其他日期。" : "That date isn't available — please pick another.");
       return false;
     }
+    if (Number(people) > page.maxPeople) {
+      toast.error(
+        zh
+          ? `每次预约最多 ${page.maxPeople} 人，请调整人数。`
+          : `Maximum ${page.maxPeople} people per booking — please adjust the number.`,
+      );
+      return false;
+    }
     setStatus("sending");
     const ok = await logWebsiteBooking({
       kind: "appointment",
