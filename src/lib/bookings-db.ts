@@ -127,6 +127,12 @@ export async function deleteDbBooking(id: string): Promise<boolean> {
   return !error;
 }
 
+/** Permanently deletes every trashed booking. Returns false if any row failed. */
+export async function purgeTrashedBookings(): Promise<boolean> {
+  const { error } = await supabase.from("bookings").delete().not("trashed_at", "is", null);
+  return !error;
+}
+
 // ---------- Public auto-logging (anonymous inserts) ----------
 
 export type BookingChannel = "whatsapp" | "wechat" | "email" | "other";
