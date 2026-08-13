@@ -14,7 +14,8 @@ export const en = {
   },
   common: {
     comingSoon: "Coming soon",
-    comingSoonBody: "This page is being prepared. In the meantime, explore the homepage or message us directly.",
+    comingSoonBody:
+      "This page is being prepared. In the meantime, explore the homepage or message us directly.",
     backHome: "Back to home",
     talkToUs: "Talk to us",
     viewGallery: "View gallery",
@@ -163,7 +164,8 @@ export const en = {
       {
         photo: "person-1",
         rating: 5,
-        review: "I came in never having held a cone. Six weeks later I did my cousin's bridal mehndi myself.",
+        review:
+          "I came in never having held a cone. Six weeks later I did my cousin's bridal mehndi myself.",
         name: "Sneha K.",
         role: "Student",
         country: "Nepal",
@@ -173,7 +175,8 @@ export const en = {
       {
         photo: "person-2",
         rating: 5,
-        review: "The design lasted beautifully through the whole wedding and the colour was so deep.",
+        review:
+          "The design lasted beautifully through the whole wedding and the colour was so deep.",
         name: "Priya M.",
         role: "Bridal client",
         country: "India",
@@ -193,7 +196,8 @@ export const en = {
       {
         photo: "person-2",
         rating: 5,
-        review: "I joined the bridal course and now feel confident taking real wedding appointments.",
+        review:
+          "I joined the bridal course and now feel confident taking real wedding appointments.",
         name: "Anjali R.",
         role: "Student",
         country: "India",
@@ -203,7 +207,8 @@ export const en = {
       {
         photo: "person-1",
         rating: 5,
-        review: "She listened to every detail I wanted and the final design was better than the reference.",
+        review:
+          "She listened to every detail I wanted and the final design was better than the reference.",
         name: "Mei L.",
         role: "Bridal client",
         country: "China",
@@ -273,9 +278,18 @@ export const en = {
       secondary: "See student work",
     },
     highlights: [
-      { title: "Small batches", body: "A handful of students per batch so every hand gets corrected." },
-      { title: "Tools provided", body: "Cones, paste, practice sheets and stencils are included during class." },
-      { title: "Certificate", body: "A studio completion certificate after your final assessment design." },
+      {
+        title: "Small batches",
+        body: "A handful of students per batch so every hand gets corrected.",
+      },
+      {
+        title: "Tools provided",
+        body: "Cones, paste, practice sheets and stencils are included during class.",
+      },
+      {
+        title: "Certificate",
+        body: "A studio completion certificate after your final assessment design.",
+      },
       { title: "Practice time", body: "Open practice hours at the studio during working hours." },
     ],
     detailLabels: {
@@ -353,10 +367,22 @@ export const en = {
     },
     faqTitle: "Course questions",
     faq: [
-      { q: "Do I need to bring anything?", a: "No. Cones, paste and practice materials are provided during class." },
-      { q: "Can I choose my timing?", a: "Timings are flexible between 9 AM and 9 PM, agreed when you join." },
-      { q: "Is there a certificate?", a: "Yes, a studio completion certificate after your final assessment design." },
-      { q: "Are classes online?", a: "No. All teaching is in person at our Maitidevi home studio." },
+      {
+        q: "Do I need to bring anything?",
+        a: "No. Cones, paste and practice materials are provided during class.",
+      },
+      {
+        q: "Can I choose my timing?",
+        a: "Timings are flexible between 9 AM and 9 PM, agreed when you join.",
+      },
+      {
+        q: "Is there a certificate?",
+        a: "Yes, a studio completion certificate after your final assessment design.",
+      },
+      {
+        q: "Are classes online?",
+        a: "No. All teaching is in person at our Maitidevi home studio.",
+      },
     ],
   },
   booking: {
@@ -376,7 +402,10 @@ export const en = {
         name: "Modern",
         body: "Arabic flow, minimal bands, negative space, floral trails, glitter finishes.",
       },
-      both: { name: "Not sure yet", body: "Show us references and we'll suggest the right direction." },
+      both: {
+        name: "Not sure yet",
+        body: "Show us references and we'll suggest the right direction.",
+      },
     },
     occasion: {
       title: "Occasion",
@@ -398,7 +427,13 @@ export const en = {
       placement: "Placement",
       placementOptions: ["Front hand", "Back hand", "Both hands", "Feet", "Arms", "Other"],
       budget: "Budget",
-      budgetOptions: ["Under NPR 3,000", "NPR 3,000 – 7,000", "NPR 7,000 – 15,000", "NPR 15,000+", "Not sure yet"],
+      budgetOptions: [
+        "Under NPR 3,000",
+        "NPR 3,000 – 7,000",
+        "NPR 7,000 – 15,000",
+        "NPR 15,000+",
+        "Not sure yet",
+      ],
       budgetCustom: "Custom amount",
       budgetCustomPh: "e.g. NPR 5,000",
       notes: "Anything else?",
@@ -446,10 +481,20 @@ export const en = {
         contact: "WeChat / phone",
         contactPh: "WeChat ID or phone number",
         service: "What is it for?",
-        serviceOptions: ["Bridal mehndi", "Festival or party", "Personal design", "Course visit", "Other"],
+        serviceOptions: [
+          "Bridal mehndi",
+          "Festival or party",
+          "Personal design",
+          "Course visit",
+          "Other",
+        ],
         date: "Preferred date",
         time: "Preferred time",
-        timeOptions: ["Morning · 9 AM – 12 PM", "Afternoon · 12 PM – 4 PM", "Evening · 4 PM – 9 PM"],
+        timeOptions: [
+          "Morning · 9 AM – 12 PM",
+          "Afternoon · 12 PM – 4 PM",
+          "Evening · 4 PM – 9 PM",
+        ],
         people: "Number of people",
         notes: "Anything we should know?",
         notesPh: "Occasion, design idea, timing — anything that helps.",
@@ -536,7 +581,8 @@ export const en = {
       paymentMethodsLabel: "QR payments supported after confirmation",
       paymentMethods: ["Bank QR", "eSewa QR", "Khalti QR", "WeChat Pay QR", "Alipay QR"],
       notFoundTitle: "Product not found",
-      notFoundBody: "This product is no longer listed. Browse the shop to see what is available now.",
+      notFoundBody:
+        "This product is no longer listed. Browse the shop to see what is available now.",
     },
     orderForm: {
       title: "Order request",
@@ -582,7 +628,8 @@ export const en = {
         body: "Your order request has been sent to our studio. We will review availability and contact you shortly to confirm your order and provide payment instructions.",
         responseLabel: "Estimated response time",
         responseTime: "Within 2–6 hours during business hours (9 AM – 9 PM).",
-        paymentLine: "After confirmation, payment instructions arrive via your preferred contact method.",
+        paymentLine:
+          "After confirmation, payment instructions arrive via your preferred contact method.",
         close: "Done",
       },
       toast: {
