@@ -9,6 +9,8 @@ import { bookingSources, bookingStatuses, type Booking, type BookingSource, type
 
 export interface AdminBooking extends Booking {
   trashed: boolean;
+  /** Channels the client marked as preferred (wechat / whatsapp / phone / email). */
+  preferredContacts: string[];
   /** Storage paths of reference photos sent with a custom-design request. */
   referencePaths: string[];
 }
@@ -28,6 +30,7 @@ interface BookingRow {
   status: string;
   trashed_at: string | null;
   reference_paths: string[] | null;
+  preferred_contacts: string[] | null;
 }
 
 function asSource(value: string): BookingSource {
@@ -53,6 +56,7 @@ function rowToBooking(row: BookingRow): AdminBooking {
     createdAt: row.created_at,
     trashed: row.trashed_at != null,
     referencePaths: Array.isArray(row.reference_paths) ? row.reference_paths : [],
+    preferredContacts: Array.isArray(row.preferred_contacts) ? row.preferred_contacts : [],
   };
 }
 
@@ -91,6 +95,7 @@ function bookingPayload(b: Booking) {
     notes: b.notes.slice(0, 1000),
     source: b.source,
     status: b.status,
+    preferred_contacts: (b.preferredContacts ?? []).slice(0, 6),
   };
 }
 
@@ -143,6 +148,8 @@ export async function logWebsiteBooking(input: {
   channel: BookingChannel;
   /** Storage paths (not links) of uploaded reference photos. */
   referencePaths?: string[];
+  /** Channels the client prefers to be contacted through. */
+  preferredContacts?: string[];
 }): Promise<boolean> {
   if (!input.name.trim()) return false;
   try {
@@ -159,6 +166,7 @@ export async function logWebsiteBooking(input: {
       status: "pending",
       locale: input.locale ?? "en",
       reference_paths: (input.referencePaths ?? []).slice(0, 20),
+      preferred_contacts: (input.preferredContacts ?? []).slice(0, 6),
     });
     return !error;
   } catch {
