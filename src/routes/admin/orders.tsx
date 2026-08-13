@@ -101,6 +101,7 @@ function AdminOrdersPage() {
   const [deliveryOn, setDeliveryOn] = useState<Set<DeliveryMethod>>(new Set<DeliveryMethod>(["pickup", "delivery"]));
   const [viewing, setViewing] = useState<AdminOrder | null>(null);
   const [purgeId, setPurgeId] = useState<string | null>(null);
+  const [clearTrashOpen, setClearTrashOpen] = useState(false);
 
   function toggleDelivery(method: DeliveryMethod) {
     setDeliveryOn((prev) => {
