@@ -178,20 +178,23 @@ export function useAdminNotifications() {
   const [raw, setRaw] = useState<RawItem[]>([]);
   const [read, setRead] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
-  const firstLoadRef = useRef(true);
-
   const refresh = useCallback(async () => {
     const items = await fetchFeed();
-    setRaw((prev) => {
-      const isNewItem = items.length > 0 && (prev.length === 0 || items[0]?.id !== prev[0]?.id);
-      if (!firstLoadRef.current && isNewItem) {
+
+    // Claim ids before alerting: whichever copy of this hook gets there first
+    // owns the alert, and a revisited tab claims nothing because the ids were
+    // already recorded on the first sighting.
+    const everSeen = loadAnnounced().size > 0;
+    const fresh = claimNewIds(items.map((item) => item.id));
+    if (everSeen && fresh.length > 0) {
+      const top = items.find((item) => fresh.includes(item.id));
+      if (top) {
         playNotificationChime();
-        const top = items[0];
-        if (top) showBrowserNotification(top.title, top.detail);
+        showBrowserNotification(top.title, top.detail, top.id);
       }
-      return items;
-    });
-    firstLoadRef.current = false;
+    }
+
+    setRaw(items);
     setLoading(false);
   }, []);
 
