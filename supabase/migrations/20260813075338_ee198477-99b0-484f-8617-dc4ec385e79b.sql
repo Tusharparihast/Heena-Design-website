@@ -1,0 +1,1 @@
+ALTER TABLE public.bookings ADD COLUMN IF NOT EXISTS preferred_contacts text[] NOT NULL DEFAULT '{}'::text[];
