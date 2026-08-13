@@ -3,7 +3,7 @@
 // shop order requests and catalogue changes), keeps it in sync through
 // Postgres realtime, and remembers which items have been read in this browser.
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeTables } from "./admin-metrics";
@@ -23,7 +23,50 @@ export interface AdminNotification {
 }
 
 const READ_KEY = "nd-admin-read-notifications";
+const ANNOUNCED_KEY = "nd-admin-announced-notifications";
 const MAX_ITEMS = 20;
+
+// ---- Alert de-duplication -------------------------------------------------
+// Every appointment/order/product event has a stable id. We remember which ids
+// have already chimed / raised a desktop notification, in localStorage, so that
+// coming back to the tab (or a second copy of this hook in the topbar) never
+// re-announces something the admin was already told about.
+const announcedMemory = new Set<string>();
+let announcedLoaded = false;
+
+function loadAnnounced(): Set<string> {
+  if (announcedLoaded || typeof window === "undefined") return announcedMemory;
+  announcedLoaded = true;
+  try {
+    const raw = window.localStorage.getItem(ANNOUNCED_KEY);
+    const parsed = raw ? (JSON.parse(raw) as unknown) : [];
+    if (Array.isArray(parsed)) for (const id of parsed) announcedMemory.add(String(id));
+  } catch {
+    /* storage unavailable — de-dup falls back to this session only */
+  }
+  return announcedMemory;
+}
+
+function persistAnnounced() {
+  try {
+    window.localStorage.setItem(ANNOUNCED_KEY, JSON.stringify([...announcedMemory].slice(-500)));
+  } catch {
+    /* storage unavailable */
+  }
+}
+
+/**
+ * Marks the given ids as announced and returns only the ones that were new.
+ * Idempotent: calling it twice with the same ids yields nothing the second time.
+ */
+function claimNewIds(ids: string[]): string[] {
+  const seen = loadAnnounced();
+  const fresh = ids.filter((id) => !seen.has(id));
+  if (fresh.length === 0) return [];
+  for (const id of fresh) seen.add(id);
+  persistAnnounced();
+  return fresh;
+}
 
 function readIds(): Set<string> {
   if (typeof window === "undefined") return new Set();
@@ -135,20 +178,23 @@ export function useAdminNotifications() {
   const [raw, setRaw] = useState<RawItem[]>([]);
   const [read, setRead] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
-  const firstLoadRef = useRef(true);
-
   const refresh = useCallback(async () => {
     const items = await fetchFeed();
-    setRaw((prev) => {
-      const isNewItem = items.length > 0 && (prev.length === 0 || items[0]?.id !== prev[0]?.id);
-      if (!firstLoadRef.current && isNewItem) {
+
+    // Claim ids before alerting: whichever copy of this hook gets there first
+    // owns the alert, and a revisited tab claims nothing because the ids were
+    // already recorded on the first sighting.
+    const everSeen = loadAnnounced().size > 0;
+    const fresh = claimNewIds(items.map((item) => item.id));
+    if (everSeen && fresh.length > 0) {
+      const top = items.find((item) => fresh.includes(item.id));
+      if (top) {
         playNotificationChime();
-        const top = items[0];
-        if (top) showBrowserNotification(top.title, top.detail);
+        showBrowserNotification(top.title, top.detail, top.id);
       }
-      return items;
-    });
-    firstLoadRef.current = false;
+    }
+
+    setRaw(items);
     setLoading(false);
   }, []);
 

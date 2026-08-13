@@ -173,7 +173,7 @@ function CustomDesignPage() {
     }
     setStatus("sending");
     try {
-      const { paths: referencePaths } = files.length > 0 ? await uploadReferenceImages(files) : { paths: [], urls: [] };
+      const { paths: referencePaths } = files.length > 0 ? await uploadReferenceImages(files) : { paths: [] as string[] };
       if (files.length > 0 && referencePaths.length === 0) {
         toast.error(
           zh
