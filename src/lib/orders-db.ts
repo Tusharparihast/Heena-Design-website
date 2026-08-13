@@ -122,3 +122,9 @@ export async function deleteOrder(id: string): Promise<boolean> {
   const { error } = await supabase.from("order_requests").delete().eq("id", id);
   return !error;
 }
+
+/** Permanently deletes every trashed order request. */
+export async function purgeTrashedOrders(): Promise<boolean> {
+  const { error } = await supabase.from("order_requests").delete().not("trashed_at", "is", null);
+  return !error;
+}

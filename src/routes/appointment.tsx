@@ -4,6 +4,11 @@ import { ArrowLeft, Check, CheckCircle2, Clock, Copy, Send } from "lucide-react"
 import { toast } from "sonner";
 
 import { MehndiPattern } from "@/components/site/MehndiPattern";
+import {
+  PreferredContactPicker,
+  formatPreferredContacts,
+  type PreferredContact,
+} from "@/components/site/PreferredContactPicker";
 import { Section } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { dateAvailability, useAppointmentSettings, useEffectiveAppointmentPage } from "@/lib/appointments";
@@ -44,6 +49,7 @@ function AppointmentPage() {
   const [timeIdx, setTimeIdx] = useState(0);
   const [people, setPeople] = useState("1");
   const [notes, setNotes] = useState("");
+  const [preferredContacts, setPreferredContacts] = useState<PreferredContact[]>([]);
   const [copied, setCopied] = useState(false);
 
   const service = page.services[serviceIdx] ?? page.services[0] ?? "";
@@ -65,6 +71,10 @@ function AppointmentPage() {
     const list = [
       { label: clean(a.form.name), value: name },
       { label: clean(a.form.contact), value: contact },
+      {
+        label: locale === "zh" ? "首选联系方式" : "Preferred contact options",
+        value: formatPreferredContacts(preferredContacts, locale),
+      },
       { label: clean(a.form.service), value: service },
       { label: clean(a.form.date), value: date },
       { label: clean(a.form.time), value: time },
@@ -72,7 +82,7 @@ function AppointmentPage() {
       { label: clean(a.form.notes), value: notes },
     ];
     return list.filter((r) => r.value.trim() !== "");
-  }, [a, name, contact, service, date, time, people, notes]);
+  }, [a, name, contact, service, date, time, people, notes, preferredContacts, locale]);
 
   const message = useMemo(
     () => [page.title, ...rows.map((r) => `${r.label}: ${r.value}`)].join("\n"),
@@ -118,6 +128,7 @@ function AppointmentPage() {
       notes,
       locale,
       channel: "other",
+      preferredContacts,
     });
     if (ok) {
       setStatus("done");
@@ -184,6 +195,13 @@ function AppointmentPage() {
               </Field>
             </div>
 
+            <PreferredContactPicker
+              className="mt-5"
+              value={preferredContacts}
+              onChange={setPreferredContacts}
+              locale={locale}
+            />
+
             <div className="mt-5">
               <span className="mb-1.5 block text-xs font-medium tracking-wide text-muted-foreground uppercase">
                 {a.form.service}
@@ -212,6 +230,7 @@ function AppointmentPage() {
                 <Field label={a.form.date}>
                   <input
                     type="date"
+                    min={today}
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"

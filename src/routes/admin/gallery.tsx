@@ -92,6 +92,7 @@ function AdminGalleryPage() {
   const [renameZh, setRenameZh] = useState("");
   const [deleteCategoryId, setDeleteCategoryId] = useState<string | null>(null);
   const [purgeCategoryId, setPurgeCategoryId] = useState<string | null>(null);
+  const [clearTrashOpen, setClearTrashOpen] = useState(false);
 
   const update = (fn: (prev: GalleryOverrides) => GalleryOverrides) => {
     writeGalleryOverrides(fn(overrides));
@@ -262,6 +263,14 @@ function AdminGalleryPage() {
     toast.success("Category permanently deleted", {
       description: "Photos keep their other categories.",
     });
+  };
+
+  /** Permanently deletes every trashed gallery photo and category. */
+  const clearTrash = () => {
+    trashRows.forEach((row) => purgePhoto(row.item.id));
+    trashedCategoryRows.forEach((c) => purgeCategory(c.id));
+    setClearTrashOpen(false);
+    toast.success("Trash emptied");
   };
 
   /* ---------------- filtered rows ---------------- */
@@ -524,12 +533,18 @@ function AdminGalleryPage() {
       {/* ---------------- Trash ---------------- */}
       {(trashRows.length > 0 || trashedCategoryRows.length > 0) && (
         <Card>
-          <CardHeader>
-            <CardTitle>Trash</CardTitle>
-            <CardDescription>
-              Restore items to the galleries, or delete them permanently. Permanent deletion
-              cannot be undone.
-            </CardDescription>
+          <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
+            <div>
+              <CardTitle>Trash</CardTitle>
+              <CardDescription>
+                Restore items to the galleries, or delete them permanently. Permanent deletion
+                cannot be undone.
+              </CardDescription>
+            </div>
+            <Button variant="destructive" size="sm" onClick={() => setClearTrashOpen(true)}>
+              <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+              Clear Trash ({trashRows.length + trashedCategoryRows.length})
+            </Button>
           </CardHeader>
           <CardContent className="space-y-5">
             {trashRows.length > 0 && (
@@ -716,6 +731,27 @@ function AdminGalleryPage() {
       </AlertDialog>
 
       {/* ---------------- Confirm: purge photo ---------------- */}
+      <AlertDialog open={clearTrashOpen} onOpenChange={setClearTrashOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Empty the gallery trash?</AlertDialogTitle>
+            <AlertDialogDescription>
+              All {trashRows.length + trashedCategoryRows.length} trashed gallery item(s) will be deleted
+              permanently. This cannot be undone and only affects the gallery.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={clearTrash}
+            >
+              Delete permanently
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <AlertDialog open={purgeId !== null} onOpenChange={(open) => !open && setPurgeId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>

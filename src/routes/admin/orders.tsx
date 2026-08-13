@@ -25,6 +25,7 @@ import {
   deleteOrder,
   orderStatuses,
   setOrderStatus,
+  purgeTrashedOrders,
   setOrderTrashed,
   useDbOrders,
   type AdminOrder,
@@ -100,6 +101,7 @@ function AdminOrdersPage() {
   const [deliveryOn, setDeliveryOn] = useState<Set<DeliveryMethod>>(new Set<DeliveryMethod>(["pickup", "delivery"]));
   const [viewing, setViewing] = useState<AdminOrder | null>(null);
   const [purgeId, setPurgeId] = useState<string | null>(null);
+  const [clearTrashOpen, setClearTrashOpen] = useState(false);
 
   function toggleDelivery(method: DeliveryMethod) {
     setDeliveryOn((prev) => {
@@ -154,6 +156,16 @@ function AdminOrdersPage() {
     }
     await refresh();
     toast.success("Order restored.");
+  }
+
+  async function clearTrash() {
+    setClearTrashOpen(false);
+    if (!(await purgeTrashedOrders())) {
+      toast.error("Couldn't empty the trash.");
+      return;
+    }
+    await refresh();
+    toast.success("Trash emptied.");
   }
 
   async function confirmPurge() {
@@ -322,10 +334,16 @@ function AdminOrdersPage() {
       {trashed.length > 0 ? (
         <Card className="shadow-none">
           <CardContent className="p-4 sm:p-5">
-            <h3 className="flex items-center gap-2 text-sm font-semibold">
-              <Trash2 className="h-4 w-4 text-muted-foreground" aria-hidden />
-              Trash
-            </h3>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h3 className="flex items-center gap-2 text-sm font-semibold">
+                <Trash2 className="h-4 w-4 text-muted-foreground" aria-hidden />
+                Trash
+              </h3>
+              <Button variant="destructive" size="sm" onClick={() => setClearTrashOpen(true)}>
+                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                Clear Trash ({trashed.length})
+              </Button>
+            </div>
             <ul className="mt-3 space-y-2">
               {trashed.map((o) => (
                 <li
@@ -359,6 +377,27 @@ function AdminOrdersPage() {
           </CardContent>
         </Card>
       ) : null}
+
+      <AlertDialog open={clearTrashOpen} onOpenChange={setClearTrashOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Empty the orders trash?</AlertDialogTitle>
+            <AlertDialogDescription>
+              All {trashed.length} trashed order{trashed.length === 1 ? "" : "s"} will be deleted permanently. This
+              cannot be undone and only affects orders.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => void clearTrash()}
+            >
+              Delete permanently
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Order detail dialog */}
       <Dialog open={viewing !== null} onOpenChange={(open) => !open && setViewing(null)}>

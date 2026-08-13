@@ -4,6 +4,11 @@ import { ArrowRight, Check, CheckCircle2, Clock, Copy, Send, Upload, X } from "l
 import { toast } from "sonner";
 
 import { MehndiPattern } from "@/components/site/MehndiPattern";
+import {
+  PreferredContactPicker,
+  formatPreferredContacts,
+  type PreferredContact,
+} from "@/components/site/PreferredContactPicker";
 import { Section } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { logWebsiteBooking } from "@/lib/bookings-db";
@@ -85,6 +90,7 @@ function CustomDesignPage() {
   const [budgetIdx, setBudgetIdx] = useState(0);
   const [budgetCustom, setBudgetCustom] = useState("");
   const [notes, setNotes] = useState("");
+  const [preferredContacts, setPreferredContacts] = useState<PreferredContact[]>([]);
   const [copied, setCopied] = useState(false);
 
   const occasion = b.occasion.options[occasionIdx] ?? b.occasion.options[0] ?? "";
@@ -120,6 +126,10 @@ function CustomDesignPage() {
       { label: clean(t.appointment.page.form.time), value: time },
       { label: clean(b.details.name), value: name },
       { label: clean(b.details.notes), value: notes },
+      {
+        label: locale === "zh" ? "首选联系方式" : "Preferred contact options",
+        value: formatPreferredContacts(preferredContacts, locale),
+      },
       { label: b.upload.title, value: files.length ? String(files.length) : "" },
     ];
     return list.filter((r) => r.value.trim() !== "");
@@ -136,6 +146,8 @@ function CustomDesignPage() {
     notes,
     files.length,
     t.appointment.page.form.time,
+    preferredContacts,
+    locale,
   ]);
 
   const message = useMemo(
@@ -200,6 +212,7 @@ function CustomDesignPage() {
         locale,
         channel: "other",
         referencePaths,
+        preferredContacts,
       });
       if (ok) {
         setStatus("done");
@@ -375,6 +388,7 @@ function CustomDesignPage() {
                         <Field label={b.details.date}>
                           <input
                             type="date"
+                            min={today}
                             value={date}
                             onChange={(e) => setDate(e.target.value)}
                             className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
@@ -450,6 +464,12 @@ function CustomDesignPage() {
                         )}
                       </Field>
                     </div>
+                    <PreferredContactPicker
+                      className="mt-4"
+                      value={preferredContacts}
+                      onChange={setPreferredContacts}
+                      locale={locale}
+                    />
                     <div className="mt-4">
                       <Field label={b.details.notes}>
                         <textarea

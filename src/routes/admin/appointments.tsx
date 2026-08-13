@@ -15,6 +15,17 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { BookingEditorDialog, sourceLabels, statusLabels } from "@/components/admin/BookingEditorDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { formatPreferredContacts } from "@/components/site/PreferredContactPicker";
 import { BilingualField, LangBadge } from "@/components/admin/BilingualField";
 import { StatCard } from "@/components/admin/StatCard";
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +53,7 @@ import {
   type AdminBooking,
   deleteDbBooking,
   insertDbBooking,
+  purgeTrashedBookings,
   setDbBookingTrashed,
   updateDbBooking,
   useDbBookings,
@@ -97,6 +109,7 @@ function AdminAppointmentsPage() {
   const [blockedInput, setBlockedInput] = useState("");
   const [photos, setPhotos] = useState<{ name: string; urls: string[] } | null>(null);
   const [photosLoading, setPhotosLoading] = useState(false);
+  const [clearTrashOpen, setClearTrashOpen] = useState(false);
 
   /** Signs the stored file paths on demand (links expire, paths do not). */
   async function openPhotos(b: AdminBooking) {
@@ -180,6 +193,16 @@ function AdminAppointmentsPage() {
     }
     await refreshBookings();
     toast.success("Deleted permanently.");
+  }
+
+  async function clearTrash() {
+    setClearTrashOpen(false);
+    if (!(await purgeTrashedBookings())) {
+      toast.error("Couldn't empty the trash.");
+      return;
+    }
+    await refreshBookings();
+    toast.success("Trash emptied.");
   }
 
   function toggleDay(d: number) {
@@ -306,6 +329,11 @@ function AdminAppointmentsPage() {
                         <TableCell>
                           <div className="font-medium">{b.name}</div>
                           <div className="text-xs text-muted-foreground">{b.contact}</div>
+                          {b.preferredContacts.length > 0 && (
+                            <div className="mt-1 text-xs text-primary">
+                              Prefers: {formatPreferredContacts(b.preferredContacts)}
+                            </div>
+                          )}
                         </TableCell>
                         <TableCell className="whitespace-nowrap text-muted-foreground">{b.service || "—"}</TableCell>
                         <TableCell className="whitespace-nowrap text-muted-foreground">{b.time || "—"}</TableCell>
@@ -369,9 +397,14 @@ function AdminAppointmentsPage() {
 
           {store.trashed.length > 0 && (
             <Card className="shadow-none">
-              <CardHeader>
-                <CardTitle className="font-display text-lg">Trash</CardTitle>
-                <CardDescription>Restore a booking or delete it permanently.</CardDescription>
+              <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3">
+                <div>
+                  <CardTitle className="font-display text-lg">Trash</CardTitle>
+                  <CardDescription>Restore a booking or delete it permanently.</CardDescription>
+                </div>
+                <Button variant="destructive" size="sm" onClick={() => setClearTrashOpen(true)}>
+                  <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Clear Trash ({store.trashed.length})
+                </Button>
               </CardHeader>
               <CardContent className="space-y-2">
                 {store.trashed.map((b) => (
@@ -403,6 +436,26 @@ function AdminAppointmentsPage() {
               </CardContent>
             </Card>
           )}
+          <AlertDialog open={clearTrashOpen} onOpenChange={setClearTrashOpen}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Empty the bookings trash?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  All {store.trashed.length} trashed booking{store.trashed.length === 1 ? "" : "s"} will be deleted
+                  permanently. This cannot be undone and only affects bookings.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  onClick={() => void clearTrash()}
+                >
+                  Delete permanently
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </TabsContent>
 
         {/* --------------------------------------------- Availability */}

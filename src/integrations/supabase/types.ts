@@ -27,6 +27,7 @@ export type Database = {
           name: string
           notes: string
           people: number
+          preferred_contacts: string[]
           reference_paths: string[]
           service: string
           source: string
@@ -45,6 +46,7 @@ export type Database = {
           name: string
           notes?: string
           people?: number
+          preferred_contacts?: string[]
           reference_paths?: string[]
           service?: string
           source?: string
@@ -63,6 +65,7 @@ export type Database = {
           name?: string
           notes?: string
           people?: number
+          preferred_contacts?: string[]
           reference_paths?: string[]
           service?: string
           source?: string

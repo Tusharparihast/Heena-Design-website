@@ -49,6 +49,8 @@ export interface Booking {
   notes: string;
   source: BookingSource;
   status: BookingStatus;
+  /** Channels the client prefers to be contacted through. */
+  preferredContacts?: string[];
   /** ISO timestamp of when the booking was logged. */
   createdAt: string;
 }
