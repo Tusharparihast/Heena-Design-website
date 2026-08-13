@@ -753,7 +753,7 @@ export const en = {
     rights: "All rights reserved.",
     motto: "Nepali artistry · Global mehndi",
   },
-} as const;
+};
 
 /** Widens the literal types of `en` so translations can supply their own copy. */
 type Widen<T> = T extends string
