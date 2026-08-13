@@ -86,6 +86,7 @@ function CustomDesignPage() {
   const time = page.timeSlots[timeIdx] ?? page.timeSlots[0] ?? "";
 
   const [people, setPeople] = useState("1");
+  const peopleOverLimit = Number(people) > page.maxPeople;
   const [placementIdx, setPlacementIdx] = useState(0);
   const [budgetIdx, setBudgetIdx] = useState(0);
   const [budgetCustom, setBudgetCustom] = useState("");
@@ -183,7 +184,7 @@ function CustomDesignPage() {
       toast.error(zh ? "所选日期暂不可预约，请选择其他日期。" : "That date isn't available — please pick another.");
       return false;
     }
-    if (Number(people) > page.maxPeople) {
+    if (peopleOverLimit) {
       toast.error(
         zh
           ? `每次预约最多 ${page.maxPeople} 人，请调整人数。`
@@ -428,16 +429,25 @@ function CustomDesignPage() {
                       </Field>
                     </div>
                     <div className="mt-4 grid items-start gap-4 sm:grid-cols-3">
-                      <Field label={b.details.people}>
-                        <input
-                          type="number"
-                          min={1}
-                          max={page.maxPeople}
-                          value={people}
-                          onChange={(e) => setPeople(e.target.value)}
-                          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                        />
-                      </Field>
+                      <div>
+                        <Field label={b.details.people}>
+                          <input
+                            type="number"
+                            min={1}
+                            max={page.maxPeople}
+                            value={people}
+                            onChange={(e) => setPeople(e.target.value)}
+                            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                          />
+                        </Field>
+                        {peopleOverLimit && (
+                          <p className="mt-1.5 text-xs font-medium text-destructive">
+                            {zh
+                              ? `每次预约最多 ${page.maxPeople} 人，请调整人数。`
+                              : `Maximum ${page.maxPeople} people per booking — please adjust the number.`}
+                          </p>
+                        )}
+                      </div>
                       <Field label={b.details.placement}>
                         <select
                           value={placementIdx}
