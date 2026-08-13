@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { LoaderCircle, ShieldX } from "lucide-react";
 
@@ -16,11 +16,17 @@ export function AdminAuthGate({ children }: { children: ReactNode }) {
   const [state, setState] = useState<GateState>("loading");
   const [email, setEmail] = useState("");
 
+  // Remember which user we already checked. Returning to the tab makes Supabase
+  // emit TOKEN_REFRESHED / SIGNED_IN for the *same* user; re-running the gate
+  // there would flip back to "loading" and remount the whole dashboard.
+  const checkedUserRef = useRef<string | null>(null);
+
   useEffect(() => {
     let cancelled = false;
 
     async function evaluate(userId: string | null, userEmail: string) {
       if (!userId) {
+        checkedUserRef.current = null;
         if (!cancelled) setState("anon");
         return;
       }
@@ -31,6 +37,7 @@ export function AdminAuthGate({ children }: { children: ReactNode }) {
         .eq("role", "admin")
         .maybeSingle();
       if (cancelled) return;
+      checkedUserRef.current = userId;
       setEmail(userEmail);
       setState(data && !error ? "ok" : "denied");
     }
@@ -39,8 +46,11 @@ export function AdminAuthGate({ children }: { children: ReactNode }) {
       evaluate(data.session?.user.id ?? null, data.session?.user.email ?? ""),
     );
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      const userId = session?.user.id ?? null;
+      // Same signed-in admin as before → nothing to re-verify, keep the UI as is.
+      if (userId && userId === checkedUserRef.current) return;
       setState("loading");
-      void evaluate(session?.user.id ?? null, session?.user.email ?? "");
+      void evaluate(userId, session?.user.email ?? "");
     });
     return () => {
       cancelled = true;
