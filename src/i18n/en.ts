@@ -755,4 +755,15 @@ export const en = {
   },
 } as const;
 
-export type Dict = typeof en;
+/** Widens the literal types of `en` so translations can supply their own copy. */
+type Widen<T> = T extends string
+  ? string
+  : T extends number
+    ? number
+    : T extends boolean
+      ? boolean
+      : T extends readonly (infer U)[]
+        ? Widen<U>[]
+        : { -readonly [K in keyof T]: Widen<T[K]> };
+
+export type Dict = Widen<typeof en>;
