@@ -222,12 +222,17 @@ export function useAdminNotifications() {
 
     // Deleted / trashed records drop out of the feed, so forget their read and
     // announced markers too — nothing stale survives a delete.
-    pruneAnnounced(liveIds, items.length >= MAX_ITEMS);
-    setRead((prev) => {
-      const next = new Set([...prev].filter((id) => liveIds.has(id)));
-      if (next.size !== prev.size) writeIds(next);
-      return next.size === prev.size ? prev : next;
-    });
+    const feedIsFull = items.length >= MAX_ITEMS;
+    pruneAnnounced(liveIds, feedIsFull);
+    if (!feedIsFull) {
+      setRead((prev) => {
+        const next = new Set([...prev].filter((id) => liveIds.has(id)));
+        if (next.size === prev.size) return prev;
+        writeIds(next);
+        return next;
+      });
+    }
+
 
     setRaw(items);
     setLoading(false);
