@@ -68,6 +68,25 @@ function claimNewIds(ids: string[]): string[] {
   return fresh;
 }
 
+/**
+ * Forgets announced ids whose record no longer exists. Only runs when the feed
+ * came back under its limit — then "missing" really means deleted, rather than
+ * simply pushed off the end of the list by newer activity.
+ */
+function pruneAnnounced(liveIds: Set<string>, feedIsFull: boolean) {
+  if (feedIsFull) return;
+  const seen = loadAnnounced();
+  let changed = false;
+  for (const id of [...seen]) {
+    if (!liveIds.has(id)) {
+      seen.delete(id);
+      changed = true;
+    }
+  }
+  if (changed) persistAnnounced();
+}
+
+
 function readIds(): Set<string> {
   if (typeof window === "undefined") return new Set();
   try {
