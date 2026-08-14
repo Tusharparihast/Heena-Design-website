@@ -112,22 +112,28 @@ interface RawItem {
 
 async function fetchFeed(): Promise<RawItem[]> {
   const [bookings, orders, products] = await Promise.all([
+    // Trashed / deleted rows are filtered in the database, so a deleted
+    // appointment, order or product can never leave a stale notification.
     supabase
       .from("bookings")
       .select("id, name, service, kind, status, created_at, trashed_at")
+      .is("trashed_at", null)
       .order("created_at", { ascending: false })
       .limit(MAX_ITEMS),
     supabase
       .from("order_requests")
       .select("id, customer_name, total_npr, status, created_at, trashed_at")
+      .is("trashed_at", null)
       .order("created_at", { ascending: false })
       .limit(MAX_ITEMS),
     supabase
       .from("products")
       .select("id, name_en, created_at, updated_at, deleted")
+      .eq("deleted", false)
       .order("updated_at", { ascending: false })
       .limit(MAX_ITEMS),
   ]);
+
 
   const items: RawItem[] = [];
 
