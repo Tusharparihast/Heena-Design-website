@@ -186,6 +186,7 @@ export function useAdminNotifications() {
   const [loading, setLoading] = useState(true);
   const refresh = useCallback(async () => {
     const items = await fetchFeed();
+    const liveIds = new Set(items.map((item) => item.id));
 
     // Claim ids before alerting: whichever copy of this hook gets there first
     // owns the alert, and a revisited tab claims nothing because the ids were
@@ -200,9 +201,19 @@ export function useAdminNotifications() {
       }
     }
 
+    // Deleted / trashed records drop out of the feed, so forget their read and
+    // announced markers too — nothing stale survives a delete.
+    pruneAnnounced(liveIds);
+    setRead((prev) => {
+      const next = new Set([...prev].filter((id) => liveIds.has(id)));
+      if (next.size !== prev.size) writeIds(next);
+      return next.size === prev.size ? prev : next;
+    });
+
     setRaw(items);
     setLoading(false);
   }, []);
+
 
   useEffect(() => {
     setRead(readIds());
