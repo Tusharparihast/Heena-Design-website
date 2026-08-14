@@ -2,10 +2,10 @@ import {
   CalendarCheck,
   CircleHelp,
   ClipboardList,
-  
   GraduationCap,
   Home,
   Images,
+  Info,
   LayoutDashboard,
   MessageSquareQuote,
   Phone,
@@ -14,6 +14,7 @@ import {
   ShoppingBag,
   type LucideIcon,
 } from "lucide-react";
+
 
 export interface AdminNavItem {
   label: string;
@@ -26,7 +27,9 @@ export interface AdminNavItem {
 export const adminNavItems: AdminNavItem[] = [
   { label: "Dashboard", to: "/admin", icon: LayoutDashboard, exact: true },
   { label: "Homepage", to: "/admin/homepage", icon: Home },
+  { label: "About Page", to: "/admin/about", icon: Info },
   { label: "Gallery", to: "/admin/gallery", icon: Images },
+
   { label: "Courses", to: "/admin/courses", icon: GraduationCap },
   { label: "Appointments", to: "/admin/appointments", icon: CalendarCheck },
   { label: "Testimonials", to: "/admin/testimonials", icon: MessageSquareQuote },

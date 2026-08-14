@@ -68,6 +68,25 @@ function claimNewIds(ids: string[]): string[] {
   return fresh;
 }
 
+/**
+ * Forgets announced ids whose record no longer exists. Only runs when the feed
+ * came back under its limit — then "missing" really means deleted, rather than
+ * simply pushed off the end of the list by newer activity.
+ */
+function pruneAnnounced(liveIds: Set<string>, feedIsFull: boolean) {
+  if (feedIsFull) return;
+  const seen = loadAnnounced();
+  let changed = false;
+  for (const id of [...seen]) {
+    if (!liveIds.has(id)) {
+      seen.delete(id);
+      changed = true;
+    }
+  }
+  if (changed) persistAnnounced();
+}
+
+
 function readIds(): Set<string> {
   if (typeof window === "undefined") return new Set();
   try {
@@ -112,22 +131,28 @@ interface RawItem {
 
 async function fetchFeed(): Promise<RawItem[]> {
   const [bookings, orders, products] = await Promise.all([
+    // Trashed / deleted rows are filtered in the database, so a deleted
+    // appointment, order or product can never leave a stale notification.
     supabase
       .from("bookings")
       .select("id, name, service, kind, status, created_at, trashed_at")
+      .is("trashed_at", null)
       .order("created_at", { ascending: false })
       .limit(MAX_ITEMS),
     supabase
       .from("order_requests")
       .select("id, customer_name, total_npr, status, created_at, trashed_at")
+      .is("trashed_at", null)
       .order("created_at", { ascending: false })
       .limit(MAX_ITEMS),
     supabase
       .from("products")
       .select("id, name_en, created_at, updated_at, deleted")
+      .eq("deleted", false)
       .order("updated_at", { ascending: false })
       .limit(MAX_ITEMS),
   ]);
+
 
   const items: RawItem[] = [];
 
@@ -180,6 +205,7 @@ export function useAdminNotifications() {
   const [loading, setLoading] = useState(true);
   const refresh = useCallback(async () => {
     const items = await fetchFeed();
+    const liveIds = new Set(items.map((item) => item.id));
 
     // Claim ids before alerting: whichever copy of this hook gets there first
     // owns the alert, and a revisited tab claims nothing because the ids were
@@ -194,9 +220,24 @@ export function useAdminNotifications() {
       }
     }
 
+    // Deleted / trashed records drop out of the feed, so forget their read and
+    // announced markers too — nothing stale survives a delete.
+    const feedIsFull = items.length >= MAX_ITEMS;
+    pruneAnnounced(liveIds, feedIsFull);
+    if (!feedIsFull) {
+      setRead((prev) => {
+        const next = new Set([...prev].filter((id) => liveIds.has(id)));
+        if (next.size === prev.size) return prev;
+        writeIds(next);
+        return next;
+      });
+    }
+
+
     setRaw(items);
     setLoading(false);
   }, []);
+
 
   useEffect(() => {
     setRead(readIds());
