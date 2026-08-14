@@ -2,10 +2,10 @@ import {
   CalendarCheck,
   CircleHelp,
   ClipboardList,
-  
   GraduationCap,
   Home,
   Images,
+  Info,
   LayoutDashboard,
   MessageSquareQuote,
   Phone,
@@ -14,6 +14,7 @@ import {
   ShoppingBag,
   type LucideIcon,
 } from "lucide-react";
+
 
 export interface AdminNavItem {
   label: string;
