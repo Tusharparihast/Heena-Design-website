@@ -6,9 +6,13 @@ import { toast } from "sonner";
 import { MehndiPattern } from "@/components/site/MehndiPattern";
 import {
   PreferredContactPicker,
-  formatPreferredContacts,
+  cleanPreferredContactDetails,
+  formatPreferredContactDetails,
+  validatePreferredContacts,
   type PreferredContact,
+  type PreferredContactDetails,
 } from "@/components/site/PreferredContactPicker";
+
 import { Section } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { dateAvailability, useAppointmentSettings, useEffectiveAppointmentPage } from "@/lib/appointments";
