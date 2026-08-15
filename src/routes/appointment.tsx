@@ -54,6 +54,7 @@ function AppointmentPage() {
   const [people, setPeople] = useState("1");
   const [notes, setNotes] = useState("");
   const [preferredContacts, setPreferredContacts] = useState<PreferredContact[]>([]);
+  const [contactDetails, setContactDetails] = useState<PreferredContactDetails>({});
   const [copied, setCopied] = useState(false);
 
   const service = page.services[serviceIdx] ?? page.services[0] ?? "";
@@ -78,7 +79,7 @@ function AppointmentPage() {
       { label: clean(a.form.contact), value: contact },
       {
         label: locale === "zh" ? "首选联系方式" : "Preferred contact options",
-        value: formatPreferredContacts(preferredContacts, locale),
+        value: formatPreferredContactDetails(preferredContacts, contactDetails, locale),
       },
       { label: clean(a.form.service), value: service },
       { label: clean(a.form.date), value: date },
@@ -87,7 +88,7 @@ function AppointmentPage() {
       { label: clean(a.form.notes), value: notes },
     ];
     return list.filter((r) => r.value.trim() !== "");
-  }, [a, name, contact, service, date, time, people, notes, preferredContacts, locale]);
+  }, [a, name, contact, service, date, time, people, notes, preferredContacts, contactDetails, locale]);
 
   const message = useMemo(
     () => [page.title, ...rows.map((r) => `${r.label}: ${r.value}`)].join("\n"),
@@ -105,6 +106,11 @@ function AppointmentPage() {
     }
     if (!contact.trim()) {
       toast.error(zh ? "请填写微信号或电话，方便我们联系您。" : "Please add a WeChat ID or phone number.");
+      return false;
+    }
+    const contactError = validatePreferredContacts(preferredContacts, contactDetails, locale);
+    if (contactError) {
+      toast.error(contactError);
       return false;
     }
     if (!date) {
@@ -142,6 +148,7 @@ function AppointmentPage() {
       locale,
       channel: "other",
       preferredContacts,
+      contactDetails: cleanPreferredContactDetails(preferredContacts, contactDetails),
     });
     if (ok) {
       setStatus("done");
@@ -212,6 +219,8 @@ function AppointmentPage() {
               className="mt-5"
               value={preferredContacts}
               onChange={setPreferredContacts}
+              details={contactDetails}
+              onDetailsChange={setContactDetails}
               locale={locale}
             />
 
