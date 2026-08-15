@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { useRouterState } from "@tanstack/react-router";
 import { usePublicSiteSettings } from "@/lib/site-settings-db";
+import { seoPathKey, useSeoPages } from "@/lib/seo-pages";
+
 
 function upsertMeta(attr: "name" | "property", key: string, content: string) {
   if (!content) return;
