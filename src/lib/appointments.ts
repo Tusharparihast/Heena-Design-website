@@ -51,6 +51,9 @@ export interface Booking {
   status: BookingStatus;
   /** Channels the client prefers to be contacted through. */
   preferredContacts?: string[];
+  /** Contact detail per selected channel, e.g. { wechat: "id", phone: "98…" }. */
+  contactDetails?: Record<string, string>;
+
   /** ISO timestamp of when the booking was logged. */
   createdAt: string;
 }
