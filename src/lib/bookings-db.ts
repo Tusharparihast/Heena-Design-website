@@ -175,6 +175,8 @@ export async function logWebsiteBooking(input: {
   referencePaths?: string[];
   /** Channels the client prefers to be contacted through. */
   preferredContacts?: string[];
+  /** Contact detail per selected channel, e.g. { wechat: "id" }. */
+  contactDetails?: Record<string, string>;
 }): Promise<boolean> {
   if (!input.name.trim()) return false;
   try {
@@ -192,6 +194,8 @@ export async function logWebsiteBooking(input: {
       locale: input.locale ?? "en",
       reference_paths: (input.referencePaths ?? []).slice(0, 20),
       preferred_contacts: (input.preferredContacts ?? []).slice(0, 6),
+      details: { contacts: input.contactDetails ?? {} },
+
     });
     return !error;
   } catch {
