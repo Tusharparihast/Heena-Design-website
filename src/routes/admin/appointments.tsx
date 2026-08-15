@@ -326,15 +326,25 @@ function AdminAppointmentsPage() {
                     {filtered.map((b) => (
                       <TableRow key={b.id}>
                         <TableCell className="pl-6 font-medium whitespace-nowrap">{fmtDate(b.date)}</TableCell>
-                        <TableCell>
+                        <TableCell className="min-w-[220px]">
                           <div className="font-medium">{b.name}</div>
-                          <div className="text-xs text-muted-foreground">{b.contact}</div>
+                          {b.contact && <div className="text-xs text-muted-foreground">{b.contact}</div>}
                           {b.preferredContacts.length > 0 && (
-                            <div className="mt-1 text-xs text-primary">
-                              Prefers: {formatPreferredContacts(b.preferredContacts)}
-                            </div>
+                            <ul className="mt-1.5 space-y-1">
+                              {b.preferredContacts.map((c) => (
+                                <li key={c} className="flex flex-wrap items-center gap-1.5 text-xs">
+                                  <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 font-medium text-primary">
+                                    {formatPreferredContacts([c])}
+                                  </span>
+                                  <span className="break-all text-muted-foreground">
+                                    {b.contactDetails[c] || "—"}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
                           )}
                         </TableCell>
+
                         <TableCell className="whitespace-nowrap text-muted-foreground">{b.service || "—"}</TableCell>
                         <TableCell className="whitespace-nowrap text-muted-foreground">{b.time || "—"}</TableCell>
                         <TableCell>{b.people}</TableCell>
