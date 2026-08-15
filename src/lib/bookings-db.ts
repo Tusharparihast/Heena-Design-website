@@ -113,6 +113,8 @@ function bookingPayload(b: Booking) {
     source: b.source,
     status: b.status,
     preferred_contacts: (b.preferredContacts ?? []).slice(0, 6),
+    details: { contacts: b.contactDetails ?? {} },
+
   };
 }
 
