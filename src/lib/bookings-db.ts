@@ -11,6 +11,8 @@ export interface AdminBooking extends Booking {
   trashed: boolean;
   /** Channels the client marked as preferred (wechat / whatsapp / phone / email). */
   preferredContacts: string[];
+  /** The actual contact detail per selected channel, e.g. { wechat: "id" }. */
+  contactDetails: Record<string, string>;
   /** Storage paths of reference photos sent with a custom-design request. */
   referencePaths: string[];
 }
@@ -31,6 +33,7 @@ interface BookingRow {
   trashed_at: string | null;
   reference_paths: string[] | null;
   preferred_contacts: string[] | null;
+  details?: unknown;
 }
 
 function asSource(value: string): BookingSource {
@@ -39,6 +42,18 @@ function asSource(value: string): BookingSource {
 
 function asStatus(value: string): BookingStatus {
   return (bookingStatuses as string[]).includes(value) ? (value as BookingStatus) : "pending";
+}
+
+/** Reads `details.contacts` (a plain string map) defensively. */
+function readContactDetails(details: unknown): Record<string, string> {
+  if (!details || typeof details !== "object") return {};
+  const contacts = (details as { contacts?: unknown }).contacts;
+  if (!contacts || typeof contacts !== "object") return {};
+  const out: Record<string, string> = {};
+  Object.entries(contacts as Record<string, unknown>).forEach(([k, v]) => {
+    if (typeof v === "string" && v.trim()) out[k] = v.trim();
+  });
+  return out;
 }
 
 function rowToBooking(row: BookingRow): AdminBooking {
@@ -57,8 +72,10 @@ function rowToBooking(row: BookingRow): AdminBooking {
     trashed: row.trashed_at != null,
     referencePaths: Array.isArray(row.reference_paths) ? row.reference_paths : [],
     preferredContacts: Array.isArray(row.preferred_contacts) ? row.preferred_contacts : [],
+    contactDetails: readContactDetails(row.details),
   };
 }
+
 
 /** All bookings (active + trashed) for the admin dashboard. */
 export function useDbBookings() {
