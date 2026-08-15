@@ -74,6 +74,7 @@ export function BookingEditorDialog({ open, onOpenChange, booking, onSave }: Boo
   const [source, setSource] = useState<BookingSource>("whatsapp");
   const [status, setStatus] = useState<BookingStatus>("pending");
   const [preferred, setPreferred] = useState<PreferredContact[]>([]);
+  const [contactDetails, setContactDetails] = useState<Record<string, string>>({});
 
   // Reset the form whenever the dialog opens for a different booking.
   useEffect(() => {
@@ -87,6 +88,7 @@ export function BookingEditorDialog({ open, onOpenChange, booking, onSave }: Boo
     setNotes(booking?.notes ?? "");
     setSource(booking?.source ?? "whatsapp");
     setStatus(booking?.status ?? "pending");
+    setContactDetails({ ...(booking?.contactDetails ?? {}) });
     setPreferred(
       ((booking?.preferredContacts ?? []) as string[]).filter((v): v is PreferredContact =>
         (preferredContactOptions as readonly string[]).includes(v),
@@ -120,6 +122,9 @@ export function BookingEditorDialog({ open, onOpenChange, booking, onSave }: Boo
       source,
       status,
       preferredContacts: preferred,
+      contactDetails: Object.fromEntries(
+        preferred.map((id) => [id, (contactDetails[id] ?? "").trim()]).filter(([, v]) => v !== ""),
+      ),
       createdAt: booking?.createdAt ?? new Date().toISOString(),
     });
     onOpenChange(false);
@@ -244,6 +249,22 @@ export function BookingEditorDialog({ open, onOpenChange, booking, onSave }: Boo
                 );
               })}
             </div>
+            {preferred.length > 0 && (
+              <div className="grid gap-3 pt-1 sm:grid-cols-2">
+                {preferredContactOptions
+                  .filter((id) => preferred.includes(id))
+                  .map((id) => (
+                    <div key={id} className="space-y-1.5">
+                      <Label className="text-xs">{preferredContactLabels[id].en} detail</Label>
+                      <Input
+                        value={contactDetails[id] ?? ""}
+                        onChange={(e) => setContactDetails((prev) => ({ ...prev, [id]: e.target.value }))}
+                        placeholder={id === "wechat" ? "WeChat ID" : id === "email" ? "you@example.com" : "+977 98…"}
+                      />
+                    </div>
+                  ))}
+              </div>
+            )}
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">

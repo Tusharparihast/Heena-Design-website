@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Bell, Image as ImageIcon, ShieldCheck, TrendingUp, UsersRound } from "lucide-react";
+import { Bell, FileText, Image as ImageIcon, ShieldCheck, TrendingUp, UsersRound } from "lucide-react";
 import { toast } from "sonner";
 import { AdminTeamPage } from "./team";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import {
   setNotificationSoundEnabled,
   showBrowserNotification,
 } from "@/lib/notification-prefs";
+import { emptyPageSeo, saveSeoPages, seoPageDefs, useSeoPages, type SeoPageMap } from "@/lib/seo-pages";
 import { updateSiteSettings, useAdminSiteSettings, type SiteSettings } from "@/lib/site-settings-db";
 import { useCurrentAdmin } from "@/lib/use-current-admin";
 import { cn } from "@/lib/utils";
@@ -28,10 +29,11 @@ export const Route = createFileRoute("/admin/settings")({
   component: AdminSettingsPage,
 });
 
-type Tab = "seo" | "users" | "security" | "notifications";
+type Tab = "seo" | "pages" | "users" | "security" | "notifications";
 
 const tabs: { id: Tab; label: string; icon: typeof TrendingUp }[] = [
   { id: "seo", label: "SEO Settings", icon: TrendingUp },
+  { id: "pages", label: "Page SEO", icon: FileText },
   { id: "users", label: "Users & Access", icon: UsersRound },
   { id: "security", label: "Security", icon: ShieldCheck },
   { id: "notifications", label: "Notifications", icon: Bell },
@@ -70,6 +72,7 @@ function AdminSettingsPage() {
       </div>
 
       {tab === "seo" ? <SeoSettingsSection /> : null}
+      {tab === "pages" ? <PageSeoSection /> : null}
       {tab === "users" ? <AdminTeamPage /> : null}
       {tab === "security" ? <SecuritySection /> : null}
       {tab === "notifications" ? <NotificationsSection /> : null}
@@ -207,6 +210,96 @@ function SeoSettingsSection() {
 
         <Button onClick={() => void save()} disabled={saving}>
           {saving ? "Saving…" : "Save SEO settings"}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+/* ---------------- Per-page SEO ---------------- */
+
+function PageSeoSection() {
+  const { pages, loaded } = useSeoPages();
+  const [form, setForm] = useState<SeoPageMap>({});
+  const [synced, setSynced] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (loaded && !synced) {
+      setForm(pages);
+      setSynced(true);
+    }
+  }, [loaded, synced, pages]);
+
+  if (!loaded || !synced) {
+    return (
+      <Card className="shadow-none">
+        <CardContent className="py-12 text-center text-sm text-muted-foreground">Loading…</CardContent>
+      </Card>
+    );
+  }
+
+  const update = (path: string, patch: Partial<typeof emptyPageSeo>) =>
+    setForm((prev) => ({ ...prev, [path]: { ...emptyPageSeo, ...prev[path], ...patch } }));
+
+  async function save() {
+    setSaving(true);
+    const ok = await saveSeoPages(form);
+    setSaving(false);
+    toast[ok ? "success" : "error"](ok ? "Page SEO saved." : "Couldn't save — please try again.");
+  }
+
+  return (
+    <Card className="shadow-none">
+      <CardContent className="space-y-5 p-4 sm:p-6">
+        <p className="text-sm text-muted-foreground">
+          Set a custom search title, meta description and social share image for each public page. Leave a field
+          empty to keep the page's built-in text.
+        </p>
+
+        {seoPageDefs.map((page) => {
+          const value = form[page.path] ?? emptyPageSeo;
+          return (
+            <div key={page.path} className="space-y-3 rounded-xl border border-border p-4">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <p className="text-sm font-semibold">{page.label}</p>
+                <code className="text-xs text-muted-foreground">{page.path}</code>
+              </div>
+              <div>
+                <Label className="text-xs">Search title</Label>
+                <Input
+                  value={value.title}
+                  onChange={(e) => update(page.path, { title: e.target.value })}
+                  placeholder={`${page.hint} — Nagma Designs`}
+                  maxLength={120}
+                  className="mt-1.5"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Meta description</Label>
+                <Textarea
+                  value={value.description}
+                  onChange={(e) => update(page.path, { description: e.target.value })}
+                  rows={2}
+                  maxLength={320}
+                  className="mt-1.5"
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Social share image URL</Label>
+                <Input
+                  value={value.ogImage}
+                  onChange={(e) => update(page.path, { ogImage: e.target.value })}
+                  placeholder="https://…"
+                  className="mt-1.5"
+                />
+              </div>
+            </div>
+          );
+        })}
+
+        <Button onClick={() => void save()} disabled={saving}>
+          {saving ? "Saving…" : "Save page SEO"}
         </Button>
       </CardContent>
     </Card>

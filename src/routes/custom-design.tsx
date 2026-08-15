@@ -6,8 +6,11 @@ import { toast } from "sonner";
 import { MehndiPattern } from "@/components/site/MehndiPattern";
 import {
   PreferredContactPicker,
-  formatPreferredContacts,
+  cleanPreferredContactDetails,
+  formatPreferredContactDetails,
+  validatePreferredContacts,
   type PreferredContact,
+  type PreferredContactDetails,
 } from "@/components/site/PreferredContactPicker";
 import { Section } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
@@ -92,6 +95,7 @@ function CustomDesignPage() {
   const [budgetCustom, setBudgetCustom] = useState("");
   const [notes, setNotes] = useState("");
   const [preferredContacts, setPreferredContacts] = useState<PreferredContact[]>([]);
+  const [contactDetails, setContactDetails] = useState<PreferredContactDetails>({});
   const [copied, setCopied] = useState(false);
 
   const occasion = b.occasion.options[occasionIdx] ?? b.occasion.options[0] ?? "";
@@ -129,7 +133,7 @@ function CustomDesignPage() {
       { label: clean(b.details.notes), value: notes },
       {
         label: locale === "zh" ? "首选联系方式" : "Preferred contact options",
-        value: formatPreferredContacts(preferredContacts, locale),
+        value: formatPreferredContactDetails(preferredContacts, contactDetails, locale),
       },
       { label: b.upload.title, value: files.length ? String(files.length) : "" },
     ];
@@ -148,6 +152,7 @@ function CustomDesignPage() {
     files.length,
     t.appointment.page.form.time,
     preferredContacts,
+    contactDetails,
     locale,
   ]);
 
@@ -172,6 +177,11 @@ function CustomDesignPage() {
   async function submitRequest(): Promise<boolean> {
     if (!name.trim()) {
       toast.error(zh ? "请填写您的姓名。" : "Please enter your name.");
+      return false;
+    }
+    const contactError = validatePreferredContacts(preferredContacts, contactDetails, locale);
+    if (contactError) {
+      toast.error(contactError);
       return false;
     }
     if (date && availability === "past") {
@@ -223,6 +233,7 @@ function CustomDesignPage() {
         channel: "other",
         referencePaths,
         preferredContacts,
+        contactDetails: cleanPreferredContactDetails(preferredContacts, contactDetails),
       });
       if (ok) {
         setStatus("done");
@@ -488,6 +499,8 @@ function CustomDesignPage() {
                       className="mt-4"
                       value={preferredContacts}
                       onChange={setPreferredContacts}
+                      details={contactDetails}
+                      onDetailsChange={setContactDetails}
                       locale={locale}
                     />
                     <div className="mt-4">

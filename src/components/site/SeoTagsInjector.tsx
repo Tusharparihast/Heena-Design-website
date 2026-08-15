@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { useRouterState } from "@tanstack/react-router";
 import { usePublicSiteSettings } from "@/lib/site-settings-db";
+import { seoPathKey, useSeoPages } from "@/lib/seo-pages";
+
 
 function upsertMeta(attr: "name" | "property", key: string, content: string) {
   if (!content) return;
@@ -16,7 +18,9 @@ function upsertMeta(attr: "name" | "property", key: string, content: string) {
 /** Injects site-wide SEO tags (title suffix, description, OG image, robots, GA, Search Console). */
 export function SeoTagsInjector() {
   const { settings, loaded } = usePublicSiteSettings();
+  const { pages } = useSeoPages();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const pageSeo = pages[seoPathKey(pathname)];
 
   // Robots / verification / analytics — site-wide, applied once settings load.
   useEffect(() => {
@@ -54,6 +58,9 @@ export function SeoTagsInjector() {
 
     const apply = () => {
       if (cancelled) return;
+      // Admin-managed per-page overrides win over the route's own head().
+      const overrideTitle = pageSeo?.title.trim();
+      if (overrideTitle) document.title = overrideTitle;
       const suffix = settings.seoTitleSuffix.trim();
       const base = document.title.trim();
       if (suffix && base && !base.endsWith(suffix)) {
@@ -65,7 +72,8 @@ export function SeoTagsInjector() {
         .querySelector('meta[name="description"]')
         ?.getAttribute("content")
         ?.trim();
-      const description = existingDesc || settings.seoDefaultDescription.trim();
+      const description =
+        pageSeo?.description.trim() || existingDesc || settings.seoDefaultDescription.trim();
       if (description) upsertMeta("name", "description", description);
 
       upsertMeta("property", "og:title", title);
@@ -75,11 +83,12 @@ export function SeoTagsInjector() {
         upsertMeta("name", "twitter:description", description);
       }
       upsertMeta("property", "og:type", "website");
-      upsertMeta("name", "twitter:card", settings.seoOgImage ? "summary_large_image" : "summary");
+      const ogImage = pageSeo?.ogImage.trim() || settings.seoOgImage;
+      upsertMeta("name", "twitter:card", ogImage ? "summary_large_image" : "summary");
       upsertMeta("property", "og:url", window.location.href);
-      if (settings.seoOgImage) {
-        upsertMeta("property", "og:image", settings.seoOgImage);
-        upsertMeta("name", "twitter:image", settings.seoOgImage);
+      if (ogImage) {
+        upsertMeta("property", "og:image", ogImage);
+        upsertMeta("name", "twitter:image", ogImage);
       }
     };
 
@@ -93,7 +102,7 @@ export function SeoTagsInjector() {
       cancelled = true;
       cancelAnimationFrame(raf);
     };
-  }, [loaded, settings, pathname]);
+  }, [loaded, settings, pathname, pageSeo]);
 
   return null;
 }

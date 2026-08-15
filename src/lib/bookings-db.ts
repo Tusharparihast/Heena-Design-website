@@ -11,6 +11,8 @@ export interface AdminBooking extends Booking {
   trashed: boolean;
   /** Channels the client marked as preferred (wechat / whatsapp / phone / email). */
   preferredContacts: string[];
+  /** The actual contact detail per selected channel, e.g. { wechat: "id" }. */
+  contactDetails: Record<string, string>;
   /** Storage paths of reference photos sent with a custom-design request. */
   referencePaths: string[];
 }
@@ -31,6 +33,7 @@ interface BookingRow {
   trashed_at: string | null;
   reference_paths: string[] | null;
   preferred_contacts: string[] | null;
+  details?: unknown;
 }
 
 function asSource(value: string): BookingSource {
@@ -39,6 +42,18 @@ function asSource(value: string): BookingSource {
 
 function asStatus(value: string): BookingStatus {
   return (bookingStatuses as string[]).includes(value) ? (value as BookingStatus) : "pending";
+}
+
+/** Reads `details.contacts` (a plain string map) defensively. */
+function readContactDetails(details: unknown): Record<string, string> {
+  if (!details || typeof details !== "object") return {};
+  const contacts = (details as { contacts?: unknown }).contacts;
+  if (!contacts || typeof contacts !== "object") return {};
+  const out: Record<string, string> = {};
+  Object.entries(contacts as Record<string, unknown>).forEach(([k, v]) => {
+    if (typeof v === "string" && v.trim()) out[k] = v.trim();
+  });
+  return out;
 }
 
 function rowToBooking(row: BookingRow): AdminBooking {
@@ -57,8 +72,10 @@ function rowToBooking(row: BookingRow): AdminBooking {
     trashed: row.trashed_at != null,
     referencePaths: Array.isArray(row.reference_paths) ? row.reference_paths : [],
     preferredContacts: Array.isArray(row.preferred_contacts) ? row.preferred_contacts : [],
+    contactDetails: readContactDetails(row.details),
   };
 }
+
 
 /** All bookings (active + trashed) for the admin dashboard. */
 export function useDbBookings() {
@@ -96,6 +113,8 @@ function bookingPayload(b: Booking) {
     source: b.source,
     status: b.status,
     preferred_contacts: (b.preferredContacts ?? []).slice(0, 6),
+    details: { contacts: b.contactDetails ?? {} },
+
   };
 }
 
@@ -156,6 +175,8 @@ export async function logWebsiteBooking(input: {
   referencePaths?: string[];
   /** Channels the client prefers to be contacted through. */
   preferredContacts?: string[];
+  /** Contact detail per selected channel, e.g. { wechat: "id" }. */
+  contactDetails?: Record<string, string>;
 }): Promise<boolean> {
   if (!input.name.trim()) return false;
   try {
@@ -173,6 +194,8 @@ export async function logWebsiteBooking(input: {
       locale: input.locale ?? "en",
       reference_paths: (input.referencePaths ?? []).slice(0, 20),
       preferred_contacts: (input.preferredContacts ?? []).slice(0, 6),
+      details: { contacts: input.contactDetails ?? {} },
+
     });
     return !error;
   } catch {
