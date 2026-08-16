@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Copy, Phone, QrCode, X } from "lucide-react";
+import { Check, Copy, Phone, QrCode, X } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
 import { WeChatIcon, WhatsAppIcon } from "@/components/site/BrandIcons";
@@ -9,10 +9,59 @@ import { site } from "@/lib/site";
 const POS_KEY = "nd-wechat-fab-pos";
 const BTN = 56; // 14 * 4px
 const MARGIN = 12;
+const PANEL_W = 288; // w-72
+const PANEL_H = 380; // approx content height
+const GAP = 12;
 
 interface Pos {
   x: number;
   y: number;
+}
+
+type Placement = "up" | "down" | "left" | "right";
+
+/** Default position (bottom-right) used before the user drags. */
+function defaultPos(): Pos {
+  return {
+    x: window.innerWidth - BTN - MARGIN,
+    y: window.innerHeight - BTN - MARGIN,
+  };
+}
+
+/** Choose which side the panel opens toward, based on available space. */
+function choosePlacement(p: Pos): { placement: Placement; anchoredLeft: boolean } {
+  const VW = window.innerWidth;
+  const VH = window.innerHeight;
+  const spaceUp = p.y - MARGIN;
+  const spaceDown = VH - p.y - BTN - MARGIN;
+  const spaceLeft = p.x - MARGIN;
+  const spaceRight = VW - p.x - BTN - MARGIN;
+  const cands: { dir: Placement; space: number; need: number }[] = [
+    { dir: "up", space: spaceUp, need: PANEL_H },
+    { dir: "down", space: spaceDown, need: PANEL_H },
+    { dir: "left", space: spaceLeft, need: PANEL_W },
+    { dir: "right", space: spaceRight, need: PANEL_W },
+  ];
+  const fitting = cands.filter((c) => c.space >= c.need);
+  const pool = fitting.length ? fitting : cands;
+  let best = pool[0]!;
+  for (const c of pool) if (c.space > best.space) best = c;
+  return { placement: best.dir, anchoredLeft: p.x < VW / 2 };
+}
+
+/** If the button was dropped in the middle of the screen, slide it to the nearest side. */
+function snapToSide(p: Pos): Pos {
+  const VW = window.innerWidth;
+  const leftEdge = MARGIN;
+  const rightEdge = VW - BTN - MARGIN;
+  const distLeft = p.x - leftEdge;
+  const distRight = rightEdge - p.x;
+  const edgeBand = VW * 0.22;
+  if (Math.min(distLeft, distRight) > edgeBand) {
+    const x = distLeft <= distRight ? leftEdge : rightEdge;
+    return { x, y: p.y };
+  }
+  return p;
 }
 
 /**
@@ -20,17 +69,21 @@ interface Pos {
  * WeChat offers no web chat link, so the panel copies the studio's
  * WeChat ID (with toast feedback), shows a scannable QR that can be
  * expanded, and offers WhatsApp / phone fallbacks.
- * The floating button can be dragged anywhere on screen (touch or mouse).
+ * The floating button can be dragged anywhere on screen (touch or mouse);
+ * dropped in the middle it slides to the nearest side, and the panel opens
+ * up/down/left/right depending on where there is room.
  */
 export function FloatingWeChat() {
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [visible, setVisible] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [pos, setPos] = useState<Pos | null>(null);
   const [dragging, setDragging] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ dx: number; dy: number; moved: boolean } | null>(null);
+  const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clamp = useCallback((p: Pos): Pos => {
     const maxX = window.innerWidth - BTN - MARGIN;
@@ -41,18 +94,23 @@ export function FloatingWeChat() {
     };
   }, []);
 
-  // Restore saved position after hydration.
+  // Restore saved position after hydration (and snap to side if it was mid-screen).
   useEffect(() => {
+    let restored: Pos | null = null;
     try {
       const raw = localStorage.getItem(POS_KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as Pos;
-        if (typeof parsed?.x === "number" && typeof parsed?.y === "number") setPos(clamp(parsed));
+        if (typeof parsed?.x === "number" && typeof parsed?.y === "number") {
+          restored = clamp(snapToSide(parsed));
+        }
       }
     } catch {
       /* ignore */
     }
-    const onResize = () => setPos((p) => (p ? clamp(p) : p));
+    if (restored) setPos(restored);
+    const onResize = () =>
+      setPos((p) => (p ? clamp(snapToSide(p)) : p));
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, [clamp]);
@@ -81,14 +139,23 @@ export function FloatingWeChat() {
     };
   }, [open]);
 
-  const copyId = async () => {
+  useEffect(() => {
+    return () => {
+      if (copiedTimer.current) clearTimeout(copiedTimer.current);
+    };
+  }, []);
+
+  const copyId = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(site.wechatId);
-      toast.success(t.contact.copied);
     } catch {
-      toast.error(site.wechatId);
+      /* clipboard may be blocked; still confirm visually */
     }
-  };
+    toast.success(t.contact.copied);
+    setCopied(true);
+    if (copiedTimer.current) clearTimeout(copiedTimer.current);
+    copiedTimer.current = setTimeout(() => setCopied(false), 2200);
+  }, [t.contact.copied]);
 
   const startDrag = (e: React.PointerEvent<HTMLButtonElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -114,22 +181,53 @@ export function FloatingWeChat() {
     if (d?.moved) {
       setDragging(false);
       setPos((p) => {
-        if (p) {
-          try {
-            localStorage.setItem(POS_KEY, JSON.stringify(p));
-          } catch {
-            /* ignore */
-          }
+        if (!p) return p;
+        const snapped = clamp(snapToSide(p));
+        try {
+          localStorage.setItem(POS_KEY, JSON.stringify(snapped));
+        } catch {
+          /* ignore */
         }
-        return p;
+        return snapped;
       });
       return; // treat as drag, not a click
     }
     setOpen((o) => !o);
   };
 
+  const effectivePos = pos ?? (typeof window !== "undefined" ? defaultPos() : null);
+  const { placement, anchoredLeft } = effectivePos
+    ? choosePlacement(effectivePos)
+    : { placement: "up" as Placement, anchoredLeft: false };
+
   const panelOpen = open && visible;
-  const anchoredLeft = pos != null && typeof window !== "undefined" && pos.x < window.innerWidth / 2;
+
+  // Panel position relative to the 56×56 root box.
+  const panelStyle: React.CSSProperties = {};
+  if (placement === "up") {
+    panelStyle.bottom = BTN + GAP;
+    if (anchoredLeft) panelStyle.left = 0;
+    else panelStyle.right = 0;
+    panelStyle.transformOrigin = anchoredLeft ? "bottom left" : "bottom right";
+  } else if (placement === "down") {
+    panelStyle.top = BTN + GAP;
+    if (anchoredLeft) panelStyle.left = 0;
+    else panelStyle.right = 0;
+    panelStyle.transformOrigin = anchoredLeft ? "top left" : "top right";
+  } else if (placement === "left") {
+    panelStyle.right = BTN + GAP;
+    panelStyle.top = "50%";
+    panelStyle.transformOrigin = "right center";
+  } else {
+    panelStyle.left = BTN + GAP;
+    panelStyle.top = "50%";
+    panelStyle.transformOrigin = "left center";
+  }
+  const baseTransform = placement === "left" || placement === "right" ? "translateY(-50%) " : "";
+  panelStyle.transform = panelOpen
+    ? `${baseTransform}scale(1)`
+    : `${baseTransform}scale(0.92)`;
+  panelStyle.opacity = panelOpen ? 1 : 0;
 
   return (
     <>
@@ -140,21 +238,18 @@ export function FloatingWeChat() {
             ? { left: pos.x, top: pos.y, right: "auto", bottom: "auto" }
             : undefined
         }
-        className={`pointer-events-none fixed z-50 flex flex-col gap-3 ${
+        className={`pointer-events-none fixed z-50 flex flex-col ${
           pos ? "" : "right-4 bottom-6 sm:right-7 sm:bottom-8"
-        } ${anchoredLeft ? "items-start" : "items-end"}`}
+        } ${!dragging && pos ? "transition-[left,top] duration-300 ease-out" : ""}`}
       >
         {/* Contact panel */}
         <div
           role="dialog"
           aria-label={t.wechatWidget.title}
           aria-hidden={!open}
-          className={`absolute bottom-[calc(100%+0.75rem)] w-72 max-w-[calc(100vw-2rem)] rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)] transition-all duration-200 ${
-            anchoredLeft ? "left-0 origin-bottom-left" : "right-0 origin-bottom-right"
-          } ${
-            panelOpen
-              ? "pointer-events-auto scale-100 opacity-100"
-              : "pointer-events-none scale-90 opacity-0"
+          style={panelStyle}
+          className={`absolute w-72 max-w-[calc(100vw-2rem)] rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)] transition-all duration-200 ${
+            panelOpen ? "pointer-events-auto" : "pointer-events-none"
           } ${open ? "" : "invisible"}`}
         >
           <div className="flex items-center gap-3 border-b border-border p-4">
@@ -264,7 +359,7 @@ export function FloatingWeChat() {
         </button>
       </div>
 
-      {/* Expanded QR overlay */}
+      {/* Expanded QR overlay — also confirms the copied ID inline */}
       {qrOpen ? (
         <div className="fixed inset-0 z-[60] grid place-items-center p-6">
           <button
@@ -287,6 +382,28 @@ export function FloatingWeChat() {
               <QRCodeSVG value={site.wechatId} size={200} level="M" />
             </div>
             <p className="mt-4 text-sm font-medium">{site.wechatId}</p>
+
+            {/* Inline copied confirmation pop-up */}
+            <div
+              className={`mt-3 flex items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
+                copied
+                  ? "bg-wechat/20 text-wechat opacity-100"
+                  : "bg-wechat/10 text-foreground opacity-80"
+              }`}
+            >
+              {copied ? (
+                <>
+                  <Check className="h-3.5 w-3.5" aria-hidden />
+                  {t.wechatWidget.qrCopied}
+                </>
+              ) : (
+                <>
+                  <Copy className="h-3.5 w-3.5" aria-hidden />
+                  {t.wechatWidget.copy}
+                </>
+              )}
+            </div>
+
             <button
               type="button"
               onClick={copyId}
@@ -295,6 +412,7 @@ export function FloatingWeChat() {
               <Copy className="h-3 w-3" aria-hidden />
               {t.wechatWidget.copy}
             </button>
+            <p className="mt-3 text-[11px] text-muted-foreground">{t.wechatWidget.qrTapHint}</p>
           </div>
         </div>
       ) : null}

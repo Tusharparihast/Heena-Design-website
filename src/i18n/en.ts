@@ -270,6 +270,8 @@ export const en = {
     phone: "Call the studio",
     qrTitle: "Scan our QR code",
     qrHint: "Tap to enlarge — ID is copied too",
+    qrCopied: "ID copied — paste into WeChat",
+    qrTapHint: "Tap the QR to enlarge & copy the ID",
 
   },
   coursesPage: {
