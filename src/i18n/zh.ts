@@ -229,6 +229,8 @@ export const zh: Dict = {
     phone: "致电工作室",
     qrTitle: "扫描二维码",
     qrHint: "点击放大，同时复制微信号",
+    qrCopied: "微信号已复制 — 粘贴到微信即可",
+    qrTapHint: "点击二维码放大并复制微信号",
 
   },
   coursesPage: {
