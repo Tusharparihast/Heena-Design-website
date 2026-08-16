@@ -111,8 +111,9 @@ export function PreferredContactPicker({
       )}
 
       <p className="mt-1.5 text-xs text-muted-foreground">
-        {zh ? "可多选，我们会通过您选择的方式联系您。" : "Pick one or more — we'll reply the way you prefer."}
+        {zh ? "请选择一种方式，我们会通过它联系您。" : "Pick one — we'll reply the way you prefer."}
       </p>
+
     </div>
   );
 }
