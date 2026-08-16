@@ -227,6 +227,9 @@ export const zh: Dict = {
     copy: "复制微信号",
     whatsapp: "改用 WhatsApp 联系",
     phone: "致电工作室",
+    qrTitle: "扫描二维码",
+    qrHint: "点击放大，同时复制微信号",
+
   },
   coursesPage: {
     hero: {
