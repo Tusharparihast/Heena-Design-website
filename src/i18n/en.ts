@@ -268,6 +268,9 @@ export const en = {
     copy: "Copy ID",
     whatsapp: "Chat on WhatsApp instead",
     phone: "Call the studio",
+    qrTitle: "Scan our QR code",
+    qrHint: "Tap to enlarge — ID is copied too",
+
   },
   coursesPage: {
     hero: {

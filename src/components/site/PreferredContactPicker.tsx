@@ -38,9 +38,9 @@ interface PreferredContactPickerProps {
 }
 
 /**
- * Multi-select "Preferred Contact Options" chips — same channels as the
- * shop's Order Request form, but the client may pick more than one. Each
- * selected channel reveals its own required contact-detail input.
+ * Single-select "Preferred Contact Option" chips — same channels as the
+ * shop's Order Request form. Picking a channel reveals its own required
+ * contact-detail input.
  */
 export function PreferredContactPicker({
   value,
@@ -51,15 +51,23 @@ export function PreferredContactPicker({
   className,
 }: PreferredContactPickerProps) {
   const zh = locale === "zh";
-  const toggle = (id: PreferredContact) =>
-    onChange(value.includes(id) ? value.filter((x) => x !== id) : [...value, id]);
+  const select = (id: PreferredContact) => {
+    if (value.includes(id)) {
+      onChange([]);
+      onDetailsChange({});
+      return;
+    }
+    onChange([id]);
+    onDetailsChange({ [id]: details[id] ?? "" });
+  };
 
   return (
     <div className={className}>
       <span className="mb-1.5 block text-xs font-medium tracking-wide text-muted-foreground uppercase">
-        {zh ? "首选联系方式" : "Preferred contact options"}
+        {zh ? "首选联系方式" : "Preferred contact option"}
       </span>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+
         {preferredContactOptions.map((id) => {
           const active = value.includes(id);
           return (
@@ -67,7 +75,7 @@ export function PreferredContactPicker({
               key={id}
               type="button"
               aria-pressed={active}
-              onClick={() => toggle(id)}
+              onClick={() => select(id)}
               className={cn(
                 "flex items-center justify-center rounded-lg border py-2 text-xs font-medium transition-all",
                 active
@@ -103,8 +111,9 @@ export function PreferredContactPicker({
       )}
 
       <p className="mt-1.5 text-xs text-muted-foreground">
-        {zh ? "可多选，我们会通过您选择的方式联系您。" : "Pick one or more — we'll reply the way you prefer."}
+        {zh ? "请选择一种方式，我们会通过它联系您。" : "Pick one — we'll reply the way you prefer."}
       </p>
+
     </div>
   );
 }
@@ -159,7 +168,7 @@ export function validatePreferredContacts(
 ): string | null {
   const zh = locale === "zh";
   if (value.length === 0) {
-    return zh ? "请至少选择一种联系方式。" : "Please select at least one preferred contact option.";
+    return zh ? "请选择一种联系方式。" : "Please select a preferred contact option.";
   }
   for (const id of value) {
     const detail = (details[id] ?? "").trim();
