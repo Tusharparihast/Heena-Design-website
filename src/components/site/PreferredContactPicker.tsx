@@ -75,7 +75,7 @@ export function PreferredContactPicker({
               key={id}
               type="button"
               aria-pressed={active}
-              onClick={() => toggle(id)}
+              onClick={() => select(id)}
               className={cn(
                 "flex items-center justify-center rounded-lg border py-2 text-xs font-medium transition-all",
                 active
