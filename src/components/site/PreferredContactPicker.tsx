@@ -168,7 +168,7 @@ export function validatePreferredContacts(
 ): string | null {
   const zh = locale === "zh";
   if (value.length === 0) {
-    return zh ? "请至少选择一种联系方式。" : "Please select at least one preferred contact option.";
+    return zh ? "请选择一种联系方式。" : "Please select a preferred contact option.";
   }
   for (const id of value) {
     const detail = (details[id] ?? "").trim();

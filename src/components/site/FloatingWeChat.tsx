@@ -129,7 +129,7 @@ export function FloatingWeChat() {
   };
 
   const panelOpen = open && visible;
-  const anchoredLeft = pos ? pos.x < window.innerWidth / 2 : false;
+  const anchoredLeft = pos != null && typeof window !== "undefined" && pos.x < window.innerWidth / 2;
 
   return (
     <>
@@ -209,10 +209,10 @@ export function FloatingWeChat() {
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block text-sm font-medium">
-                  {t.wechatWidget.qrTitle ?? "Scan QR code"}
+                  {t.wechatWidget.qrTitle}
                 </span>
                 <span className="block text-xs text-muted-foreground">
-                  {t.wechatWidget.qrHint ?? "Tap to enlarge — ID is copied too"}
+                  {t.wechatWidget.qrHint}
                 </span>
               </span>
               <QrCode className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
