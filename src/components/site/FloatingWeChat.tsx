@@ -316,26 +316,5 @@ export function FloatingWeChat() {
 
       {overlay}
     </>
-              ) : (
-                <>
-                  <Copy className="h-3.5 w-3.5" aria-hidden />
-                  {t.wechatWidget.copy}
-                </>
-              )}
-            </div>
-
-            <button
-              type="button"
-              onClick={copyId}
-              className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-wechat/15 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-wechat/25"
-            >
-              <Copy className="h-3 w-3" aria-hidden />
-              {t.wechatWidget.copy}
-            </button>
-            <p className="mt-3 text-[11px] text-muted-foreground">{t.wechatWidget.qrTapHint}</p>
-          </div>
-        </div>
-      ) : null}
-    </>
   );
 }
