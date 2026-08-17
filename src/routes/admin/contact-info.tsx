@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Phone, RotateCcw, Save } from "lucide-react";
+import { Phone, RotateCcw, Save, Trash2, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -15,6 +15,7 @@ import {
   writeContactInfo,
   type ContactInfo,
 } from "@/lib/contact-info";
+import { qrFileToDataUrl } from "@/lib/image-upload";
 
 export const Route = createFileRoute("/admin/contact-info")({
   component: AdminContactInfoPage,
@@ -117,6 +118,55 @@ function AdminContactInfoPage() {
               onChange={(e) => set("facebook", e.target.value)}
               placeholder="https://facebook.com/…"
             />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-none">
+        <CardHeader>
+          <CardTitle className="font-display text-lg">WeChat QR code</CardTitle>
+          <CardDescription>
+            Upload the QR from WeChat (Me → My QR code). Clients see it when they tap any WeChat
+            button. Without an upload we show a code generated from the WeChat ID.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-wrap items-center gap-4">
+          <div className="grid h-32 w-32 place-items-center rounded-xl border border-border bg-white p-2">
+            {form.wechatQr ? (
+              <img src={form.wechatQr} alt="WeChat QR code" className="h-full w-full object-contain" />
+            ) : (
+              <span className="px-2 text-center text-[11px] text-muted-foreground">No QR uploaded</span>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Label
+              htmlFor="ci-qr"
+              className="inline-flex cursor-pointer items-center rounded-md border border-border px-3 py-2 text-sm font-medium transition-colors hover:bg-accent"
+            >
+              <Upload className="mr-1.5 h-4 w-4" /> Upload QR image
+            </Label>
+            <input
+              id="ci-qr"
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                e.target.value = "";
+                if (!file) return;
+                try {
+                  set("wechatQr", await qrFileToDataUrl(file));
+                  toast.success("QR image ready — remember to save.");
+                } catch {
+                  toast.error("Could not read that image.");
+                }
+              }}
+            />
+            {form.wechatQr ? (
+              <Button variant="outline" onClick={() => set("wechatQr", "")}>
+                <Trash2 className="mr-1.5 h-4 w-4" /> Remove
+              </Button>
+            ) : null}
           </div>
         </CardContent>
       </Card>
