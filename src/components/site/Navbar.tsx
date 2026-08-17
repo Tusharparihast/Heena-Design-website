@@ -1,13 +1,15 @@
 import { Link } from "@tanstack/react-router";
-import { Menu, X } from "lucide-react";
+import { Menu, Moon, Sun, X } from "lucide-react";
 import { useState } from "react";
 import { useLanguage } from "@/i18n/LanguageProvider";
+import { useTheme } from "@/hooks/use-theme";
 import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 export function Navbar() {
   const { t, locale, toggleLocale } = useLanguage();
   const [open, setOpen] = useState(false);
+  const { theme, toggleTheme, mounted } = useTheme();
 
   const links = [
     { to: "/", label: t.nav.home },
@@ -87,6 +89,18 @@ export function Navbar() {
             >
               中文
             </span>
+          </button>
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+          >
+            {mounted && theme === "dark" ? (
+              <Sun className="h-4 w-4" aria-hidden />
+            ) : (
+              <Moon className="h-4 w-4" aria-hidden />
+            )}
           </button>
           <button
             type="button"

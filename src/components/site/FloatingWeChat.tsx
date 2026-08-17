@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Check, Copy, Phone, QrCode, X } from "lucide-react";
-import { QRCodeSVG } from "qrcode.react";
-import { toast } from "sonner";
+import { Phone, QrCode, X } from "lucide-react";
 import { WeChatIcon, WhatsAppIcon } from "@/components/site/BrandIcons";
+import { useWeChatQr } from "@/components/site/WeChatQr";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { site } from "@/lib/site";
 
@@ -77,13 +76,11 @@ export function FloatingWeChat() {
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [visible, setVisible] = useState(false);
-  const [qrOpen, setQrOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const { openQr, overlay } = useWeChatQr(site.wechatId);
   const [pos, setPos] = useState<Pos | null>(null);
   const [dragging, setDragging] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ dx: number; dy: number; moved: boolean } | null>(null);
-  const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clamp = useCallback((p: Pos): Pos => {
     const maxX = window.innerWidth - BTN - MARGIN;
@@ -123,7 +120,6 @@ export function FloatingWeChat() {
     const raf = requestAnimationFrame(() => setVisible(true));
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        setQrOpen(false);
         setOpen(false);
       }
     };
@@ -138,24 +134,6 @@ export function FloatingWeChat() {
       document.removeEventListener("pointerdown", onPointerDown);
     };
   }, [open]);
-
-  useEffect(() => {
-    return () => {
-      if (copiedTimer.current) clearTimeout(copiedTimer.current);
-    };
-  }, []);
-
-  const copyId = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(site.wechatId);
-    } catch {
-      /* clipboard may be blocked; still confirm visually */
-    }
-    toast.success(t.contact.copied);
-    setCopied(true);
-    if (copiedTimer.current) clearTimeout(copiedTimer.current);
-    copiedTimer.current = setTimeout(() => setCopied(false), 2200);
-  }, [t.contact.copied]);
 
   const startDrag = (e: React.PointerEvent<HTMLButtonElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -275,10 +253,7 @@ export function FloatingWeChat() {
 
             <button
               type="button"
-              onClick={() => {
-                setQrOpen(true);
-                void copyId();
-              }}
+              onClick={openQr}
               className="flex w-full items-center justify-between gap-2 rounded-xl border border-border bg-background px-3 py-2.5 text-left transition-colors hover:bg-accent/40"
             >
               <span>
@@ -339,63 +314,7 @@ export function FloatingWeChat() {
         </button>
       </div>
 
-      {/* Expanded QR overlay — also confirms the copied ID inline */}
-      {qrOpen ? (
-        <div className="fixed inset-0 z-[60] grid place-items-center p-6">
-          <button
-            type="button"
-            aria-label={t.wechatWidget.close}
-            onClick={() => setQrOpen(false)}
-            className="absolute inset-0 h-full w-full cursor-default bg-foreground/40 backdrop-blur-sm"
-          />
-          <div className="relative w-full max-w-xs rounded-2xl border border-border bg-card p-6 text-center shadow-2xl">
-            <button
-              type="button"
-              onClick={() => setQrOpen(false)}
-              aria-label={t.wechatWidget.close}
-              className="absolute top-3 right-3 grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-            >
-              <X className="h-4 w-4" aria-hidden />
-            </button>
-            <p className="text-sm font-semibold">{t.wechatWidget.title}</p>
-            <div className="mx-auto mt-4 w-fit rounded-xl bg-white p-3">
-              <QRCodeSVG value={site.wechatId} size={200} level="M" />
-            </div>
-            <p className="mt-4 text-sm font-medium">{site.wechatId}</p>
-
-            {/* Inline copied confirmation pop-up */}
-            <div
-              className={`mt-3 flex items-center justify-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-200 ${
-                copied
-                  ? "bg-wechat/20 text-wechat opacity-100"
-                  : "bg-wechat/10 text-foreground opacity-80"
-              }`}
-            >
-              {copied ? (
-                <>
-                  <Check className="h-3.5 w-3.5" aria-hidden />
-                  {t.wechatWidget.qrCopied}
-                </>
-              ) : (
-                <>
-                  <Copy className="h-3.5 w-3.5" aria-hidden />
-                  {t.wechatWidget.copy}
-                </>
-              )}
-            </div>
-
-            <button
-              type="button"
-              onClick={copyId}
-              className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-wechat/15 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-wechat/25"
-            >
-              <Copy className="h-3 w-3" aria-hidden />
-              {t.wechatWidget.copy}
-            </button>
-            <p className="mt-3 text-[11px] text-muted-foreground">{t.wechatWidget.qrTapHint}</p>
-          </div>
-        </div>
-      ) : null}
+      {overlay}
     </>
   );
 }

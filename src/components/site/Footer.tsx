@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { Clock, Facebook, Instagram, Mail, MapPin, Phone } from "lucide-react";
-import { toast } from "sonner";
 import { WeChatIcon, WhatsAppIcon } from "@/components/site/BrandIcons";
+import { useWeChatQr } from "@/components/site/WeChatQr";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { site } from "@/lib/site";
 
@@ -67,14 +67,7 @@ function ReachButton({
 export function Footer() {
   const { t } = useLanguage();
 
-  const copyWechatId = async () => {
-    try {
-      await navigator.clipboard.writeText(site.wechatId);
-      toast.success(t.contact.copied);
-    } catch {
-      toast.error(site.wechatId);
-    }
-  };
+  const { openQr, overlay } = useWeChatQr(site.wechatId);
 
   const exploreLinks = [
     { to: "/gallery", label: t.nav.gallery },
@@ -130,7 +123,7 @@ export function Footer() {
               {t.footer.reach}
             </h3>
             <div className="flex flex-wrap gap-1">
-              <ReachButton label={t.contact.wechat} onClick={copyWechatId} filled="#07C160">
+              <ReachButton label={t.contact.wechat} onClick={openQr} filled="#07C160">
                 <WeChatIcon className="h-5 w-5" fill="#ffffff" aria-hidden />
               </ReachButton>
               <ReachButton
@@ -168,6 +161,7 @@ export function Footer() {
           <p>{t.footer.motto}</p>
         </div>
       </div>
+      {overlay}
     </footer>
   );
 }
