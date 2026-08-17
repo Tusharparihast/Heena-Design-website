@@ -275,7 +275,10 @@ export function FloatingWeChat() {
 
             <button
               type="button"
-              onClick={copyId}
+              onClick={() => {
+                setQrOpen(true);
+                void copyId();
+              }}
               className="flex w-full items-center justify-between gap-2 rounded-xl border border-border bg-background px-3 py-2.5 text-left transition-colors hover:bg-accent/40"
             >
               <span>
@@ -285,32 +288,9 @@ export function FloatingWeChat() {
                 <span className="block text-sm font-medium">{site.wechatId}</span>
               </span>
               <span className="inline-flex items-center gap-1 rounded-full bg-wechat/15 px-2.5 py-1 text-xs font-medium text-foreground">
-                <Copy className="h-3 w-3" aria-hidden />
+                <QrCode className="h-3 w-3" aria-hidden />
                 {t.wechatWidget.copy}
               </span>
-            </button>
-
-            {/* QR — tap to expand, copies the ID at the same time */}
-            <button
-              type="button"
-              onClick={() => {
-                setQrOpen(true);
-                void copyId();
-              }}
-              className="flex w-full items-center gap-3 rounded-xl border border-border bg-background px-3 py-2.5 text-left transition-colors hover:bg-accent/40"
-            >
-              <span className="rounded-lg bg-white p-1.5">
-                <QRCodeSVG value={site.wechatId} size={44} level="M" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-medium">
-                  {t.wechatWidget.qrTitle}
-                </span>
-                <span className="block text-xs text-muted-foreground">
-                  {t.wechatWidget.qrHint}
-                </span>
-              </span>
-              <QrCode className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
             </button>
 
             <a
