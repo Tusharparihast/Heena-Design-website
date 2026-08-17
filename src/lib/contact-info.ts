@@ -22,6 +22,8 @@ const CHANGE_EVENT = "nd:contact-info";
 export interface ContactInfo {
   /** WeChat ID shown/copied across the site. */
   wechatId: string;
+  /** Uploaded WeChat QR image (data URL). Falls back to a generated QR. */
+  wechatQr: string;
   /** WhatsApp number in international format. */
   whatsapp: string;
   phone: string;
@@ -46,6 +48,7 @@ export interface ContactInfo {
 
 export const defaultContactInfo: ContactInfo = {
   wechatId: site.wechatId,
+  wechatQr: "",
   whatsapp: site.whatsapp,
   phone: site.phone,
   email: site.email,
@@ -75,7 +78,8 @@ function sanitize(raw: unknown): ContactInfo {
   const o = raw as Record<string, unknown>;
   const out = { ...defaultContactInfo };
   for (const key of Object.keys(defaultContactInfo) as (keyof ContactInfo)[]) {
-    out[key] = text(o[key], defaultContactInfo[key]);
+    // QR images are stored as data URLs, so they need a much larger budget.
+    out[key] = text(o[key], defaultContactInfo[key], key === "wechatQr" ? 4_000_000 : 300);
   }
   return out;
 }

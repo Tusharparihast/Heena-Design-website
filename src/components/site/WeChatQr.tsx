@@ -4,6 +4,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { site } from "@/lib/site";
+import { useContactInfo } from "@/lib/contact-info";
 
 /**
  * Shared WeChat QR overlay used by every WeChat contact touchpoint
@@ -12,11 +13,13 @@ import { site } from "@/lib/site";
  */
 export function WeChatQrOverlay({
   wechatId,
+  qrImage,
   onClose,
   copied,
   onCopy,
 }: {
   wechatId: string;
+  qrImage?: string;
   onClose: () => void;
   copied: boolean;
   onCopy: () => void;
@@ -50,7 +53,11 @@ export function WeChatQrOverlay({
         </button>
         <p className="text-sm font-semibold">{t.wechatWidget.title}</p>
         <div className="mx-auto mt-4 w-fit rounded-xl bg-white p-3">
-          <QRCodeSVG value={wechatId} size={200} level="M" />
+          {qrImage ? (
+            <img src={qrImage} alt={`${t.wechatWidget.qrTitle} — ${wechatId}`} className="h-[200px] w-[200px] object-contain" />
+          ) : (
+            <QRCodeSVG value={wechatId} size={200} level="M" />
+          )}
         </div>
         <p className="mt-4 text-sm font-medium">{wechatId}</p>
 
@@ -84,8 +91,10 @@ export function WeChatQrOverlay({
  * Render `overlay` anywhere in the tree and call `openQr()` on the
  * WeChat contact control.
  */
-export function useWeChatQr(wechatId: string = site.wechatId) {
+export function useWeChatQr(wechatIdOverride?: string) {
   const { t } = useLanguage();
+  const info = useContactInfo();
+  const wechatId = wechatIdOverride || info.wechatId || site.wechatId;
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -114,6 +123,7 @@ export function useWeChatQr(wechatId: string = site.wechatId) {
   const overlay = open ? (
     <WeChatQrOverlay
       wechatId={wechatId}
+      qrImage={info.wechatQr}
       copied={copied}
       onCopy={() => void copyId()}
       onClose={() => setOpen(false)}
