@@ -161,6 +161,7 @@ export function Footer() {
           <p>{t.footer.motto}</p>
         </div>
       </div>
+      {overlay}
     </footer>
   );
 }
