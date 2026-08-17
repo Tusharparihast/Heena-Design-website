@@ -1,7 +1,7 @@
 import type { ComponentType } from "react";
 import { Clock, Copy, Facebook, Instagram, Mail, MapPin, Phone } from "lucide-react";
-import { toast } from "sonner";
 import { WeChatIcon, WhatsAppIcon } from "@/components/site/BrandIcons";
+import { useWeChatQr } from "@/components/site/WeChatQr";
 import { Section, SectionHeading } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { useContactInfo, waLink } from "@/lib/contact-info";
@@ -11,14 +11,7 @@ export function ContactSection() {
   const info = useContactInfo();
   const zh = locale === "zh";
 
-  const copyWechatId = async () => {
-    try {
-      await navigator.clipboard.writeText(info.wechatId);
-      toast.success(t.contact.copied);
-    } catch {
-      toast.error(info.wechatId);
-    }
-  };
+  const { openQr, overlay } = useWeChatQr(info.wechatId);
 
   const channels: Array<{
     icon: ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
@@ -32,7 +25,7 @@ export function ContactSection() {
       icon: WeChatIcon,
       label: t.contact.wechat,
       value: info.wechatId,
-      onClick: copyWechatId,
+      onClick: openQr,
       hint: t.contact.copyWechat,
     },
     {
@@ -123,6 +116,7 @@ export function ContactSection() {
           </a>
         </div>
       </div>
+      {overlay}
     </Section>
   );
 }
