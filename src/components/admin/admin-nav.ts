@@ -8,6 +8,7 @@ import {
   Info,
   LayoutDashboard,
   MessageSquareQuote,
+  Palette,
   Phone,
   QrCode,
   Settings,
