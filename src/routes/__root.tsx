@@ -184,6 +184,8 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
+        <SeoTagsInjector />
+        <FaviconInjector />
         {!isAdmin && <MehndiBackdrop />}
         {!isAdmin && <CursorMehndi />}
         <div className="flex min-h-screen flex-col">
