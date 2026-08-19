@@ -1,3 +1,4 @@
+import { BrandLogo } from "@/components/site/BrandLogo";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { LogOut, X } from "lucide-react";
 
