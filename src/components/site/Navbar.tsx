@@ -25,9 +25,7 @@ export function Navbar() {
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/85 backdrop-blur">
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4" aria-label="Main">
         <Link to="/" className="flex items-center gap-2">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-primary">
-            <MehndiMark />
-          </span>
+          <BrandLogo className="h-10 w-10" />
           <span className="font-display text-xl leading-none font-semibold tracking-tight">{site.shortName}</span>
         </Link>
 
