@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Menu, Moon, Sun, X } from "lucide-react";
 import { useState } from "react";
+import { BrandLogo } from "@/components/site/BrandLogo";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { useTheme } from "@/hooks/use-theme";
 import { site } from "@/lib/site";
@@ -25,9 +26,7 @@ export function Navbar() {
     <header className="sticky top-0 z-50 border-b border-border/70 bg-background/85 backdrop-blur">
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4" aria-label="Main">
         <Link to="/" className="flex items-center gap-2">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/15 text-primary">
-            <MehndiMark />
-          </span>
+          <BrandLogo className="h-12 w-auto" />
           <span className="font-display text-xl leading-none font-semibold tracking-tight">{site.shortName}</span>
         </Link>
 
@@ -146,15 +145,3 @@ export function Navbar() {
   );
 }
 
-function MehndiMark() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" aria-hidden>
-      <circle cx="12" cy="12" r="2.2" strokeWidth="1.4" />
-      <path
-        d="M12 3.5c2 2.5 2 4.3 0 6.3M12 20.5c-2-2.5-2-4.3 0-6.3M3.5 12c2.5-2 4.3-2 6.3 0M20.5 12c-2.5 2-4.3 2-6.3 0"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}

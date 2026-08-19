@@ -23,6 +23,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminSectionRouteImport } from './routes/admin/$section'
 import { Route as AdminAboutRouteImport } from './routes/admin/about'
 import { Route as AdminAppointmentsRouteImport } from './routes/admin/appointments'
+import { Route as AdminBrandingRouteImport } from './routes/admin/branding'
 import { Route as AdminContactInfoRouteImport } from './routes/admin/contact-info'
 import { Route as AdminCoursesRouteImport } from './routes/admin/courses'
 import { Route as AdminFaqRouteImport } from './routes/admin/faq'
@@ -107,6 +108,11 @@ const AdminAboutRoute = AdminAboutRouteImport.update({
 const AdminAppointmentsRoute = AdminAppointmentsRouteImport.update({
   id: '/appointments',
   path: '/appointments',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
+const AdminBrandingRoute = AdminBrandingRouteImport.update({
+  id: '/branding',
+  path: '/branding',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminContactInfoRoute = AdminContactInfoRouteImport.update({
@@ -199,6 +205,7 @@ export interface FileRoutesByFullPath {
   '/admin/$section': typeof AdminSectionRoute
   '/admin/about': typeof AdminAboutRoute
   '/admin/appointments': typeof AdminAppointmentsRoute
+  '/admin/branding': typeof AdminBrandingRoute
   '/admin/contact-info': typeof AdminContactInfoRoute
   '/admin/courses': typeof AdminCoursesRoute
   '/admin/faq': typeof AdminFaqRoute
@@ -228,6 +235,7 @@ export interface FileRoutesByTo {
   '/admin/$section': typeof AdminSectionRoute
   '/admin/about': typeof AdminAboutRoute
   '/admin/appointments': typeof AdminAppointmentsRoute
+  '/admin/branding': typeof AdminBrandingRoute
   '/admin/contact-info': typeof AdminContactInfoRoute
   '/admin/courses': typeof AdminCoursesRoute
   '/admin/faq': typeof AdminFaqRoute
@@ -260,6 +268,7 @@ export interface FileRoutesById {
   '/admin/$section': typeof AdminSectionRoute
   '/admin/about': typeof AdminAboutRoute
   '/admin/appointments': typeof AdminAppointmentsRoute
+  '/admin/branding': typeof AdminBrandingRoute
   '/admin/contact-info': typeof AdminContactInfoRoute
   '/admin/courses': typeof AdminCoursesRoute
   '/admin/faq': typeof AdminFaqRoute
@@ -293,6 +302,7 @@ export interface FileRouteTypes {
     | '/admin/$section'
     | '/admin/about'
     | '/admin/appointments'
+    | '/admin/branding'
     | '/admin/contact-info'
     | '/admin/courses'
     | '/admin/faq'
@@ -322,6 +332,7 @@ export interface FileRouteTypes {
     | '/admin/$section'
     | '/admin/about'
     | '/admin/appointments'
+    | '/admin/branding'
     | '/admin/contact-info'
     | '/admin/courses'
     | '/admin/faq'
@@ -353,6 +364,7 @@ export interface FileRouteTypes {
     | '/admin/$section'
     | '/admin/about'
     | '/admin/appointments'
+    | '/admin/branding'
     | '/admin/contact-info'
     | '/admin/courses'
     | '/admin/faq'
@@ -484,6 +496,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAppointmentsRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/admin/branding': {
+      id: '/admin/branding'
+      path: '/branding'
+      fullPath: '/admin/branding'
+      preLoaderRoute: typeof AdminBrandingRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/admin/contact-info': {
       id: '/admin/contact-info'
       path: '/contact-info'
@@ -596,6 +615,7 @@ interface AdminRouteRouteChildren {
   AdminSectionRoute: typeof AdminSectionRoute
   AdminAboutRoute: typeof AdminAboutRoute
   AdminAppointmentsRoute: typeof AdminAppointmentsRoute
+  AdminBrandingRoute: typeof AdminBrandingRoute
   AdminContactInfoRoute: typeof AdminContactInfoRoute
   AdminCoursesRoute: typeof AdminCoursesRoute
   AdminFaqRoute: typeof AdminFaqRoute
@@ -616,6 +636,7 @@ const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminSectionRoute: AdminSectionRoute,
   AdminAboutRoute: AdminAboutRoute,
   AdminAppointmentsRoute: AdminAppointmentsRoute,
+  AdminBrandingRoute: AdminBrandingRoute,
   AdminContactInfoRoute: AdminContactInfoRoute,
   AdminCoursesRoute: AdminCoursesRoute,
   AdminFaqRoute: AdminFaqRoute,
