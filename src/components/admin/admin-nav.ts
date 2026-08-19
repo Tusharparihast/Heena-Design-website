@@ -26,6 +26,7 @@ export interface AdminNavItem {
 
 export const adminNavItems: AdminNavItem[] = [
   { label: "Dashboard", to: "/admin", icon: LayoutDashboard, exact: true },
+  { label: "Logo & Branding", to: "/admin/branding", icon: Palette },
   { label: "Homepage", to: "/admin/homepage", icon: Home },
   { label: "About Page", to: "/admin/about", icon: Info },
   { label: "Gallery", to: "/admin/gallery", icon: Images },
