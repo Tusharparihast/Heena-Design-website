@@ -21,6 +21,7 @@ import { CursorMehndi } from "@/components/site/CursorMehndi";
 import { FloatingWeChat } from "@/components/site/FloatingWeChat";
 import { site } from "@/lib/site";
 import { SeoTagsInjector } from "@/components/site/SeoTagsInjector";
+import { FaviconInjector } from "@/components/site/FaviconInjector";
 
 function NotFoundComponent() {
   return (
@@ -124,7 +125,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Karla:wght@400;500;600&display=swap",
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.png", type: "image/png" },
     ],
     scripts: [
       {

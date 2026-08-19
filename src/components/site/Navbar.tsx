@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Menu, Moon, Sun, X } from "lucide-react";
 import { useState } from "react";
+import { BrandLogo } from "@/components/site/BrandLogo";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { useTheme } from "@/hooks/use-theme";
 import { site } from "@/lib/site";
@@ -144,15 +145,3 @@ export function Navbar() {
   );
 }
 
-function MehndiMark() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" aria-hidden>
-      <circle cx="12" cy="12" r="2.2" strokeWidth="1.4" />
-      <path
-        d="M12 3.5c2 2.5 2 4.3 0 6.3M12 20.5c-2-2.5-2-4.3 0-6.3M3.5 12c2.5-2 4.3-2 6.3 0M20.5 12c-2.5 2-4.3 2-6.3 0"
-        strokeWidth="1.4"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}

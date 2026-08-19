@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { Clock, Facebook, Instagram, Mail, MapPin, Phone } from "lucide-react";
 import { WeChatIcon, WhatsAppIcon } from "@/components/site/BrandIcons";
+import { BrandLogo } from "@/components/site/BrandLogo";
 import { useWeChatQr } from "@/components/site/WeChatQr";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { site } from "@/lib/site";
@@ -105,6 +106,7 @@ export function Footer() {
 
           {/* Brand — centered seal */}
           <div className="order-1 flex flex-col items-center px-4 text-center md:order-2">
+            <BrandLogo className="mb-4 h-20 w-20" />
             <div className="mb-6 h-px w-12 bg-foreground/30" aria-hidden />
             <h2 className="font-display text-4xl tracking-tight md:text-5xl">{site.name}</h2>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground italic">
