@@ -30,8 +30,8 @@ export function sanitizeBranding(raw: unknown): Branding {
   if (!raw || typeof raw !== "object") return defaultBranding;
   const o = raw as Record<string, unknown>;
   return {
-    logoUrl: text(o.logoUrl, defaultBranding.logoUrl),
-    faviconUrl: text(o.faviconUrl, defaultBranding.faviconUrl),
+    logoUrl: text(o["logoUrl"], defaultBranding.logoUrl),
+    faviconUrl: text(o["faviconUrl"], defaultBranding.faviconUrl),
   };
 }
 
