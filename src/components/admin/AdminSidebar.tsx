@@ -42,9 +42,7 @@ export function AdminSidebar({ collapsed, mobileOpen, onCloseMobile }: AdminSide
       >
         {/* Brand */}
         <div className="flex h-16 shrink-0 items-center gap-3 border-b border-sidebar-border px-4">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary font-display text-sm font-bold text-primary-foreground">
-            ND
-          </div>
+          <BrandLogo className="h-9 w-9 shrink-0 rounded-full bg-background object-contain" />
           <div className={cn("min-w-0", collapsed && "lg:hidden")}>
             <p className="truncate font-display text-base font-semibold leading-tight">Nagma Designs</p>
             <p className="text-xs text-muted-foreground">Admin Studio</p>
