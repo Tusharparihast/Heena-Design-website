@@ -80,7 +80,13 @@ export function FloatingWeChat() {
   const [pos, setPos] = useState<Pos | null>(null);
   const [dragging, setDragging] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
-  const dragRef = useRef<{ dx: number; dy: number; moved: boolean } | null>(null);
+  const dragRef = useRef<{
+    dx: number;
+    dy: number;
+    startX: number;
+    startY: number;
+    moved: boolean;
+  } | null>(null);
 
   const clamp = useCallback((p: Pos): Pos => {
     const maxX = window.innerWidth - BTN - MARGIN;
