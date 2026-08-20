@@ -19,6 +19,7 @@ import { Footer } from "@/components/site/Footer";
 import { MehndiBackdrop } from "@/components/site/MehndiBackdrop";
 import { CursorMehndi } from "@/components/site/CursorMehndi";
 import { FloatingWeChat } from "@/components/site/FloatingWeChat";
+import { BackToTop } from "@/components/site/BackToTop";
 import { site } from "@/lib/site";
 import { SeoTagsInjector } from "@/components/site/SeoTagsInjector";
 import { FaviconInjector } from "@/components/site/FaviconInjector";
@@ -197,6 +198,7 @@ function RootComponent() {
           {!isAdmin && <Footer />}
         </div>
         {!isAdmin && <FloatingWeChat />}
+        {!isAdmin && <BackToTop />}
         <Toaster position="top-center" richColors />
       </LanguageProvider>
     </QueryClientProvider>
