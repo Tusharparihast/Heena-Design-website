@@ -143,19 +143,28 @@ export function FloatingWeChat() {
 
   const startDrag = (e: React.PointerEvent<HTMLButtonElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    dragRef.current = { dx: e.clientX - rect.left, dy: e.clientY - rect.top, moved: false };
+    dragRef.current = {
+      dx: e.clientX - rect.left,
+      dy: e.clientY - rect.top,
+      startX: e.clientX,
+      startY: e.clientY,
+      moved: false,
+    };
     e.currentTarget.setPointerCapture(e.pointerId);
   };
 
   const onDragMove = (e: React.PointerEvent<HTMLButtonElement>) => {
     const d = dragRef.current;
     if (!d) return;
-    const next = clamp({ x: e.clientX - d.dx, y: e.clientY - d.dy });
+    // Ignore sub-threshold jitter so a tap is never mistaken for a drag
+    // (which used to swallow the first click).
     if (!d.moved) {
+      const dist = Math.hypot(e.clientX - d.startX, e.clientY - d.startY);
+      if (dist < 6) return;
       d.moved = true;
       setDragging(true);
     }
-    setPos(next);
+    setPos(clamp({ x: e.clientX - d.dx, y: e.clientY - d.dy }));
   };
 
   const endDrag = (e: React.PointerEvent<HTMLButtonElement>) => {
