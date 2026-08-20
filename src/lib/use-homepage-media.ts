@@ -1,7 +1,8 @@
 import heroPoster from "@/assets/hero-hand.jpg";
-import heroVideo from "@/assets/hero-mehndi.mp4";
+import heroVideoAsset from "@/assets/hero-mehndi.mp4.asset.json";
+const heroVideo = heroVideoAsset.url;
 import demoPoster from "@/assets/hero-hand.jpg";
-import demoVideo from "@/assets/hero-mehndi.mp4";
+const demoVideo = heroVideoAsset.url;
 import aboutDefault from "@/assets/about-henna.jpg";
 import { useLanguage } from "@/i18n/LanguageProvider";
 
