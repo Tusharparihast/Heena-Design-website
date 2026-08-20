@@ -8,7 +8,8 @@ import { useMemo } from "react";
 
 import aboutDefault from "@/assets/about-henna.jpg";
 import heroPoster from "@/assets/hero-hand.jpg";
-import heroVideo from "@/assets/hero-mehndi.mp4";
+import heroVideoAsset from "@/assets/hero-mehndi.mp4.asset.json";
+const heroVideo = heroVideoAsset.url;
 import bridal from "@/assets/gallery/bridal-1.jpg";
 import arabic from "@/assets/gallery/arabic-1.jpg";
 import floral from "@/assets/gallery/floral-1.jpg";
