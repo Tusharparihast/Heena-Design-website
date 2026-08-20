@@ -108,7 +108,9 @@ export function Footer() {
           <div className="order-1 flex flex-col items-center px-4 text-center md:order-2">
             <BrandLogo className="mb-4 h-24 w-auto" />
             <div className="mb-6 h-px w-12 bg-foreground/30" aria-hidden />
-            <h2 className="font-display text-4xl tracking-tight md:text-5xl">{site.name}</h2>
+            <Link to="/" className="transition-opacity hover:opacity-80">
+              <h2 className="font-display text-4xl tracking-tight md:text-5xl">{site.name}</h2>
+            </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground italic">
               {t.footer.tagline}
             </p>
