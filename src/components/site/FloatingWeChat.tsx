@@ -43,10 +43,7 @@ export function FloatingWeChat() {
 
   return (
     <>
-      <div
-        ref={rootRef}
-        className="pointer-events-none fixed right-4 bottom-6 z-50 flex flex-col sm:right-7 sm:bottom-8"
-      >
+      <div ref={rootRef} className="pointer-events-none fixed right-4 bottom-6 z-50 flex flex-col sm:right-7 sm:bottom-8">
         {/* Contact panel */}
         <div
           role="dialog"
@@ -94,7 +91,7 @@ export function FloatingWeChat() {
               </span>
             </button>
 
-            
+            <a
               href={`https://wa.me/${site.whatsapp.replace(/[^0-9]/g, "")}`}
               target="_blank"
               rel="noreferrer"
@@ -103,7 +100,8 @@ export function FloatingWeChat() {
               <WhatsAppIcon className="h-5 w-5" fill="#25D366" />
               {t.wechatWidget.whatsapp}
             </a>
-            
+
+            <a
               href={`tel:${site.phone}`}
               className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm transition-colors hover:bg-accent/40"
             >
