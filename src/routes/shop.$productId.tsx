@@ -20,6 +20,7 @@ import {
   type ProductCopy,
 } from "@/lib/shop-catalog-db";
 import { cn } from "@/lib/utils";
+import { MehndiLoader } from "@/components/site/MehndiLoader";
 
 export const Route = createFileRoute("/shop/$productId")({
   head: ({ params }) => {
@@ -69,7 +70,7 @@ function ProductPage() {
     if (loading) {
       return (
         <main className="flex min-h-[60vh] items-center justify-center">
-          <LoaderCircle className="h-8 w-8 animate-spin text-muted-foreground" />
+          <MehndiLoader size={150} />
         </main>
       );
     }

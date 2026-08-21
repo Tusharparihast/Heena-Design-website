@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { type ShopProduct } from "@/lib/shop";
 import { catLabel, productCopy, toShopProduct, usePublicCatalog, type ProductCopy } from "@/lib/shop-catalog-db";
 import { cn } from "@/lib/utils";
+import { MehndiLoader } from "@/components/site/MehndiLoader";
 
 const title = "Shop Henna Cones, Kits & Practice Tools | Nagma Designs";
 const description =
@@ -82,7 +83,7 @@ function ShopPage() {
 
         {loading ? (
           <div className="flex min-h-[40vh] items-center justify-center">
-            <LoaderCircle className="h-8 w-8 animate-spin text-muted-foreground" />
+            <MehndiLoader size={150} />
           </div>
         ) : (
           <ul className="mt-6 grid grid-cols-2 gap-3 sm:mt-8 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">

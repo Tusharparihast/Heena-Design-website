@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { grantAdminRole, listTeamAdmins, revokeAdminRole } from "@/lib/admin-team.functions";
 import type { AdminMember } from "@/lib/admin-team.server";
+import { MehndiLoader } from "@/components/site/MehndiLoader";
 
 export const Route = createFileRoute("/admin/team")({
   head: () => ({
@@ -178,7 +179,7 @@ export function AdminTeamPage() {
             <p className="py-6 text-center text-sm text-destructive">{loadError}</p>
           ) : !members ? (
             <div className="flex justify-center py-10">
-              <LoaderCircle className="h-6 w-6 animate-spin text-muted-foreground" />
+              <MehndiLoader size={120} />
             </div>
           ) : (
             <div className="overflow-x-auto rounded-lg border border-border/60">
