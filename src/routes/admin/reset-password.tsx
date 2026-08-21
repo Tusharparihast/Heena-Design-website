@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { MehndiLoader } from "@/components/site/MehndiLoader";
 
 export const Route = createFileRoute("/admin/reset-password")({
   component: ResetPasswordPage,
@@ -106,7 +107,7 @@ function ResetPasswordPage() {
             </form>
           ) : (
             <div className="mt-6 space-y-4 text-center">
-              <LoaderCircle className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
+              <MehndiLoader size={120} className="mx-auto" />
               <p className="text-sm leading-relaxed text-muted-foreground">
                 Waiting for the recovery link… If you opened this page directly,
                 request a fresh link from the{" "}

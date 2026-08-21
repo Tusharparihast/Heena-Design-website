@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Check, LoaderCircle, MapPin, QrCode, ShoppingBag, ShoppingCart } from "lucide-react";
+import { ArrowLeft, Check, MapPin, QrCode, ShoppingBag, ShoppingCart } from "lucide-react";
 import { Section } from "@/components/site/Section";
 import { DiscountBadge, ShopPrice } from "@/components/shop/DiscountBadge";
 import { OrderRequestModal } from "@/components/shop/OrderRequestModal";
@@ -20,6 +20,7 @@ import {
   type ProductCopy,
 } from "@/lib/shop-catalog-db";
 import { cn } from "@/lib/utils";
+import { MehndiLoader } from "@/components/site/MehndiLoader";
 
 export const Route = createFileRoute("/shop/$productId")({
   head: ({ params }) => {
@@ -69,7 +70,7 @@ function ProductPage() {
     if (loading) {
       return (
         <main className="flex min-h-[60vh] items-center justify-center">
-          <LoaderCircle className="h-8 w-8 animate-spin text-muted-foreground" />
+          <MehndiLoader size={150} />
         </main>
       );
     }
