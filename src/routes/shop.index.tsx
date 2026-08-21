@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ShoppingCart, LoaderCircle } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import { Section } from "@/components/site/Section";
 import { MehndiPattern } from "@/components/site/MehndiPattern";
 import { DiscountBadge, ShopPrice } from "@/components/shop/DiscountBadge";

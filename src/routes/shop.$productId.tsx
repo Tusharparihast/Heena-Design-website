@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Check, LoaderCircle, MapPin, QrCode, ShoppingBag, ShoppingCart } from "lucide-react";
+import { ArrowLeft, Check, MapPin, QrCode, ShoppingBag, ShoppingCart } from "lucide-react";
 import { Section } from "@/components/site/Section";
 import { DiscountBadge, ShopPrice } from "@/components/shop/DiscountBadge";
 import { OrderRequestModal } from "@/components/shop/OrderRequestModal";
