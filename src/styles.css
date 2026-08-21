@@ -309,6 +309,36 @@
   animation: arrow-pulse 1.6s ease-in-out infinite;
 }
 
+/* Mehndi loading indicator */
+@keyframes mehndi-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes mehndi-dot-pulse {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.mehndi-spin {
+  animation: mehndi-spin 6s linear infinite;
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+.mehndi-dot-pulse {
+  animation: mehndi-dot-pulse 1.2s ease-in-out infinite;
+}
+
+
 
 
 @media (prefers-reduced-motion: reduce) {
