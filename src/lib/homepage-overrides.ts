@@ -1,7 +1,11 @@
 import type { Locale } from "@/i18n/dictionaries";
 import type { Dict } from "@/i18n/en";
+import { migrateLocalContent, saveSiteContent, useSiteContent } from "./site-content";
 
 const STORAGE_KEY = "nagma.homepage";
+/** Database document key for the studio-managed homepage content. */
+export const HOMEPAGE_KEY = "homepage";
+
 
 export type HomepageHeroMedia = {
   /** External URL or local path to the hero video (e.g. /assets/hero.mp4). */
