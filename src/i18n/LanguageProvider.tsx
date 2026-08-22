@@ -3,10 +3,10 @@ import { dictionaries, type Locale } from "./dictionaries";
 import { supabase } from "@/integrations/supabase/client";
 import type { Dict } from "./en";
 import {
-  emptyHomepageOverrides,
   mergeHomepageDictionary,
-  readHomepageOverrides,
-  writeHomepageOverrides,
+  migrateLegacyHomepageOverrides,
+  saveHomepageOverrides,
+  useHomepageOverrides,
   type HomepageOverrides,
 } from "@/lib/homepage-overrides";
 
@@ -26,7 +26,8 @@ const LOCALE_KEY = "mehndi.locale";
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   // Always start with "en" so SSR and the first client render match.
   const [locale, setLocaleState] = useState<Locale>("en");
-  const [homeOverrides, setHomeOverridesState] = useState<HomepageOverrides>(emptyHomepageOverrides);
+  // Homepage content lives in the database so every visitor sees the studio's edits.
+  const homeOverrides = useHomepageOverrides();
 
 useEffect(() => {
     const stored = window.localStorage.getItem(LOCALE_KEY);
@@ -42,7 +43,7 @@ useEffect(() => {
           if (data?.default_locale === "zh") setLocaleState("zh");
         });
     }
-    setHomeOverridesState(readHomepageOverrides());
+    migrateLegacyHomepageOverrides();
   }, []);
 
   useEffect(() => {
@@ -55,8 +56,7 @@ useEffect(() => {
   }, []);
 
   const setHomepageOverrides = useCallback((next: HomepageOverrides) => {
-    setHomeOverridesState(next);
-    writeHomepageOverrides(next);
+    void saveHomepageOverrides(next);
   }, []);
 
   const t = useMemo(
