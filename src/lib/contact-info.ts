@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 
 import { dictionaries } from "@/i18n/dictionaries";
 
 import { site } from "./site";
+import { migrateLocalContent, readSiteContent, saveSiteContent, useSiteContent } from "./site-content";
 
 /**
  * Studio-managed contact details.
@@ -12,12 +13,11 @@ import { site } from "./site";
  * stores overrides so the studio can change phone numbers, IDs, links,
  * hours and the section copy without touching code.
  *
- * Overrides persist in localStorage for now, mirroring the other admin
- * managers in this project.
+ * Overrides are stored in the database (site_content) so every visitor sees
+ * the studio's latest details.
  */
 
 const STORAGE_KEY = "nd-contact-info";
-const CHANGE_EVENT = "nd:contact-info";
 
 export interface ContactInfo {
   /** WeChat ID shown/copied across the site. */

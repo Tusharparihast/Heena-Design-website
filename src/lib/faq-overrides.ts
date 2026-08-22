@@ -8,12 +8,10 @@ import { migrateLocalContent, readSiteContent, saveSiteContent, useSiteContent }
  *
  * The built-in questions live in the dictionaries; the admin FAQ page
  * (/admin/faq) stores overrides so the studio can edit, reorder, hide,
- * add and delete questions bilingually. Persisted in localStorage, like the
- * other admin managers in this project.
+ * add and delete questions bilingually. Stored in the database (site_content).
  */
 
 const STORAGE_KEY = "nd-faq-overrides";
-const CHANGE_EVENT = "nd:faq-overrides";
 
 export interface FaqItem {
   id: string;
