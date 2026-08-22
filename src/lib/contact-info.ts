@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 
 import { dictionaries } from "@/i18n/dictionaries";
 
 import { site } from "./site";
+import { migrateLocalContent, readSiteContent, saveSiteContent, useSiteContent } from "./site-content";
 
 /**
  * Studio-managed contact details.
@@ -12,12 +13,11 @@ import { site } from "./site";
  * stores overrides so the studio can change phone numbers, IDs, links,
  * hours and the section copy without touching code.
  *
- * Overrides persist in localStorage for now, mirroring the other admin
- * managers in this project.
+ * Overrides are stored in the database (site_content) so every visitor sees
+ * the studio's latest details.
  */
 
 const STORAGE_KEY = "nd-contact-info";
-const CHANGE_EVENT = "nd:contact-info";
 
 export interface ContactInfo {
   /** WeChat ID shown/copied across the site. */
@@ -84,27 +84,21 @@ function sanitize(raw: unknown): ContactInfo {
   return out;
 }
 
+export const CONTACT_KEY = "contact-info";
+
+/** Latest contact details from the shared database cache. */
 export function readContactInfo(): ContactInfo {
-  if (typeof window === "undefined") return defaultContactInfo;
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaultContactInfo;
-    return sanitize(JSON.parse(raw));
-  } catch {
-    return defaultContactInfo;
-  }
+  const doc = readSiteContent(CONTACT_KEY);
+  return doc ? sanitize(doc) : defaultContactInfo;
 }
 
+/** Persist contact details for every visitor (admins only). */
 export function writeContactInfo(info: ContactInfo) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitize(info)));
-  window.dispatchEvent(new CustomEvent(CHANGE_EVENT));
+  void saveSiteContent(CONTACT_KEY, sanitize(info));
 }
 
 export function resetContactInfo() {
-  if (typeof window === "undefined") return;
-  window.localStorage.removeItem(STORAGE_KEY);
-  window.dispatchEvent(new CustomEvent(CHANGE_EVENT));
+  void saveSiteContent(CONTACT_KEY, defaultContactInfo);
 }
 
 /** Digits-only WhatsApp number for wa.me links. */
@@ -117,18 +111,9 @@ export function waLink(whatsapp: string): string {
  * SSR and hydration match, then syncs from localStorage and live admin edits.
  */
 export function useContactInfo(): ContactInfo {
-  const [info, setInfo] = useState<ContactInfo>(defaultContactInfo);
-
+  const { doc } = useSiteContent(CONTACT_KEY);
   useEffect(() => {
-    const sync = () => setInfo(readContactInfo());
-    sync();
-    window.addEventListener(CHANGE_EVENT, sync);
-    window.addEventListener("storage", sync);
-    return () => {
-      window.removeEventListener(CHANGE_EVENT, sync);
-      window.removeEventListener("storage", sync);
-    };
+    migrateLocalContent(CONTACT_KEY, STORAGE_KEY, (value) => !value || typeof value !== "object");
   }, []);
-
-  return info;
+  return useMemo(() => (doc ? sanitize(doc) : defaultContactInfo), [doc]);
 }

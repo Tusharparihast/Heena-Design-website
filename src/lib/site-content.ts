@@ -7,7 +7,7 @@
 // that were originally written against localStorage, while a realtime
 // subscription keeps every open tab in sync with the dashboard.
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 
@@ -18,19 +18,52 @@ const listeners = new Map<string, Set<() => void>>();
 const loading = new Map<string, Promise<void>>();
 const subscribed = new Set<string>();
 
+/** Browser mirror of each document so a reload paints the saved content immediately. */
+const mirrorKey = (key: string) => `nd-sc-${key}`;
+
+function readMirror(key: string): { hit: boolean; value: Doc } {
+  if (typeof window === "undefined") return { hit: false, value: undefined };
+  try {
+    const raw = window.localStorage.getItem(mirrorKey(key));
+    if (raw === null) return { hit: false, value: undefined };
+    return { hit: true, value: JSON.parse(raw) as Doc };
+  } catch {
+    return { hit: false, value: undefined };
+  }
+}
+
+function writeMirror(key: string, value: Doc) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(mirrorKey(key), JSON.stringify(value ?? null));
+  } catch {
+    /* quota exceeded — the database stays the source of truth */
+  }
+}
+
+/** Warm the cache from the browser mirror so there is no flash of stale/default content. */
+function hydrateFromMirror(key: string) {
+  if (cache.has(key)) return;
+  const { hit, value } = readMirror(key);
+  if (hit) cache.set(key, value);
+}
+
 function notify(key: string) {
   listeners.get(key)?.forEach((fn) => fn());
 }
 
 /** Cached document (undefined until the first load resolves). */
 export function readSiteContent(key: string): Doc {
+  hydrateFromMirror(key);
   return cache.get(key);
 }
 
 async function fetchDoc(key: string): Promise<void> {
   const { data, error } = await supabase.from("site_content").select("data").eq("key", key).maybeSingle();
   if (error) return;
-  cache.set(key, data?.data ?? null);
+  const value = data?.data ?? null;
+  cache.set(key, value);
+  writeMirror(key, value);
   notify(key);
 }
 
@@ -42,6 +75,8 @@ function ensureLoaded(key: string): Promise<void> {
   }
   return p;
 }
+
+
 
 function ensureRealtime(key: string) {
   if (subscribed.has(key) || typeof window === "undefined") return;
@@ -62,6 +97,7 @@ function ensureRealtime(key: string) {
 /** Writes the document (admins only) and updates every subscriber optimistically. */
 export async function saveSiteContent(key: string, data: unknown): Promise<boolean> {
   cache.set(key, data);
+  writeMirror(key, data);
   notify(key);
   const { error } = await supabase
     .from("site_content")
@@ -73,6 +109,8 @@ export async function saveSiteContent(key: string, data: unknown): Promise<boole
   return true;
 }
 
+const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
+
 /**
  * Subscribes to one content document. Returns the raw (unsanitised) value —
  * callers sanitise into their own shape — plus a `loaded` flag.
@@ -83,7 +121,10 @@ export function useSiteContent(key: string): { doc: Doc; loaded: boolean } {
     loaded: cache.has(key),
   }));
 
-  useEffect(() => {
+  // Layout effect: the mirrored document is applied in the same frame as
+  // hydration, so a saved logo/content never flashes its default first.
+  useIsomorphicLayoutEffect(() => {
+    hydrateFromMirror(key);
     const sync = () => setState({ doc: cache.get(key), loaded: cache.has(key) });
     let set = listeners.get(key);
     if (!set) {
@@ -101,6 +142,7 @@ export function useSiteContent(key: string): { doc: Doc; loaded: boolean } {
 
   return state;
 }
+
 
 /**
  * One-time lift of legacy browser-only overrides into the database. Runs when

@@ -1,7 +1,11 @@
 import type { Locale } from "@/i18n/dictionaries";
 import type { Dict } from "@/i18n/en";
+import { migrateLocalContent, saveSiteContent, useSiteContent } from "./site-content";
 
 const STORAGE_KEY = "nagma.homepage";
+/** Database document key for the studio-managed homepage content. */
+export const HOMEPAGE_KEY = "homepage";
+
 
 export type HomepageHeroMedia = {
   /** External URL or local path to the hero video (e.g. /assets/hero.mp4). */
@@ -56,27 +60,34 @@ export function emptyHomepageOverrides(): HomepageOverrides {
   return { en: {}, zh: {} };
 }
 
-/** Read overrides from localStorage. Safe for SSR. */
-export function readHomepageOverrides(): HomepageOverrides {
-  if (typeof window === "undefined") return emptyHomepageOverrides();
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return emptyHomepageOverrides();
-    const parsed = JSON.parse(raw) as HomepageOverrides;
-    return {
-      en: parsed.en ?? {},
-      zh: parsed.zh ?? {},
-    };
-  } catch {
-    return emptyHomepageOverrides();
-  }
+/** Normalise a stored document into the overrides shape. */
+export function sanitizeHomepageOverrides(raw: unknown): HomepageOverrides {
+  if (!raw || typeof raw !== "object") return emptyHomepageOverrides();
+  const o = raw as Partial<HomepageOverrides>;
+  return { en: o.en ?? {}, zh: o.zh ?? {} };
 }
 
-/** Write overrides to localStorage. Safe for SSR. */
-export function writeHomepageOverrides(overrides: HomepageOverrides) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(overrides));
+function isEmptyHomepageDoc(value: unknown): boolean {
+  const doc = sanitizeHomepageOverrides(value);
+  return Object.keys(doc.en).length === 0 && Object.keys(doc.zh).length === 0;
 }
+
+/** Live homepage content document from the database (shared across visitors). */
+export function useHomepageOverrides(): HomepageOverrides {
+  const { doc } = useSiteContent(HOMEPAGE_KEY);
+  return sanitizeHomepageOverrides(doc);
+}
+
+/** One-time lift of this browser's legacy homepage edits into the database. */
+export function migrateLegacyHomepageOverrides() {
+  migrateLocalContent(HOMEPAGE_KEY, STORAGE_KEY, isEmptyHomepageDoc);
+}
+
+/** Persist homepage content for every visitor (admins only). */
+export async function saveHomepageOverrides(overrides: HomepageOverrides): Promise<boolean> {
+  return saveSiteContent(HOMEPAGE_KEY, sanitizeHomepageOverrides(overrides));
+}
+
 
 /** Merge a base dictionary section with an override, keeping only defined override values. */
 function mergeSection<T extends Record<string, string>>(

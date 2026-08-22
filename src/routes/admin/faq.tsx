@@ -13,7 +13,7 @@ import {
   emptyFaqOverrides,
   faqSectionHeading,
   makeFaqId,
-  readFaqOverrides,
+  useFaqOverrides,
   writeFaqOverrides,
   type FaqItem,
   type FaqOverrides,
@@ -27,11 +27,13 @@ export const Route = createFileRoute("/admin/faq")({
 const builtinIds = new Set(builtinFaqItems.map((f) => f.id));
 
 function AdminFaqPage() {
+  const stored = useFaqOverrides();
   const [overrides, setOverrides] = useState<FaqOverrides>(emptyFaqOverrides);
 
+  // Adopt the database document whenever it (re)loads or changes elsewhere.
   useEffect(() => {
-    setOverrides(readFaqOverrides());
-  }, []);
+    setOverrides(stored);
+  }, [stored]);
 
   const items = adminFaqItems(overrides);
   const heading = faqSectionHeading(overrides);
