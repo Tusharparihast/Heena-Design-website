@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { dictionaries, type Locale } from "@/i18n/dictionaries";
 
 import { isTestimonialImageRef } from "./testimonial-images";
+import { migrateLocalContent, readSiteContent, saveSiteContent, useSiteContent } from "./site-content";
 
 /**
  * Studio-managed testimonial overrides.
@@ -13,13 +14,11 @@ import { isTestimonialImageRef } from "./testimonial-images";
  * frames, change star ratings, hide, trash, restore and add new testimonials —
  * plus edit the section label/title — all without touching code.
  *
- * Until the backend phase lands, overrides persist in localStorage (this
- * browser only). The storage shape mirrors the future database schema so the
- * same merge logic can be reused when testimonials move to Lovable Cloud.
+ * Overrides are stored in the database (site_content) so every visitor sees
+ * the studio's latest testimonials.
  */
 
 const STORAGE_KEY = "nd-testimonial-overrides";
-const CHANGE_EVENT = "nd:testimonial-overrides";
 
 /** One testimonial with both locales side by side (the admin/storage shape). */
 export interface EffectiveTestimonial {
@@ -228,21 +227,16 @@ function sanitize(raw: unknown): TestimonialOverrides {
 /* Persistence                                                         */
 /* ------------------------------------------------------------------ */
 
+export const TESTIMONIALS_KEY = "testimonials";
+
+/** Latest testimonials document from the shared database cache. */
 export function readTestimonialOverrides(): TestimonialOverrides {
-  if (typeof window === "undefined") return emptyTestimonialOverrides;
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return emptyTestimonialOverrides;
-    return sanitize(JSON.parse(raw));
-  } catch {
-    return emptyTestimonialOverrides;
-  }
+  return sanitize(readSiteContent(TESTIMONIALS_KEY));
 }
 
+/** Persist testimonials for every visitor (admins only). */
 export function writeTestimonialOverrides(overrides: TestimonialOverrides) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitize(overrides)));
-  window.dispatchEvent(new CustomEvent(CHANGE_EVENT));
+  void saveSiteContent(TESTIMONIALS_KEY, sanitize(overrides));
 }
 
 export function isTestimonialPristine(overrides: TestimonialOverrides): boolean {
@@ -391,20 +385,11 @@ export function allTestimonialIds(overrides: TestimonialOverrides): Set<string> 
  * (custom event + cross-tab storage event).
  */
 export function useTestimonialOverrides(): TestimonialOverrides {
-  const [overrides, setOverrides] = useState<TestimonialOverrides>(emptyTestimonialOverrides);
-
+  const { doc } = useSiteContent(TESTIMONIALS_KEY);
   useEffect(() => {
-    const sync = () => setOverrides(readTestimonialOverrides());
-    sync();
-    window.addEventListener(CHANGE_EVENT, sync);
-    window.addEventListener("storage", sync);
-    return () => {
-      window.removeEventListener(CHANGE_EVENT, sync);
-      window.removeEventListener("storage", sync);
-    };
+    migrateLocalContent(TESTIMONIALS_KEY, STORAGE_KEY, (value) => isTestimonialPristine(sanitize(value)));
   }, []);
-
-  return overrides;
+  return useMemo(() => sanitize(doc), [doc]);
 }
 
 /** A testimonial resolved to one locale — the shape the public section renders. */
