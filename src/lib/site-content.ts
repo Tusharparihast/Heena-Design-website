@@ -97,6 +97,7 @@ function ensureRealtime(key: string) {
 /** Writes the document (admins only) and updates every subscriber optimistically. */
 export async function saveSiteContent(key: string, data: unknown): Promise<boolean> {
   cache.set(key, data);
+  writeMirror(key, data);
   notify(key);
   const { error } = await supabase
     .from("site_content")
@@ -108,6 +109,8 @@ export async function saveSiteContent(key: string, data: unknown): Promise<boole
   return true;
 }
 
+const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
+
 /**
  * Subscribes to one content document. Returns the raw (unsanitised) value —
  * callers sanitise into their own shape — plus a `loaded` flag.
@@ -118,7 +121,10 @@ export function useSiteContent(key: string): { doc: Doc; loaded: boolean } {
     loaded: cache.has(key),
   }));
 
-  useEffect(() => {
+  // Layout effect: the mirrored document is applied in the same frame as
+  // hydration, so a saved logo/content never flashes its default first.
+  useIsomorphicLayoutEffect(() => {
+    hydrateFromMirror(key);
     const sync = () => setState({ doc: cache.get(key), loaded: cache.has(key) });
     let set = listeners.get(key);
     if (!set) {
@@ -136,6 +142,7 @@ export function useSiteContent(key: string): { doc: Doc; loaded: boolean } {
 
   return state;
 }
+
 
 /**
  * One-time lift of legacy browser-only overrides into the database. Runs when
