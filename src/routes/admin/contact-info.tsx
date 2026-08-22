@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   defaultContactInfo,
-  readContactInfo,
+  useContactInfo,
   resetContactInfo,
   writeContactInfo,
   type ContactInfo,
@@ -22,12 +22,17 @@ export const Route = createFileRoute("/admin/contact-info")({
 });
 
 function AdminContactInfoPage() {
+  const stored = useContactInfo();
   const [form, setForm] = useState<ContactInfo>(defaultContactInfo);
   const [dirty, setDirty] = useState(false);
 
+  // Adopt the database document unless the admin has unsaved edits open.
   useEffect(() => {
-    setForm(readContactInfo());
-  }, []);
+    setDirty((isDirty) => {
+      if (!isDirty) setForm(stored);
+      return isDirty;
+    });
+  }, [stored]);
 
   const set = (key: keyof ContactInfo, value: string) => {
     setForm((f) => ({ ...f, [key]: value }));
