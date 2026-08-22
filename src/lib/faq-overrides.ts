@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 
 import { dictionaries, type Locale } from "@/i18n/dictionaries";
+import { migrateLocalContent, readSiteContent, saveSiteContent, useSiteContent } from "./site-content";
 
 /**
  * Studio-managed FAQ.
@@ -137,21 +138,16 @@ function sanitize(raw: unknown): FaqOverrides {
   };
 }
 
+export const FAQ_KEY = "faq";
+
+/** Latest FAQ document from the shared database cache. */
 export function readFaqOverrides(): FaqOverrides {
-  if (typeof window === "undefined") return emptyFaqOverrides;
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return emptyFaqOverrides;
-    return sanitize(JSON.parse(raw));
-  } catch {
-    return emptyFaqOverrides;
-  }
+  return sanitize(readSiteContent(FAQ_KEY));
 }
 
+/** Persist the FAQ for every visitor (admins only). */
 export function writeFaqOverrides(overrides: FaqOverrides) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitize(overrides)));
-  window.dispatchEvent(new CustomEvent(CHANGE_EVENT));
+  void saveSiteContent(FAQ_KEY, sanitize(overrides));
 }
 
 function sortByOrder(items: FaqItem[], order: string[]): FaqItem[] {
@@ -208,18 +204,19 @@ export function allFaqIds(overrides: FaqOverrides): Set<string> {
 }
 
 export function useFaqOverrides(): FaqOverrides {
-  const [overrides, setOverrides] = useState<FaqOverrides>(emptyFaqOverrides);
-
+  const { doc } = useSiteContent(FAQ_KEY);
   useEffect(() => {
-    const sync = () => setOverrides(readFaqOverrides());
-    sync();
-    window.addEventListener(CHANGE_EVENT, sync);
-    window.addEventListener("storage", sync);
-    return () => {
-      window.removeEventListener(CHANGE_EVENT, sync);
-      window.removeEventListener("storage", sync);
-    };
+    migrateLocalContent(FAQ_KEY, STORAGE_KEY, (value) => {
+      const d = sanitize(value);
+      return (
+        Object.keys(d.edits).length === 0 &&
+        d.added.length === 0 &&
+        d.hidden.length === 0 &&
+        d.deleted.length === 0 &&
+        d.labelEn === undefined &&
+        d.titleEn === undefined
+      );
+    });
   }, []);
-
-  return overrides;
+  return useMemo(() => sanitize(doc), [doc]);
 }
