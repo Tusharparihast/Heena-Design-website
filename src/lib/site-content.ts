@@ -116,10 +116,13 @@ const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : us
  * callers sanitise into their own shape — plus a `loaded` flag.
  */
 export function useSiteContent(key: string): { doc: Doc; loaded: boolean } {
-  const [state, setState] = useState<{ doc: Doc; loaded: boolean }>(() => ({
-    doc: cache.get(key),
-    loaded: cache.has(key),
-  }));
+  const [state, setState] = useState<{ doc: Doc; loaded: boolean }>(() => {
+    const doc = readSiteContent(key);
+    return {
+      doc,
+      loaded: cache.has(key),
+    };
+  });
 
   // Layout effect: the mirrored document is applied in the same frame as
   // hydration, so a saved logo/content never flashes its default first.
