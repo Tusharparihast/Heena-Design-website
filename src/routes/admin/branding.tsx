@@ -17,7 +17,7 @@ export const Route = createFileRoute("/admin/branding")({
 
 function AdminBrandingPage() {
   const { branding, loaded } = useBranding();
-  const [form, setForm] = useState<Branding>(defaultBranding);
+  const [form, setForm] = useState<Branding>(branding);
   const [synced, setSynced] = useState(false);
   const [saving, setSaving] = useState(false);
 

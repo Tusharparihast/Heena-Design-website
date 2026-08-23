@@ -21,14 +21,16 @@ export function AdminAuthGate({ children }: { children: ReactNode }) {
   // emit TOKEN_REFRESHED / SIGNED_IN for the *same* user; re-running the gate
   // there would flip back to "loading" and remount the whole dashboard.
   const checkedUserRef = useRef<string | null>(null);
+  const evalIdRef = useRef(0);
 
   useEffect(() => {
     let cancelled = false;
 
     async function evaluate(userId: string | null, userEmail: string) {
+      const id = ++evalIdRef.current;
       if (!userId) {
         checkedUserRef.current = null;
-        if (!cancelled) setState("anon");
+        if (id === evalIdRef.current && !cancelled) setState("anon");
         return;
       }
       const { data, error } = await supabase
@@ -37,7 +39,7 @@ export function AdminAuthGate({ children }: { children: ReactNode }) {
         .eq("user_id", userId)
         .eq("role", "admin")
         .maybeSingle();
-      if (cancelled) return;
+      if (id !== evalIdRef.current || cancelled) return;
       checkedUserRef.current = userId;
       setEmail(userEmail);
       setState(data && !error ? "ok" : "denied");
