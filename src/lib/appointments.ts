@@ -163,39 +163,6 @@ function cleanDate(value: unknown): string | undefined {
   return /^\d{4}-\d{2}-\d{2}$/.test(trimmed) ? trimmed : undefined;
 }
 
-function cleanStatus(value: unknown): BookingStatus {
-  return bookingStatuses.includes(value as BookingStatus) ? (value as BookingStatus) : "pending";
-}
-
-function cleanSource(value: unknown): BookingSource {
-  return bookingSources.includes(value as BookingSource) ? (value as BookingSource) : "other";
-}
-
-function cleanBooking(raw: unknown): Booking | undefined {
-  if (!raw || typeof raw !== "object") return undefined;
-  const b = raw as Record<string, unknown>;
-  const id = cleanText(b["id"], 60);
-  const name = cleanText(b["name"], 80);
-  const date = cleanDate(b["date"]);
-  if (!id || !name || !date) return undefined;
-  const people =
-    typeof b["people"] === "number" && Number.isFinite(b["people"])
-      ? Math.min(50, Math.max(1, Math.round(b["people"])))
-      : 1;
-  return {
-    id,
-    name,
-    contact: cleanText(b["contact"], 120) ?? "",
-    service: cleanText(b["service"], 120) ?? "",
-    date,
-    time: cleanText(b["time"], 120) ?? "",
-    people,
-    notes: cleanText(b["notes"], 500) ?? "",
-    source: cleanSource(b["source"]),
-    status: cleanStatus(b["status"]),
-    createdAt: cleanText(b["createdAt"], 40) ?? new Date().toISOString(),
-  };
-}
 
 function cleanOption(raw: unknown): BilingualOption | undefined {
   if (!raw || typeof raw !== "object") return undefined;
