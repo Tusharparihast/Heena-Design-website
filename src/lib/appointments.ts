@@ -7,23 +7,21 @@ import { migrateLocalContent, readSiteContent, saveSiteContent, useSiteContent }
  * Studio-managed appointments: booking log + booking-page settings.
  *
  * The public /appointment page sends booking details through WhatsApp,
- * WeChat or email — nothing is stored automatically. The admin
- * Appointments dashboard (/admin/appointments) lets the studio owner:
+ * WeChat or email. The admin Appointments dashboard (/admin/appointments)
+ * lets the studio owner:
  *   - log bookings received on any channel, track their status
  *     (pending → confirmed → completed / cancelled) and manage a trash;
  *   - control availability: weekly open days, blocked dates, max group size;
  *   - edit the public booking page text and the service / time-slot
  *     option lists bilingually.
  *
- * Until the backend phase lands, everything persists in localStorage
- * (this browser only). The storage shape mirrors the future database
- * schema so the same logic can move to Lovable Cloud unchanged.
+ * The booking log itself lives in the Supabase `bookings` table via
+ * src/lib/bookings-db.ts. This module owns the Booking types, the
+ * availability logic, and the booking-page settings (which are stored in
+ * the shared `site_content` table so every visitor sees the same options).
  */
 
-const BOOKINGS_KEY = "nd-appointment-bookings";
 const SETTINGS_KEY = "nd-appointment-settings";
-const BOOKINGS_EVENT = "nd:appointment-bookings";
-const SETTINGS_EVENT = "nd:appointment-settings";
 
 /* ------------------------------------------------------------------ */
 /* Types                                                               */
@@ -91,7 +89,6 @@ export interface AppointmentSettings {
   noteZh?: string | undefined;
 }
 
-export const emptyBookingStore: BookingStore = { active: [], trashed: [] };
 
 export const defaultAppointmentSettings: AppointmentSettings = {
   openDays: [0, 1, 2, 3, 4, 5, 6],
@@ -166,39 +163,6 @@ function cleanDate(value: unknown): string | undefined {
   return /^\d{4}-\d{2}-\d{2}$/.test(trimmed) ? trimmed : undefined;
 }
 
-function cleanStatus(value: unknown): BookingStatus {
-  return bookingStatuses.includes(value as BookingStatus) ? (value as BookingStatus) : "pending";
-}
-
-function cleanSource(value: unknown): BookingSource {
-  return bookingSources.includes(value as BookingSource) ? (value as BookingSource) : "other";
-}
-
-function cleanBooking(raw: unknown): Booking | undefined {
-  if (!raw || typeof raw !== "object") return undefined;
-  const b = raw as Record<string, unknown>;
-  const id = cleanText(b["id"], 60);
-  const name = cleanText(b["name"], 80);
-  const date = cleanDate(b["date"]);
-  if (!id || !name || !date) return undefined;
-  const people =
-    typeof b["people"] === "number" && Number.isFinite(b["people"])
-      ? Math.min(50, Math.max(1, Math.round(b["people"])))
-      : 1;
-  return {
-    id,
-    name,
-    contact: cleanText(b["contact"], 120) ?? "",
-    service: cleanText(b["service"], 120) ?? "",
-    date,
-    time: cleanText(b["time"], 120) ?? "",
-    people,
-    notes: cleanText(b["notes"], 500) ?? "",
-    source: cleanSource(b["source"]),
-    status: cleanStatus(b["status"]),
-    createdAt: cleanText(b["createdAt"], 40) ?? new Date().toISOString(),
-  };
-}
 
 function cleanOption(raw: unknown): BilingualOption | undefined {
   if (!raw || typeof raw !== "object") return undefined;
@@ -222,18 +186,6 @@ function cleanOptionList(value: unknown): BilingualOption[] | undefined {
   return list.length > 0 ? list : undefined;
 }
 
-function sanitizeBookings(raw: unknown): BookingStore {
-  if (!raw || typeof raw !== "object") return emptyBookingStore;
-  const obj = raw as Record<string, unknown>;
-  const seen = new Set<string>();
-  const cleanList = (value: unknown): Booking[] =>
-    (Array.isArray(value) ? value : []).map(cleanBooking).filter((b): b is Booking => {
-      if (!b || seen.has(b.id)) return false;
-      seen.add(b.id);
-      return true;
-    });
-  return { active: cleanList(obj["active"]), trashed: cleanList(obj["trashed"]) };
-}
 
 function sanitizeSettings(raw: unknown): AppointmentSettings {
   if (!raw || typeof raw !== "object") return defaultAppointmentSettings;
