@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { dictionaries, type Locale } from "@/i18n/dictionaries";
+import { migrateLocalContent, readSiteContent, saveSiteContent, useSiteContent } from "@/lib/site-content";
 
 /**
  * Studio-managed appointments: booking log + booking-page settings.
