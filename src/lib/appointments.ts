@@ -21,10 +21,7 @@ import { migrateLocalContent, readSiteContent, saveSiteContent, useSiteContent }
  * the shared `site_content` table so every visitor sees the same options).
  */
 
-const BOOKINGS_KEY = "nd-appointment-bookings";
 const SETTINGS_KEY = "nd-appointment-settings";
-const BOOKINGS_EVENT = "nd:appointment-bookings";
-const SETTINGS_EVENT = "nd:appointment-settings";
 
 /* ------------------------------------------------------------------ */
 /* Types                                                               */
