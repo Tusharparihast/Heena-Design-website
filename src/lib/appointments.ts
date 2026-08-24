@@ -186,18 +186,6 @@ function cleanOptionList(value: unknown): BilingualOption[] | undefined {
   return list.length > 0 ? list : undefined;
 }
 
-function sanitizeBookings(raw: unknown): BookingStore {
-  if (!raw || typeof raw !== "object") return emptyBookingStore;
-  const obj = raw as Record<string, unknown>;
-  const seen = new Set<string>();
-  const cleanList = (value: unknown): Booking[] =>
-    (Array.isArray(value) ? value : []).map(cleanBooking).filter((b): b is Booking => {
-      if (!b || seen.has(b.id)) return false;
-      seen.add(b.id);
-      return true;
-    });
-  return { active: cleanList(obj["active"]), trashed: cleanList(obj["trashed"]) };
-}
 
 function sanitizeSettings(raw: unknown): AppointmentSettings {
   if (!raw || typeof raw !== "object") return defaultAppointmentSettings;
