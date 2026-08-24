@@ -89,7 +89,6 @@ export interface AppointmentSettings {
   noteZh?: string | undefined;
 }
 
-export const emptyBookingStore: BookingStore = { active: [], trashed: [] };
 
 export const defaultAppointmentSettings: AppointmentSettings = {
   openDays: [0, 1, 2, 3, 4, 5, 6],
