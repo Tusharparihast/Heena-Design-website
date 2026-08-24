@@ -160,6 +160,8 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        {/* Applies the studio's saved logo/favicon before the first paint. */}
+        <script dangerouslySetInnerHTML={{ __html: brandingBootScript }} />
       </head>
       <body>
         {children}
