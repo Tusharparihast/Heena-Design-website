@@ -7,6 +7,8 @@
 import { useMemo } from "react";
 
 import aboutDefault from "@/assets/about-henna.jpg";
+import artistPortrait from "@/assets/about-artist.jpg";
+import studioRoom from "@/assets/about-studio.jpg";
 import heroPoster from "@/assets/hero-hand.jpg";
 import heroVideoAsset from "@/assets/hero-mehndi.mp4.asset.json";
 const heroVideo = heroVideoAsset.url;
@@ -195,7 +197,7 @@ export const defaultAbout: AboutContent = {
     "Nagma has been drawing henna since childhood and now works with brides, families and students across Kathmandu. She teaches in small groups so every student gets her hand on their line work — in English or with patient, simple Chinese-friendly instruction.",
   artistBodyZh:
     "Nagma 自幼学习海娜，如今为加德满都的新娘、家庭与学生服务。课程以小班进行，确保每位学生都能得到手把手指导，并提供中文友好的耐心讲解。",
-  artistImageUrl: aboutDefault,
+  artistImageUrl: artistPortrait,
 
   studioTitleEn: "Our Studio",
   studioTitleZh: "我们的工作室",
@@ -206,7 +208,7 @@ export const defaultAbout: AboutContent = {
   studioAddressZh: "尼泊尔 加德满都 Maitidevi",
   studioHoursEn: "Open daily, 9:00 AM – 9:00 PM",
   studioHoursZh: "每日营业 9:00 – 21:00",
-  studioImageUrl: minimal,
+  studioImageUrl: studioRoom,
 
   videoTitleEn: "Behind the Scenes",
   videoTitleZh: "幕后",

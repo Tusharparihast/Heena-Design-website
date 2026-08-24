@@ -155,11 +155,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
+/**
+ * Runs before hydration: reads the mirrored branding document and applies the
+ * saved logo (CSS variable) and favicon, so a refresh never flashes the
+ * packaged default first.
+ */
+const brandingBootScript = `try{var r=localStorage.getItem('nd-sc-branding');if(r){var b=JSON.parse(r)||{};if(b&&b.logoUrl){document.documentElement.style.setProperty('--nd-logo-url','url("'+b.logoUrl+'")')}var f=(b&&(b.faviconUrl||b.logoUrl))||'';if(f){var l=document.createElement('link');l.rel='icon';l.href=f;document.head.appendChild(l)}}}catch(e){}`;
+
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <head>
         <HeadContent />
+        {/* Applies the studio's saved logo/favicon before the first paint. */}
+        <script dangerouslySetInnerHTML={{ __html: brandingBootScript }} />
       </head>
       <body>
         {children}

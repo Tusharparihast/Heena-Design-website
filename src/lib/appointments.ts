@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { dictionaries, type Locale } from "@/i18n/dictionaries";
+import { migrateLocalContent, readSiteContent, saveSiteContent, useSiteContent } from "@/lib/site-content";
 
 /**
  * Studio-managed appointments: booking log + booking-page settings.
@@ -290,21 +291,18 @@ export function writeBookings(store: BookingStore) {
   window.dispatchEvent(new CustomEvent(BOOKINGS_EVENT));
 }
 
+/**
+ * Appointment settings live in the shared `site_content` table so every
+ * visitor sees the studio's availability, not just the admin's browser.
+ */
+export const APPOINTMENT_SETTINGS_KEY = "appointment-settings";
+
 export function readAppointmentSettings(): AppointmentSettings {
-  if (typeof window === "undefined") return defaultAppointmentSettings;
-  try {
-    const raw = window.localStorage.getItem(SETTINGS_KEY);
-    if (!raw) return defaultAppointmentSettings;
-    return sanitizeSettings(JSON.parse(raw));
-  } catch {
-    return defaultAppointmentSettings;
-  }
+  return sanitizeSettings(readSiteContent(APPOINTMENT_SETTINGS_KEY));
 }
 
 export function writeAppointmentSettings(settings: AppointmentSettings) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(sanitizeSettings(settings)));
-  window.dispatchEvent(new CustomEvent(SETTINGS_EVENT));
+  void saveSiteContent(APPOINTMENT_SETTINGS_KEY, sanitizeSettings(settings));
 }
 
 /* ------------------------------------------------------------------ */
@@ -357,9 +355,13 @@ export function useBookings(): BookingStore {
   return useStoredValue(emptyBookingStore, BOOKINGS_EVENT, readBookings);
 }
 
-/** Live appointment settings, synced with admin edits. */
+/** Live appointment settings from the database, synced with admin edits. */
 export function useAppointmentSettings(): AppointmentSettings {
-  return useStoredValue(defaultAppointmentSettings, SETTINGS_EVENT, readAppointmentSettings);
+  const { doc } = useSiteContent(APPOINTMENT_SETTINGS_KEY);
+  useEffect(() => {
+    migrateLocalContent(APPOINTMENT_SETTINGS_KEY, SETTINGS_KEY, (v) => !v || typeof v !== "object");
+  }, []);
+  return useMemo(() => sanitizeSettings(doc), [doc]);
 }
 
 /** Public booking-page content resolved to one locale. */
