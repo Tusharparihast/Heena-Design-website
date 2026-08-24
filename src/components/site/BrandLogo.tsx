@@ -26,6 +26,10 @@ export function BrandLogo({ className }: { className?: string }) {
         "dark:bg-background/40 dark:ring-white/10 dark:shadow-none",
         className,
       )}
-    />
+    >
+      {/* Invisible sizer: gives the box the logo's intrinsic aspect ratio when
+          callers use `w-auto`. It never paints, so no default-logo flash. */}
+      <img src={branding.logoUrl} alt="" aria-hidden className="h-full w-auto opacity-0" />
+    </div>
   );
 }
