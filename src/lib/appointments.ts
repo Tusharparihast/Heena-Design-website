@@ -7,17 +7,18 @@ import { migrateLocalContent, readSiteContent, saveSiteContent, useSiteContent }
  * Studio-managed appointments: booking log + booking-page settings.
  *
  * The public /appointment page sends booking details through WhatsApp,
- * WeChat or email — nothing is stored automatically. The admin
- * Appointments dashboard (/admin/appointments) lets the studio owner:
+ * WeChat or email. The admin Appointments dashboard (/admin/appointments)
+ * lets the studio owner:
  *   - log bookings received on any channel, track their status
  *     (pending → confirmed → completed / cancelled) and manage a trash;
  *   - control availability: weekly open days, blocked dates, max group size;
  *   - edit the public booking page text and the service / time-slot
  *     option lists bilingually.
  *
- * Until the backend phase lands, everything persists in localStorage
- * (this browser only). The storage shape mirrors the future database
- * schema so the same logic can move to Lovable Cloud unchanged.
+ * The booking log itself lives in the Supabase `bookings` table via
+ * src/lib/bookings-db.ts. This module owns the Booking types, the
+ * availability logic, and the booking-page settings (which are stored in
+ * the shared `site_content` table so every visitor sees the same options).
  */
 
 const BOOKINGS_KEY = "nd-appointment-bookings";
