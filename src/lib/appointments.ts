@@ -354,9 +354,13 @@ export function useBookings(): BookingStore {
   return useStoredValue(emptyBookingStore, BOOKINGS_EVENT, readBookings);
 }
 
-/** Live appointment settings, synced with admin edits. */
+/** Live appointment settings from the database, synced with admin edits. */
 export function useAppointmentSettings(): AppointmentSettings {
-  return useStoredValue(defaultAppointmentSettings, SETTINGS_EVENT, readAppointmentSettings);
+  const { doc } = useSiteContent(APPOINTMENT_SETTINGS_KEY);
+  useEffect(() => {
+    migrateLocalContent(APPOINTMENT_SETTINGS_KEY, SETTINGS_KEY, (v) => !v || typeof v !== "object");
+  }, []);
+  return useMemo(() => sanitizeSettings(doc), [doc]);
 }
 
 /** Public booking-page content resolved to one locale. */
