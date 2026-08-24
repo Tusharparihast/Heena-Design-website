@@ -2,22 +2,30 @@ import { useBranding } from "@/lib/branding";
 import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
-/** Studio logo image, sourced from the admin-managed branding document. */
+/**
+ * Studio logo, sourced from the admin-managed branding document.
+ *
+ * It paints as a background image so the pre-hydration script in the document
+ * head (which sets `--nd-logo-url` from the saved branding mirror) can apply
+ * the studio's own logo on the very first frame — no flash of the packaged
+ * default after a refresh.
+ */
 export function BrandLogo({ className }: { className?: string }) {
-  const { branding } = useBranding();
+  const { branding, loaded } = useBranding();
+  const fallback = `url("${branding.logoUrl}")`;
+
   return (
-    <img
-      src={branding.logoUrl}
-      alt={`${site.name} logo`}
+    <div
+      role="img"
+      aria-label={`${site.name} logo`}
+      style={{ backgroundImage: loaded ? fallback : `var(--nd-logo-url, ${fallback})` }}
       className={cn(
-        "rounded-lg object-contain",
+        "rounded-lg bg-contain bg-center bg-no-repeat",
         // Subtle contrast so the brown line-art stays legible on light/cream backgrounds
         "bg-background/60 ring-1 ring-black/5 shadow-sm",
         "dark:bg-background/40 dark:ring-white/10 dark:shadow-none",
         className,
       )}
-      loading="eager"
-      decoding="async"
     />
   );
 }
