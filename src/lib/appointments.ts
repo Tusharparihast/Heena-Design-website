@@ -290,21 +290,18 @@ export function writeBookings(store: BookingStore) {
   window.dispatchEvent(new CustomEvent(BOOKINGS_EVENT));
 }
 
+/**
+ * Appointment settings live in the shared `site_content` table so every
+ * visitor sees the studio's availability, not just the admin's browser.
+ */
+export const APPOINTMENT_SETTINGS_KEY = "appointment-settings";
+
 export function readAppointmentSettings(): AppointmentSettings {
-  if (typeof window === "undefined") return defaultAppointmentSettings;
-  try {
-    const raw = window.localStorage.getItem(SETTINGS_KEY);
-    if (!raw) return defaultAppointmentSettings;
-    return sanitizeSettings(JSON.parse(raw));
-  } catch {
-    return defaultAppointmentSettings;
-  }
+  return sanitizeSettings(readSiteContent(APPOINTMENT_SETTINGS_KEY));
 }
 
 export function writeAppointmentSettings(settings: AppointmentSettings) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(sanitizeSettings(settings)));
-  window.dispatchEvent(new CustomEvent(SETTINGS_EVENT));
+  void saveSiteContent(APPOINTMENT_SETTINGS_KEY, sanitizeSettings(settings));
 }
 
 /* ------------------------------------------------------------------ */
