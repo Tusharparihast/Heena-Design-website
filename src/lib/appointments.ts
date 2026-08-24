@@ -226,22 +226,7 @@ function sanitizeSettings(raw: unknown): AppointmentSettings {
 /* Persistence                                                         */
 /* ------------------------------------------------------------------ */
 
-export function readBookings(): BookingStore {
-  if (typeof window === "undefined") return emptyBookingStore;
-  try {
-    const raw = window.localStorage.getItem(BOOKINGS_KEY);
-    if (!raw) return emptyBookingStore;
-    return sanitizeBookings(JSON.parse(raw));
-  } catch {
-    return emptyBookingStore;
-  }
-}
-
-export function writeBookings(store: BookingStore) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(BOOKINGS_KEY, JSON.stringify(sanitizeBookings(store)));
-  window.dispatchEvent(new CustomEvent(BOOKINGS_EVENT));
-}
+/**
 
 /**
  * Appointment settings live in the shared `site_content` table so every
