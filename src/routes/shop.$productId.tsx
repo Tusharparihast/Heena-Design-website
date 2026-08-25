@@ -19,24 +19,78 @@ import {
   usePublicCatalog,
   type ProductCopy,
 } from "@/lib/shop-catalog-db";
+import { getSeoProduct, type SeoProduct } from "@/lib/shop-seo.functions";
 import { cn } from "@/lib/utils";
 import { MehndiLoader } from "@/components/site/MehndiLoader";
 
+const PUBLISHED_ORIGIN = "https://n-designs.lovable.app";
+
+function buildProductJsonLd(p: SeoProduct): string {
+  const name = p.nameEn || p.nameZh || p.id;
+  const description = p.bodyEn || p.bodyZh || name;
+  const image = p.gallery.length > 0 ? p.gallery : p.image ? [p.image] : [];
+  const ld: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name,
+    description,
+    image,
+    sku: p.id,
+    brand: { "@type": "Brand", name: "Nagma Designs" },
+    offers: {
+      "@type": "Offer",
+      url: `${PUBLISHED_ORIGIN}/shop/${p.id}`,
+      priceCurrency: "NPR",
+      price: p.priceNpr,
+      availability:
+        p.stock === "out"
+          ? "https://schema.org/OutOfStock"
+          : p.stock === "low"
+            ? "https://schema.org/LimitedAvailability"
+            : "https://schema.org/InStock",
+      itemCondition: "https://schema.org/NewCondition",
+      seller: { "@type": "Organization", name: "Nagma Designs" },
+    },
+  };
+  return JSON.stringify(ld);
+}
+
 export const Route = createFileRoute("/shop/$productId")({
-  head: ({ params }) => {
-    const item = en.shopPage.items.find((i) => i.id === params.productId);
-    const title = item ? `${item.name} | Nagma Designs Shop` : "Product | Nagma Designs Shop";
+  loader: async ({ params }) => {
+    // Best-effort SSR fetch for metadata; the interactive UI still reads the
+    // live catalog client-side. Returns null when the product is missing.
+    try {
+      return await getSeoProduct({ data: { id: params.productId } });
+    } catch {
+      return null;
+    }
+  },
+  head: ({ params, loaderData }) => {
+    const fallback = en.shopPage.items.find((i) => i.id === params.productId);
+    const p = loaderData;
+    const name = p ? (p.nameEn || p.nameZh || fallback?.name) : fallback?.name;
+    const title = name ? `${name} | Nagma Designs Shop` : "Product | Nagma Designs Shop";
     const description =
-      item?.body ?? "Order handmade henna cones, kits and practice tools from our studio in Maitidevi, Kathmandu.";
+      (p && (p.bodyEn || p.bodyZh)) ||
+      fallback?.body ||
+      "Order handmade henna cones, kits and practice tools from our studio in Maitidevi, Kathmandu.";
+    const url = `${PUBLISHED_ORIGIN}/shop/${params.productId}`;
+    const image = p ? (p.gallery.length > 0 ? p.gallery[0] : p.image) : null;
     return {
       meta: [
         { title },
         { name: "description", content: description },
         { property: "og:title", content: title },
         { property: "og:description", content: description },
-        { property: "og:type", content: "website" },
+        { property: "og:type", content: "product" },
+        { property: "og:url", content: url },
+        ...(image ? [{ property: "og:image", content: image }] : []),
         { name: "twitter:card", content: "summary_large_image" },
       ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: p
+        ? [{ type: "application/ld+json", children: buildProductJsonLd(p) }]
+        : [],
     };
   },
   notFoundComponent: ProductNotFound,
