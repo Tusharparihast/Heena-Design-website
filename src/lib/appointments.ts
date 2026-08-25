@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 
 import { dictionaries, type Locale } from "@/i18n/dictionaries";
 import { migrateLocalContent, readSiteContent, saveSiteContent, useSiteContent } from "@/lib/site-content";
@@ -266,31 +266,6 @@ export function makeOptionId(prefix: string, taken: ReadonlySet<string>): string
 /* React hooks                                                         */
 /* ------------------------------------------------------------------ */
 
-/**
- * Client-side stored value. Starts from `empty` so SSR/hydration matches
- * the static defaults, then syncs from localStorage and live admin edits
- * (custom event + cross-tab storage event).
- */
-function useStoredValue<T>(empty: T, event: string, read: () => T): T {
-  const [value, setValue] = useState<T>(empty);
-  useEffect(() => {
-    const sync = () => setValue(read());
-    sync();
-    window.addEventListener(event, sync);
-    window.addEventListener("storage", sync);
-    return () => {
-      window.removeEventListener(event, sync);
-      window.removeEventListener("storage", sync);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  return value;
-}
-
-/** Live booking store (active + trashed), synced with admin edits. */
-export function useBookings(): BookingStore {
-  return useStoredValue(emptyBookingStore, BOOKINGS_EVENT, readBookings);
-}
 
 /** Live appointment settings from the database, synced with admin edits. */
 export function useAppointmentSettings(): AppointmentSettings {
