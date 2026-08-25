@@ -15,9 +15,13 @@ export function useTheme() {
 
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);
-    const initial: Theme = stored === "dark" ? "dark" : "light";
+    const initial: Theme =
+      stored === "dark" || (stored === null && document.documentElement.classList.contains("dark"))
+        ? "dark"
+        : "light";
     setTheme(initial);
     document.documentElement.classList.toggle("dark", initial === "dark");
+    document.documentElement.style.colorScheme = initial;
     setMounted(true);
   }, []);
 
@@ -25,6 +29,7 @@ export function useTheme() {
     const next: Theme = theme === "dark" ? "light" : "dark";
     setTheme(next);
     document.documentElement.classList.toggle("dark", next === "dark");
+    document.documentElement.style.colorScheme = next;
     window.localStorage.setItem(STORAGE_KEY, next);
   }, [theme]);
 

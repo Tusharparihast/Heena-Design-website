@@ -160,6 +160,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
  * saved logo (CSS variable) and favicon, so a refresh never flashes the
  * packaged default first.
  */
+const themeBootScript = `try{var t=localStorage.getItem('nagma-theme');if(t==='dark'){document.documentElement.classList.add('dark');document.documentElement.style.colorScheme='dark'}}catch(e){}`;
+
 const brandingBootScript = `try{var r=localStorage.getItem('nd-sc-branding');if(r){var b=JSON.parse(r)||{};if(b&&b.logoUrl){document.documentElement.style.setProperty('--nd-logo-url','url("'+b.logoUrl+'")')}var f=(b&&(b.faviconUrl||b.logoUrl))||'';if(f){var l=document.createElement('link');l.rel='icon';l.href=f;document.head.appendChild(l)}}}catch(e){}`;
 
 function RootShell({ children }: { children: ReactNode }) {
@@ -167,6 +169,8 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        {/* Applies the saved light/dark theme before the first paint. */}
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
         {/* Applies the studio's saved logo/favicon before the first paint. */}
         <script dangerouslySetInnerHTML={{ __html: brandingBootScript }} />
       </head>
