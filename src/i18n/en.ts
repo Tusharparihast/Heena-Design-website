@@ -20,7 +20,6 @@ export const en = {
     talkToUs: "Talk to us",
     viewGallery: "View gallery",
     learnMore: "Learn more",
-    placeholder: "Placeholder — final content to be confirmed",
   },
   hero: {
     title1: "Traditional Art",

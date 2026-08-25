@@ -18,7 +18,6 @@ export const zh: Dict = {
     talkToUs: "联系我们",
     viewGallery: "查看作品",
     learnMore: "了解更多",
-    placeholder: "占位内容 — 最终信息待确认",
   },
   hero: {
     title1: "传统技艺",
