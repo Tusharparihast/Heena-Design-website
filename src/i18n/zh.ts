@@ -18,7 +18,6 @@ export const zh: Dict = {
     talkToUs: "联系我们",
     viewGallery: "查看作品",
     learnMore: "了解更多",
-    placeholder: "占位内容 — 最终信息待确认",
   },
   hero: {
     title1: "传统技艺",
@@ -54,7 +53,7 @@ export const zh: Dict = {
   courses: {
     label: "课程",
     title: "循序渐进地学习",
-    note: "以下课程信息为占位内容，将与工作室负责人确认后更新。",
+    note: "",
     duration: "时长",
     level: "级别",
     cta: "咨询该课程",
@@ -101,11 +100,11 @@ export const zh: Dict = {
   studentWorkPage: {
     label: "学员作品",
     title: "学员海娜作品",
-    intro: "面授课程中学员的练习作品、结业评估与进步记录。当前为占位图片，稍后将替换为真实学员作品。",
+    intro: "加德满都 Maitidevi 工作室面授课程中，学员完成的练习作品、结业评估与进步记录。",
   },
   galleryPage: {
-    title: "作品集",
-    intro: "按分类浏览或按风格搜索我们的海娜作品。当前为占位图片，稍后将替换为工作室实拍。",
+    title: "海娜作品集",
+    intro: "按分类浏览我们的海娜作品——新娘、阿拉伯风、极简、节日、花卉、手指与足部图案，也可按风格搜索。",
     search: "搜索图案",
     all: "全部",
     results: "个图案",
@@ -258,7 +257,7 @@ export const zh: Dict = {
       enquire: "咨询该课程",
     },
     priceNote: "学费请与工作室直接确认。",
-    note: "课程信息为占位内容，将与工作室负责人确认后更新。",
+    note: "",
     items: [
       {
         id: "foundation",
