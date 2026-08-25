@@ -69,7 +69,7 @@ export const en = {
   courses: {
     label: "Courses",
     title: "Learn step by step",
-    note: "Course details below are placeholders and will be confirmed with the studio owner.",
+    note: "",
     duration: "Duration",
     level: "Level",
     cta: "Ask about this course",
@@ -126,12 +126,12 @@ export const en = {
     label: "Student Work",
     title: "Student Mehndi Work",
     intro:
-      "Practice pieces, assessment designs and progress shots from students in our in-person courses. Images are placeholders until real student work is added.",
+      "Practice pieces, assessment designs and progress shots created by students during our in-person mehndi courses in Maitidevi, Kathmandu.",
   },
   galleryPage: {
-    title: "Gallery",
+    title: "Mehndi Design Gallery",
     intro:
-      "Browse our mehndi work by category or search by style. Images are placeholders until the studio's own photos are added.",
+      "Browse our mehndi work by category — bridal, Arabic, minimal, festival, floral, finger and feet designs — or search by style.",
     search: "Search designs",
     all: "All",
     results: "designs",
@@ -308,7 +308,7 @@ export const en = {
       enquire: "Enquire about this course",
     },
     priceNote: "Fees are confirmed directly with the studio.",
-    note: "Course details are placeholders and will be confirmed with the studio owner.",
+    note: "",
     items: [
       {
         id: "foundation",
