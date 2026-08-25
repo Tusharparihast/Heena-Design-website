@@ -29,8 +29,8 @@ export function FaqSection() {
             const { q, a } = faqText(item, locale);
             return (
               <AccordionItem key={item.id} value={`item-${i}`}>
-                <AccordionTrigger className="text-left">{q}</AccordionTrigger>
-                <AccordionContent className="whitespace-pre-line text-muted-foreground">{a}</AccordionContent>
+                <AccordionTrigger className="text-left text-lg md:text-xl font-medium">{q}</AccordionTrigger>
+                <AccordionContent className="whitespace-pre-line text-base md:text-lg leading-relaxed text-muted-foreground">{a}</AccordionContent>
               </AccordionItem>
             );
           })}
