@@ -10,7 +10,7 @@ import { en } from "@/i18n/dictionaries";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
-import { MAX_ORDER_QTY, formatNpr, type ShopProduct } from "@/lib/shop";
+import { MAX_ORDER_QTY, type ShopProduct } from "@/lib/shop";
 import {
   catLabel,
   productCopy,
