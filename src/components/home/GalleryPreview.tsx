@@ -57,18 +57,42 @@ export function GalleryPreview() {
 export function VideoSection() {
   const { t } = useLanguage();
   const { videoUrl, posterUrl } = useVideoMedia();
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const [playing, setPlaying] = useState(false);
   const [expanded, setExpanded] = useState(false);
+
+  // Autoplay when the video scrolls into view, pause when it scrolls out.
+  useEffect(() => {
+    const node = containerRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && !expanded) {
+            videoRef.current?.play().then(() => setPlaying(true)).catch(() => {});
+          } else {
+            videoRef.current?.pause();
+            setPlaying(false);
+          }
+        }
+      },
+      { threshold: 0.5 },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [expanded]);
 
   // Inline player + controls.
   const video = (
     <video
+      ref={videoRef}
       src={videoUrl}
       poster={posterUrl}
-      controls
+      controls={playing}
       controlsList="nofullscreen"
-      autoPlay={playing}
       muted
+      loop
       playsInline
       preload="metadata"
       className="aspect-video w-full bg-black"
@@ -76,52 +100,23 @@ export function VideoSection() {
     />
   );
 
-
   return (
     <Section id="video" className="bg-card">
       <div className="grid items-center gap-10 lg:grid-cols-2">
         <SectionHeading label={t.video.label} title={t.video.title} body={t.video.body} />
-        <div className="relative overflow-hidden rounded-2xl border border-border bg-secondary/60">
-          {playing ? (
-            <div className="relative">
-              {video}
-              <button
-                type="button"
-                onClick={() => setExpanded(true)}
-                aria-label={t.video.expand}
-                className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-background/85 px-3 py-1.5 text-xs font-medium text-foreground backdrop-blur-sm transition-colors hover:bg-background"
-              >
-                <Maximize2 className="h-3.5 w-3.5" aria-hidden />
-                {t.video.expand}
-              </button>
-            </div>
-          ) : (
+        <div ref={containerRef} className="relative overflow-hidden rounded-2xl border border-border bg-secondary/60">
+          <div className="relative">
+            {video}
             <button
               type="button"
-              onClick={() => setPlaying(true)}
-              aria-label={t.video.play}
-              className="group relative block aspect-video w-full"
+              onClick={() => setExpanded(true)}
+              aria-label={t.video.expand}
+              className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-background/85 px-3 py-1.5 text-xs font-medium text-foreground backdrop-blur-sm transition-colors hover:bg-background"
             >
-              <img
-                src={posterUrl}
-                alt={t.video.title}
-                loading="lazy"
-                decoding="async"
-                draggable={false}
-                className="h-full w-full object-cover"
-              />
-
-              <span className="absolute inset-0 flex items-center justify-center bg-background/25 transition-colors group-hover:bg-background/10">
-                <span className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-sm font-medium text-primary-foreground">
-                  <Play className="h-4 w-4" aria-hidden />
-                  {t.video.play}
-                </span>
-              </span>
-              <span className="absolute inset-x-0 bottom-0 bg-background/70 px-3 py-2 text-[11px] text-muted-foreground backdrop-blur-sm">
-                {t.video.note}
-              </span>
+              <Maximize2 className="h-3.5 w-3.5" aria-hidden />
+              {t.video.expand}
             </button>
-          )}
+          </div>
         </div>
       </div>
 
@@ -147,7 +142,18 @@ export function VideoSection() {
               <X className="h-3.5 w-3.5" aria-hidden />
               {t.video.close}
             </button>
-            {video}
+            <video
+              src={videoUrl}
+              poster={posterUrl}
+              controls
+              controlsList="nofullscreen"
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="aspect-video w-full bg-black"
+              aria-label={t.video.title}
+            />
           </div>
         </div>
       )}
