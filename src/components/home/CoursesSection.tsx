@@ -17,9 +17,10 @@ export function CoursesSection() {
 
       <div className="mt-10 grid gap-6 md:grid-cols-3">
         {courses.map((course) => (
-          <article
+          <Link
             key={course.id}
-            className="flex flex-col rounded-2xl border border-border bg-card p-6"
+            to="/courses"
+            className="group flex flex-col rounded-2xl border border-border bg-card p-6 transition-colors hover:border-primary/60 hover:bg-accent/40"
           >
             <h3 className="text-xl font-semibold">{course.name}</h3>
             <p className="mt-3 flex-1 text-sm text-muted-foreground">{course.body}</p>
@@ -35,14 +36,10 @@ export function CoursesSection() {
                 <dd>{course.duration}</dd>
               </div>
             </dl>
-            <Link
-              to="/contact"
-              className="mt-6 inline-flex items-center justify-center rounded-full border border-primary px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
-            >
+            <span className="mt-6 inline-flex items-center justify-center rounded-full border border-primary px-4 py-2 text-sm font-medium text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
               {t.courses.cta}
-            </Link>
-
-          </article>
+            </span>
+          </Link>
         ))}
       </div>
     </Section>
