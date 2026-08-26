@@ -23,8 +23,23 @@ export function AdminAuthGate({ children }: { children: ReactNode }) {
   const checkedUserRef = useRef<string | null>(null);
   const evalIdRef = useRef(0);
 
+  // Re-checks the role without flipping the UI back to "loading", so a revoked
+  // admin loses the dashboard as soon as we notice — even mid-session.
+  const revalidateRef = useRef<() => void>(() => {});
+
   useEffect(() => {
     let cancelled = false;
+
+    async function hasAdminRole(userId: string) {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .eq("role", "admin")
+        .maybeSingle();
+      if (error) return null; // network/transient — don't lock anyone out on a blip
+      return Boolean(data);
+    }
 
     async function evaluate(userId: string | null, userEmail: string) {
       const id = ++evalIdRef.current;
@@ -33,25 +48,42 @@ export function AdminAuthGate({ children }: { children: ReactNode }) {
         if (id === evalIdRef.current && !cancelled) setState("anon");
         return;
       }
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .eq("role", "admin")
-        .maybeSingle();
+      const ok = await hasAdminRole(userId);
       if (id !== evalIdRef.current || cancelled) return;
       checkedUserRef.current = userId;
       setEmail(userEmail);
-      setState(data && !error ? "ok" : "denied");
+      setState(ok ? "ok" : "denied");
     }
+
+    // Silent re-check: keeps the current screen until we know the answer.
+    async function revalidate() {
+      const { data } = await supabase.auth.getSession();
+      const user = data.session?.user;
+      if (cancelled) return;
+      if (!user) {
+        checkedUserRef.current = null;
+        setState("anon");
+        return;
+      }
+      const ok = await hasAdminRole(user.id);
+      if (cancelled || ok === null) return;
+      checkedUserRef.current = user.id;
+      setEmail(user.email ?? "");
+      setState(ok ? "ok" : "denied");
+    }
+    revalidateRef.current = () => void revalidate();
 
     void supabase.auth.getSession().then(({ data }) =>
       evaluate(data.session?.user.id ?? null, data.session?.user.email ?? ""),
     );
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       const userId = session?.user.id ?? null;
-      // Same signed-in admin as before → nothing to re-verify, keep the UI as is.
-      if (userId && userId === checkedUserRef.current) return;
+      // Same signed-in admin as before → re-verify the role quietly instead of
+      // remounting the dashboard, so a revoked role is still caught.
+      if (userId && userId === checkedUserRef.current) {
+        void revalidate();
+        return;
+      }
       setState("loading");
       void evaluate(userId, session?.user.email ?? "");
     });
@@ -61,9 +93,33 @@ export function AdminAuthGate({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // Catch role revocations that happen while the dashboard is open.
+  useEffect(() => {
+    const ping = () => revalidateRef.current();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") ping();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", ping);
+    const timer = window.setInterval(ping, 60_000);
+
+    const channel = supabase
+      .channel("admin-role-watch")
+      .on("postgres_changes", { event: "*", schema: "public", table: "user_roles" }, ping)
+      .subscribe();
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", ping);
+      window.clearInterval(timer);
+      void supabase.removeChannel(channel);
+    };
+  }, []);
+
   useEffect(() => {
     if (state === "anon") void navigate({ to: "/admin/login" });
   }, [state, navigate]);
+
 
   if (state === "ok") return <>{children}</>;
 
