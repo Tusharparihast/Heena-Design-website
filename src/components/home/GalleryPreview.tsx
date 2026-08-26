@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Maximize2, Minimize2, Play, X } from "lucide-react";
+import { Maximize2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Section, SectionHeading } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
