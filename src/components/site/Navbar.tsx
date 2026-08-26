@@ -63,18 +63,18 @@ export function Navbar() {
             aria-checked={locale === "zh"}
             aria-label={locale === "en" ? "Switch to Chinese" : "Switch to English"}
             onClick={toggleLocale}
-            className="relative -top-px inline-flex h-8 w-[5.25rem] items-center rounded-full border border-border bg-background p-0.5 transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+            className="relative inline-flex h-8 w-[4.5rem] items-center rounded-full border border-border bg-muted/50 transition-colors hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             <span
               className={cn(
-                "absolute left-0.5 top-0.5 h-7 w-[calc(50%-2px)] rounded-full bg-primary transition-transform duration-200 ease-out",
+                "absolute inset-y-[3px] left-[3px] w-[calc(50%-3px)] rounded-full bg-primary shadow-sm transition-transform duration-300 ease-out",
                 locale === "zh" ? "translate-x-full" : "translate-x-0",
               )}
               aria-hidden
             />
             <span
               className={cn(
-                "relative z-10 flex-1 text-center text-xs font-semibold transition-colors duration-200",
+                "relative z-10 flex h-full w-1/2 items-center justify-center text-xs font-semibold tracking-wide transition-colors duration-300",
                 locale === "en" ? "text-primary-foreground" : "text-muted-foreground",
               )}
             >
@@ -82,7 +82,7 @@ export function Navbar() {
             </span>
             <span
               className={cn(
-                "relative z-10 flex-1 text-center text-xs font-semibold transition-colors duration-200",
+                "relative z-10 flex h-full w-1/2 items-center justify-center text-xs font-semibold tracking-wide transition-colors duration-300",
                 locale === "zh" ? "text-primary-foreground" : "text-muted-foreground",
               )}
             >
