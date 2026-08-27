@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { useNavigate } from "@tanstack/react-router";
 import { ShieldX } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +12,6 @@ type GateState = "loading" | "anon" | "denied" | "ok";
  * This is the UX gate — row-level security on the database is the real lock.
  */
 export function AdminAuthGate({ children }: { children: ReactNode }) {
-  const navigate = useNavigate();
   const [state, setState] = useState<GateState>("loading");
   const [email, setEmail] = useState("");
 
@@ -117,8 +115,11 @@ export function AdminAuthGate({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (state === "anon") void navigate({ to: "/admin/login" });
-  }, [state, navigate]);
+    if (state !== "anon") return;
+    // Hard redirect: a client-side navigate keeps the previous (dashboard)
+    // route mounted while the login chunk loads, flashing private content.
+    window.location.replace("/admin/login");
+  }, [state]);
 
 
   if (state === "ok") return <>{children}</>;
@@ -149,9 +150,10 @@ export function AdminAuthGate({ children }: { children: ReactNode }) {
     );
   }
 
-  // "loading" and "anon" (redirecting to /admin/login) both show a spinner.
+  // "loading" and "anon" (redirecting to /admin/login) both show a spinner,
+  // perfectly centered on the full screen.
   return (
-    <div className="flex min-h-[60vh] items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
       <MehndiLoader size={150} />
     </div>
   );
