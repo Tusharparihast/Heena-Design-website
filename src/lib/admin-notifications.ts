@@ -284,5 +284,14 @@ export function useAdminNotifications() {
     });
   }, [raw]);
 
-  return { notifications, unreadCount, loading, refresh, markAllRead };
+  return {
+    notifications,
+    unreadCount,
+    loading,
+    refresh,
+    markAllRead,
+    olderCount,
+    showOlder,
+    showOlderNotifications: () => setShowOlder(true),
+  };
 }
