@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Clock, MapPin } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 import { Section, SectionHeading } from "@/components/site/Section";
 import { SectionDivider } from "@/components/site/SectionDivider";
@@ -31,6 +32,67 @@ function paragraphs(value: string): string[] {
     .split("\n")
     .map((p) => p.trim())
     .filter(Boolean);
+}
+
+function BehindTheScenesVideo({
+  src,
+  poster,
+  title,
+}: {
+  src: string;
+  poster: string;
+  title: string;
+}) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [aspect, setAspect] = useState(16 / 9);
+
+  // Autoplay when scrolled into view, pause when it scrolls away.
+  useEffect(() => {
+    const node = containerRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            videoRef.current?.play().catch(() => {});
+          } else {
+            videoRef.current?.pause();
+          }
+        }
+      },
+      { threshold: 0.4 },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={containerRef} className="mx-auto mt-10 w-full max-w-3xl">
+      <video
+        ref={videoRef}
+        src={src}
+        poster={poster}
+        controls
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        onLoadedMetadata={(e) => {
+          const v = e.currentTarget;
+          if (v.videoWidth && v.videoHeight) setAspect(v.videoWidth / v.videoHeight);
+        }}
+        className="w-full rounded-2xl bg-black object-contain"
+        style={{
+          aspectRatio: aspect,
+          maxHeight: "70vh",
+          marginInline: "auto",
+          boxShadow: "var(--shadow-soft)",
+        }}
+        aria-label={title}
+      />
+    </div>
+  );
 }
 
 function AboutPage() {
@@ -232,14 +294,10 @@ function AboutPage() {
           body={pick(about.videoBodyEn, about.videoBodyZh)}
           align="center"
         />
-        <video
+        <BehindTheScenesVideo
           src={about.videoUrl}
           poster={about.videoPosterUrl}
-          controls
-          playsInline
-          preload="none"
-          className="mx-auto mt-10 aspect-video w-full max-w-3xl rounded-2xl object-cover"
-          style={{ boxShadow: "var(--shadow-soft)" }}
+          title={pick(about.videoTitleEn, about.videoTitleZh)}
         />
       </Section>
 
