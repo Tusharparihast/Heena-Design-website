@@ -61,6 +61,12 @@ export function VideoSection() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [playing, setPlaying] = useState(false);
   const [expanded, setExpanded] = useState(false);
+  const [aspect, setAspect] = useState(16 / 9);
+
+  const readAspect = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    const v = e.currentTarget;
+    if (v.videoWidth && v.videoHeight) setAspect(v.videoWidth / v.videoHeight);
+  };
 
   // Autoplay when the video scrolls into view, pause when it scrolls out.
   useEffect(() => {
@@ -95,7 +101,9 @@ export function VideoSection() {
       loop
       playsInline
       preload="metadata"
-      className="aspect-video w-full bg-black"
+      onLoadedMetadata={readAspect}
+      className="w-full bg-black object-contain"
+      style={{ aspectRatio: aspect, maxHeight: "70vh", marginInline: "auto" }}
       aria-label={t.video.title}
     />
   );
@@ -151,7 +159,9 @@ export function VideoSection() {
               muted
               loop
               playsInline
-              className="aspect-video w-full bg-black"
+              onLoadedMetadata={readAspect}
+              className="w-full bg-black object-contain"
+              style={{ aspectRatio: aspect, maxHeight: "80vh", marginInline: "auto" }}
               aria-label={t.video.title}
             />
           </div>
