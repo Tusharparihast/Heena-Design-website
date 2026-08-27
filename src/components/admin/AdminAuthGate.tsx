@@ -152,9 +152,10 @@ export function AdminAuthGate({ children }: { children: ReactNode }) {
     );
   }
 
-  // "loading" and "anon" (redirecting to /admin/login) both show a spinner.
+  // "loading" and "anon" (redirecting to /admin/login) both show a spinner,
+  // perfectly centered on the full screen.
   return (
-    <div className="flex min-h-[60vh] items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
       <MehndiLoader size={150} />
     </div>
   );
