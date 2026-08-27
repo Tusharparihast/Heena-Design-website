@@ -12,7 +12,6 @@ type GateState = "loading" | "anon" | "denied" | "ok";
  * This is the UX gate — row-level security on the database is the real lock.
  */
 export function AdminAuthGate({ children }: { children: ReactNode }) {
-  const navigate = useNavigate();
   const [state, setState] = useState<GateState>("loading");
   const [email, setEmail] = useState("");
 
