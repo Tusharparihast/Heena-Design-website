@@ -339,6 +339,20 @@ export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopb
                 </DropdownMenuItem>
               ))
             )}
+            {!showOlder && olderCount > 0 && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    showOlderNotifications();
+                  }}
+                  className="cursor-pointer justify-center py-2.5 text-xs font-medium text-muted-foreground"
+                >
+                  See older notifications ({olderCount})
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 
