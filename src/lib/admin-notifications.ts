@@ -259,11 +259,21 @@ export function useAdminNotifications() {
 
   useRealtimeTables(["bookings", "order_requests", "products"], refresh);
 
-  const notifications = useMemo<AdminNotification[]>(
+  const all = useMemo<AdminNotification[]>(
     () => raw.map((item) => ({ ...item, read: read.has(item.id) })),
     [raw, read],
   );
-  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  // Default view: only the last few days. Older items stay loaded but hidden
+  // behind the "See older notifications" button.
+  const recentCutoff = Date.now() - RECENT_DAYS * 86400000;
+  const recent = all.filter((n) => {
+    const at = new Date(n.at).getTime();
+    return Number.isNaN(at) ? true : at >= recentCutoff;
+  });
+  const olderCount = all.length - recent.length;
+  const notifications = showOlder ? all : recent;
+  const unreadCount = all.filter((n) => !n.read).length;
 
   const markAllRead = useCallback(() => {
     setRead((prev) => {
