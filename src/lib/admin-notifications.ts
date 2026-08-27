@@ -200,7 +200,16 @@ async function fetchFeed(): Promise<RawItem[]> {
     });
   }
 
-  return items.sort((a, b) => b.at.localeCompare(a.at)).slice(0, MAX_ITEMS);
+  // Automatic clean-up: very old activity never reaches the feed.
+  const cutoff = Date.now() - RETENTION_DAYS * 86400000;
+
+  return items
+    .filter((item) => {
+      const at = new Date(item.at).getTime();
+      return Number.isNaN(at) ? true : at >= cutoff;
+    })
+    .sort((a, b) => b.at.localeCompare(a.at))
+    .slice(0, MAX_ITEMS);
 }
 
 export function useAdminNotifications() {
