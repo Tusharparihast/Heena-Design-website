@@ -57,7 +57,15 @@ export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopb
   const { theme, toggleTheme, mounted } = useTheme();
   const navigate = useNavigate();
   const { name, email } = useCurrentAdmin();
-  const { notifications, unreadCount, loading: notifLoading, markAllRead } = useAdminNotifications();
+  const {
+    notifications,
+    unreadCount,
+    loading: notifLoading,
+    markAllRead,
+    olderCount,
+    showOlder,
+    showOlderNotifications,
+  } = useAdminNotifications();
   const { products } = useAdminCatalog();
   const galleryItems = useEffectiveGalleryItems("gallery");
   const studentWorkItems = useEffectiveGalleryItems("student");
