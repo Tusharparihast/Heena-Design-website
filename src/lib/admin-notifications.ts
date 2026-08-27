@@ -216,6 +216,7 @@ export function useAdminNotifications() {
   const [raw, setRaw] = useState<RawItem[]>([]);
   const [read, setRead] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [showOlder, setShowOlder] = useState(false);
   const refresh = useCallback(async () => {
     const items = await fetchFeed();
     const liveIds = new Set(items.map((item) => item.id));
