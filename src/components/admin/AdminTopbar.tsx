@@ -322,7 +322,7 @@ export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopb
             <DropdownMenuSeparator />
             {notifications.length === 0 ? (
               <DropdownMenuItem disabled className="justify-center py-4 text-xs text-muted-foreground">
-                {notifLoading ? "Loading…" : "No notifications yet"}
+                {notifLoading ? "Loading…" : "No recent notifications"}
               </DropdownMenuItem>
             ) : (
               notifications.map((n) => (
