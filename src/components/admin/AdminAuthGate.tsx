@@ -117,8 +117,11 @@ export function AdminAuthGate({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (state === "anon") void navigate({ to: "/admin/login" });
-  }, [state, navigate]);
+    if (state !== "anon") return;
+    // Hard redirect: a client-side navigate keeps the previous (dashboard)
+    // route mounted while the login chunk loads, flashing private content.
+    window.location.replace("/admin/login");
+  }, [state]);
 
 
   if (state === "ok") return <>{children}</>;
