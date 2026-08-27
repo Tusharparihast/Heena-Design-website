@@ -24,7 +24,11 @@ export interface AdminNotification {
 
 const READ_KEY = "nd-admin-read-notifications";
 const ANNOUNCED_KEY = "nd-admin-announced-notifications";
-const MAX_ITEMS = 20;
+const MAX_ITEMS = 60;
+/** Notifications newer than this are shown by default. */
+const RECENT_DAYS = 3;
+/** Anything older than this is dropped from the feed entirely. */
+const RETENTION_DAYS = 60;
 
 // ---- Alert de-duplication -------------------------------------------------
 // Every appointment/order/product event has a stable id. We remember which ids
