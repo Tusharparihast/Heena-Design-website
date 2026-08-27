@@ -24,7 +24,11 @@ export interface AdminNotification {
 
 const READ_KEY = "nd-admin-read-notifications";
 const ANNOUNCED_KEY = "nd-admin-announced-notifications";
-const MAX_ITEMS = 20;
+const MAX_ITEMS = 60;
+/** Notifications newer than this are shown by default. */
+const RECENT_DAYS = 3;
+/** Anything older than this is dropped from the feed entirely. */
+const RETENTION_DAYS = 60;
 
 // ---- Alert de-duplication -------------------------------------------------
 // Every appointment/order/product event has a stable id. We remember which ids
@@ -196,13 +200,23 @@ async function fetchFeed(): Promise<RawItem[]> {
     });
   }
 
-  return items.sort((a, b) => b.at.localeCompare(a.at)).slice(0, MAX_ITEMS);
+  // Automatic clean-up: very old activity never reaches the feed.
+  const cutoff = Date.now() - RETENTION_DAYS * 86400000;
+
+  return items
+    .filter((item) => {
+      const at = new Date(item.at).getTime();
+      return Number.isNaN(at) ? true : at >= cutoff;
+    })
+    .sort((a, b) => b.at.localeCompare(a.at))
+    .slice(0, MAX_ITEMS);
 }
 
 export function useAdminNotifications() {
   const [raw, setRaw] = useState<RawItem[]>([]);
   const [read, setRead] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [showOlder, setShowOlder] = useState(false);
   const refresh = useCallback(async () => {
     const items = await fetchFeed();
     const liveIds = new Set(items.map((item) => item.id));
@@ -246,11 +260,21 @@ export function useAdminNotifications() {
 
   useRealtimeTables(["bookings", "order_requests", "products"], refresh);
 
-  const notifications = useMemo<AdminNotification[]>(
+  const all = useMemo<AdminNotification[]>(
     () => raw.map((item) => ({ ...item, read: read.has(item.id) })),
     [raw, read],
   );
-  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  // Default view: only the last few days. Older items stay loaded but hidden
+  // behind the "See older notifications" button.
+  const recentCutoff = Date.now() - RECENT_DAYS * 86400000;
+  const recent = all.filter((n) => {
+    const at = new Date(n.at).getTime();
+    return Number.isNaN(at) ? true : at >= recentCutoff;
+  });
+  const olderCount = all.length - recent.length;
+  const notifications = showOlder ? all : recent;
+  const unreadCount = all.filter((n) => !n.read).length;
 
   const markAllRead = useCallback(() => {
     setRead((prev) => {
@@ -261,5 +285,14 @@ export function useAdminNotifications() {
     });
   }, [raw]);
 
-  return { notifications, unreadCount, loading, refresh, markAllRead };
+  return {
+    notifications,
+    unreadCount,
+    loading,
+    refresh,
+    markAllRead,
+    olderCount,
+    showOlder,
+    showOlderNotifications: () => setShowOlder(true),
+  };
 }

@@ -57,7 +57,15 @@ export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopb
   const { theme, toggleTheme, mounted } = useTheme();
   const navigate = useNavigate();
   const { name, email } = useCurrentAdmin();
-  const { notifications, unreadCount, loading: notifLoading, markAllRead } = useAdminNotifications();
+  const {
+    notifications,
+    unreadCount,
+    loading: notifLoading,
+    markAllRead,
+    olderCount,
+    showOlder,
+    showOlderNotifications,
+  } = useAdminNotifications();
   const { products } = useAdminCatalog();
   const galleryItems = useEffectiveGalleryItems("gallery");
   const studentWorkItems = useEffectiveGalleryItems("student");
@@ -314,7 +322,7 @@ export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopb
             <DropdownMenuSeparator />
             {notifications.length === 0 ? (
               <DropdownMenuItem disabled className="justify-center py-4 text-xs text-muted-foreground">
-                {notifLoading ? "Loading…" : "No notifications yet"}
+                {notifLoading ? "Loading…" : "No recent notifications"}
               </DropdownMenuItem>
             ) : (
               notifications.map((n) => (
@@ -330,6 +338,20 @@ export function AdminTopbar({ title, onOpenMobile, onToggleCollapse }: AdminTopb
                   </Link>
                 </DropdownMenuItem>
               ))
+            )}
+            {!showOlder && olderCount > 0 && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    showOlderNotifications();
+                  }}
+                  className="cursor-pointer justify-center py-2.5 text-xs font-medium text-muted-foreground"
+                >
+                  See older notifications ({olderCount})
+                </DropdownMenuItem>
+              </>
             )}
           </DropdownMenuContent>
         </DropdownMenu>
