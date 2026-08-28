@@ -666,12 +666,12 @@ function AdminHomepagePage() {
                 />
                 <Label htmlFor="hero-image-mode">Use static image instead of video</Label>
               </div>
-              <Field
-                label="Hero video URL"
+              <VideoField
+                label="Hero video"
                 value={heroEn.media?.videoUrl}
                 onChange={(v) => patchHeroMedia({ videoUrl: v || undefined })}
-                placeholder="/assets/hero-mehndi.mp4 or https://..."
               />
+
               <ImageField
                 label="Poster image"
                 value={heroEn.media?.posterUrl}
