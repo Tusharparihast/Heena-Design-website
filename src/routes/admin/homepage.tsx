@@ -782,12 +782,12 @@ function AdminHomepagePage() {
                 value={aboutEn.imageUrl}
                 onChange={(v) => patchSharedMedia("about", { imageUrl: v || undefined })}
               />
-              <Field
-                label="About video URL"
+              <VideoField
+                label="About video"
                 value={aboutEn.videoUrl}
                 onChange={(v) => patchSharedMedia("about", { videoUrl: v || undefined })}
-                placeholder="/assets/about-video.mp4 or https://..."
               />
+
               {aboutEn.videoUrl && (
                 <ImageField
                   label="Video poster"
