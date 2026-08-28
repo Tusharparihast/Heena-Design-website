@@ -904,12 +904,12 @@ function AdminHomepagePage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Field
-                label="Demo video URL"
+              <VideoField
+                label="Demo video"
                 value={videoEn.videoUrl}
                 onChange={(v) => patchSharedMedia("video", { videoUrl: v || undefined })}
-                placeholder="/assets/hero-mehndi.mp4 or https://..."
               />
+
               <ImageField
                 label="Demo poster"
                 value={videoEn.posterUrl}
