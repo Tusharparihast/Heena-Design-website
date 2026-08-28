@@ -68,3 +68,22 @@ export async function uploadGalleryImage(file: File): Promise<string> {
   if (!url) throw new Error("Could not create a link for that photo.");
   return url;
 }
+
+/**
+ * Uploads a video (hero, About or Watch section) to the private media bucket
+ * and returns a long-lived signed link the public site can play directly.
+ */
+export async function uploadSiteVideo(file: File): Promise<string> {
+  const { supabase } = await import("@/integrations/supabase/client");
+  const { signGalleryUpload } = await import("@/lib/gallery-uploads.functions");
+
+  const ext = (file.name.split(".").pop() ?? "mp4").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5) || "mp4";
+  const path = `${crypto.randomUUID()}.${ext}`;
+  const { error } = await supabase.storage
+    .from("gallery")
+    .upload(path, file, { contentType: file.type || "video/mp4", upsert: false });
+  if (error) throw new Error(error.message);
+  const { url } = await signGalleryUpload({ data: { path } });
+  if (!url) throw new Error("Could not create a link for that video.");
+  return url;
+}

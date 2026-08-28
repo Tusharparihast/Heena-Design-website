@@ -19,6 +19,7 @@ import {
   type HomepageOverrides,
   type HomepageSectionOverrides,
 } from "@/lib/homepage-overrides";
+import { VideoField } from "@/components/admin/VideoField";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/homepage")({
@@ -666,12 +667,12 @@ function AdminHomepagePage() {
                 />
                 <Label htmlFor="hero-image-mode">Use static image instead of video</Label>
               </div>
-              <Field
-                label="Hero video URL"
+              <VideoField
+                label="Hero video"
                 value={heroEn.media?.videoUrl}
                 onChange={(v) => patchHeroMedia({ videoUrl: v || undefined })}
-                placeholder="/assets/hero-mehndi.mp4 or https://..."
               />
+
               <ImageField
                 label="Poster image"
                 value={heroEn.media?.posterUrl}
@@ -782,12 +783,12 @@ function AdminHomepagePage() {
                 value={aboutEn.imageUrl}
                 onChange={(v) => patchSharedMedia("about", { imageUrl: v || undefined })}
               />
-              <Field
-                label="About video URL"
+              <VideoField
+                label="About video"
                 value={aboutEn.videoUrl}
                 onChange={(v) => patchSharedMedia("about", { videoUrl: v || undefined })}
-                placeholder="/assets/about-video.mp4 or https://..."
               />
+
               {aboutEn.videoUrl && (
                 <ImageField
                   label="Video poster"
@@ -904,12 +905,12 @@ function AdminHomepagePage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Field
-                label="Demo video URL"
+              <VideoField
+                label="Demo video"
                 value={videoEn.videoUrl}
                 onChange={(v) => patchSharedMedia("video", { videoUrl: v || undefined })}
-                placeholder="/assets/hero-mehndi.mp4 or https://..."
               />
+
               <ImageField
                 label="Demo poster"
                 value={videoEn.posterUrl}
