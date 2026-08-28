@@ -16,6 +16,7 @@ import {
   type AboutContent,
 } from "@/lib/about-content";
 import { uploadGalleryImage } from "@/lib/image-upload";
+import { VideoField } from "@/components/admin/VideoField";
 
 export const Route = createFileRoute("/admin/about")({
   component: AdminAboutPage,
@@ -387,7 +388,7 @@ function AdminAboutPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Behind-the-scenes video</CardTitle>
-          <CardDescription>Paste a direct video link (.mp4). It only loads when a visitor presses play.</CardDescription>
+          <CardDescription>Choose a video file from your device, or paste a direct .mp4 link.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
           <BilingualField
@@ -403,15 +404,7 @@ function AdminAboutPage() {
             multiline
             onChange={(l, v) => set(l === "en" ? { videoBodyEn: v } : { videoBodyZh: v })}
           />
-          <div className="space-y-2">
-            <Label htmlFor="about-video-url">Video URL</Label>
-            <Input
-              id="about-video-url"
-              value={draft.videoUrl}
-              onChange={(e) => set({ videoUrl: e.target.value })}
-              placeholder="https://…/clip.mp4"
-            />
-          </div>
+          <VideoField label="Video" value={draft.videoUrl} onChange={(v) => set({ videoUrl: v })} />
           <ImageField label="Poster image" value={draft.videoPosterUrl} onChange={(v) => set({ videoPosterUrl: v })} />
         </CardContent>
       </Card>

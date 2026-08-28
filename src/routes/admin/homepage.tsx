@@ -19,6 +19,7 @@ import {
   type HomepageOverrides,
   type HomepageSectionOverrides,
 } from "@/lib/homepage-overrides";
+import { VideoField } from "@/components/admin/VideoField";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/homepage")({
