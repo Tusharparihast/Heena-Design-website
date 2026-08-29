@@ -391,8 +391,14 @@ function ImagesManager({
 function AdminHomepagePage() {
   const { homeOverrides, setHomepageOverrides } = useLanguage();
   const [draft, setDraft] = useState<HomepageOverrides>(homeOverrides);
+  const savedRef = useRef(JSON.stringify(homeOverrides));
 
+  // Adopt the stored document only when it actually changes (first load or a
+  // save from another tab) so in-progress edits are never overwritten.
   useEffect(() => {
+    const next = JSON.stringify(homeOverrides);
+    if (next === savedRef.current) return;
+    savedRef.current = next;
     setDraft(homeOverrides);
   }, [homeOverrides]);
 
