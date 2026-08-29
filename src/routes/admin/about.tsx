@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ImagePlus, Plus, RotateCcw, Trash2, Upload } from "lucide-react";
+import { ImagePlus, Plus, RotateCcw, Save, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 import { BilingualField } from "@/components/admin/BilingualField";
