@@ -492,11 +492,20 @@ function AdminHomepagePage() {
   };
 
   const save = () => {
+    savedRef.current = JSON.stringify(draft);
     setHomepageOverrides(draft);
     toast.success("Homepage saved", {
       description: "Visit the public site to see the updates.",
     });
   };
+
+  const discard = () => {
+    setDraft(homeOverrides);
+    savedRef.current = JSON.stringify(homeOverrides);
+    toast.info("Unsaved changes discarded");
+  };
+
+  const dirty = JSON.stringify(draft) !== savedRef.current;
 
   /** Shared editor for the Traditional and Modern design sections. */
   const designTab = (blockKey: "traditional" | "modern") => {
