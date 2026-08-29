@@ -92,6 +92,7 @@ export function VideoSection() {
   // Inline player + controls.
   const video = (
     <video
+      key={videoUrl}
       ref={videoRef}
       src={videoUrl}
       poster={posterUrl}
@@ -151,6 +152,7 @@ export function VideoSection() {
               {t.video.close}
             </button>
             <video
+              key={videoUrl}
               src={videoUrl}
               poster={posterUrl}
               controls

@@ -70,6 +70,7 @@ function BehindTheScenesVideo({
   return (
     <div ref={containerRef} className="mx-auto mt-10 w-full max-w-3xl">
       <video
+        key={src}
         ref={videoRef}
         src={src}
         poster={poster}

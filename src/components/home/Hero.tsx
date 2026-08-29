@@ -83,6 +83,7 @@ export function Hero() {
           </div>
           {showVideo ? (
             <video
+              key={videoUrl}
               src={videoUrl}
               poster={posterUrl}
               width={1200}
