@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ImagePlus, Plus, RotateCcw, Trash2, Upload } from "lucide-react";
+import { ImagePlus, Plus, RotateCcw, Save, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 import { BilingualField } from "@/components/admin/BilingualField";
@@ -152,37 +152,56 @@ function CardListEditor({
 function AdminAboutPage() {
   const { about, loaded } = useAboutContent();
   const [draft, setDraft] = useState<AboutContent>(about);
+  const savedRef = useState<{ json: string }>(() => ({ json: JSON.stringify(about) }))[0];
 
-  // Adopt the stored document once it arrives (and when another tab saves).
+  // Adopt the stored document when it actually changes (first load, other tab).
   useEffect(() => {
+    const next = JSON.stringify(about);
+    if (next === savedRef.json) return;
+    savedRef.json = next;
     setDraft(about);
-  }, [about]);
+  }, [about, savedRef]);
 
   function set(patch: Partial<AboutContent>) {
-    const next = { ...draft, ...patch };
-    setDraft(next);
-    writeAboutContent(next);
+    setDraft((prev) => ({ ...prev, ...patch }));
+  }
+
+  function save() {
+    savedRef.json = JSON.stringify(draft);
+    writeAboutContent(draft);
+    toast.success("About page saved.");
   }
 
   function reset() {
     setDraft(defaultAbout);
+    savedRef.json = JSON.stringify(defaultAbout);
     writeAboutContent(defaultAbout);
     toast.success("Restored the default About page.");
   }
 
+  const dirty = JSON.stringify(draft) !== savedRef.json;
+
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="sticky top-0 z-30 -mx-4 flex flex-wrap items-end justify-between gap-3 border-b border-border bg-background/95 px-4 py-3 backdrop-blur">
         <div>
           <h2 className="font-display text-2xl font-bold sm:text-3xl">About page</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Every section of the public About page. Changes save automatically in both languages.
+            Every section of the public About page, in both languages. Click Save changes to publish.
             {loaded ? "" : " Loading…"}
           </p>
         </div>
-        <Button variant="outline" onClick={reset}>
-          <RotateCcw className="mr-1.5 h-4 w-4" /> Reset
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {dirty ? (
+            <span className="text-xs font-medium text-muted-foreground">Unsaved changes</span>
+          ) : null}
+          <Button variant="outline" onClick={reset}>
+            <RotateCcw className="mr-1.5 h-4 w-4" /> Reset
+          </Button>
+          <Button onClick={save}>
+            <Save className="mr-1.5 h-4 w-4" /> Save changes
+          </Button>
+        </div>
       </div>
 
       <Card>

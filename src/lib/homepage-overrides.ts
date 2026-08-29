@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import type { Locale } from "@/i18n/dictionaries";
 import type { Dict } from "@/i18n/en";
 import { migrateLocalContent, saveSiteContent, useSiteContent } from "./site-content";
@@ -75,7 +76,9 @@ function isEmptyHomepageDoc(value: unknown): boolean {
 /** Live homepage content document from the database (shared across visitors). */
 export function useHomepageOverrides(): HomepageOverrides {
   const { doc } = useSiteContent(HOMEPAGE_KEY);
-  return sanitizeHomepageOverrides(doc);
+  // Memoised so the object identity is stable — admin editors adopt it as their
+  // draft, and a fresh object on every render would wipe unsaved edits.
+  return useMemo(() => sanitizeHomepageOverrides(doc), [doc]);
 }
 
 /** One-time lift of this browser's legacy homepage edits into the database. */

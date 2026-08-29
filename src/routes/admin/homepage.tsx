@@ -391,8 +391,14 @@ function ImagesManager({
 function AdminHomepagePage() {
   const { homeOverrides, setHomepageOverrides } = useLanguage();
   const [draft, setDraft] = useState<HomepageOverrides>(homeOverrides);
+  const savedRef = useRef(JSON.stringify(homeOverrides));
 
+  // Adopt the stored document only when it actually changes (first load or a
+  // save from another tab) so in-progress edits are never overwritten.
   useEffect(() => {
+    const next = JSON.stringify(homeOverrides);
+    if (next === savedRef.current) return;
+    savedRef.current = next;
     setDraft(homeOverrides);
   }, [homeOverrides]);
 
@@ -486,11 +492,20 @@ function AdminHomepagePage() {
   };
 
   const save = () => {
+    savedRef.current = JSON.stringify(draft);
     setHomepageOverrides(draft);
     toast.success("Homepage saved", {
       description: "Visit the public site to see the updates.",
     });
   };
+
+  const discard = () => {
+    setDraft(homeOverrides);
+    savedRef.current = JSON.stringify(homeOverrides);
+    toast.info("Unsaved changes discarded");
+  };
+
+  const dirty = JSON.stringify(draft) !== savedRef.current;
 
   /** Shared editor for the Traditional and Modern design sections. */
   const designTab = (blockKey: "traditional" | "modern") => {
@@ -576,7 +591,7 @@ function AdminHomepagePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="sticky top-0 z-30 -mx-4 flex flex-col gap-4 border-b border-border bg-background/95 px-4 py-3 backdrop-blur sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Homepage</h1>
           <p className="text-sm text-muted-foreground">
@@ -586,11 +601,18 @@ function AdminHomepagePage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {dirty ? (
+            <span className="text-xs font-medium text-muted-foreground">Unsaved changes</span>
+          ) : null}
           <Button variant="outline" asChild>
             <Link to="/" target="_blank" rel="noopener noreferrer">
               <Eye className="mr-2 h-4 w-4" />
               View site
             </Link>
+          </Button>
+          <Button variant="outline" onClick={discard} disabled={!dirty}>
+            <RotateCcw className="mr-2 h-4 w-4" />
+            Reset
           </Button>
           <Button onClick={save}>
             <Save className="mr-2 h-4 w-4" />
