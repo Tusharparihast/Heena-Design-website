@@ -9,6 +9,7 @@ import { TestimonialsSection } from "@/components/home/TestimonialsSection";
 import { FaqSection } from "@/components/home/FaqSection";
 import { ContactSection } from "@/components/home/ContactSection";
 import { SectionDivider } from "@/components/site/SectionDivider";
+import { Reveal } from "@/components/site/Reveal";
 
 const title = "Nagma Designs — Bridal Henna & Mehndi Classes in Kathmandu";
 const description =
@@ -41,23 +42,41 @@ function Index() {
       <h1 className="sr-only">{title}</h1>
       <Hero />
       <SectionDivider pattern="flower" />
-      <AboutSection />
+      <Reveal>
+        <AboutSection />
+      </Reveal>
       <SectionDivider pattern="vine" />
-      <WhySection />
+      <Reveal>
+        <WhySection />
+      </Reveal>
       <SectionDivider pattern="mandala" />
-      <CoursesSection />
+      <Reveal>
+        <CoursesSection />
+      </Reveal>
       <SectionDivider pattern="vine-mandala" />
-      <DesignsSection />
+      <Reveal direction="left">
+        <DesignsSection />
+      </Reveal>
       <SectionDivider pattern="flower" />
-      <GalleryPreview />
+      <Reveal>
+        <GalleryPreview />
+      </Reveal>
       <SectionDivider pattern="vine" />
-      <VideoSection />
+      <Reveal direction="none">
+        <VideoSection />
+      </Reveal>
       <SectionDivider pattern="mandala" />
-      <TestimonialsSection />
+      <Reveal>
+        <TestimonialsSection />
+      </Reveal>
       <SectionDivider pattern="vine-mandala" />
-      <FaqSection />
+      <Reveal direction="none">
+        <FaqSection />
+      </Reveal>
       <SectionDivider pattern="flower" />
-      <ContactSection />
+      <Reveal>
+        <ContactSection />
+      </Reveal>
     </main>
   );
 }
