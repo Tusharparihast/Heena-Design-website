@@ -166,18 +166,22 @@ function AdminAboutPage() {
     setDraft((prev) => ({ ...prev, ...patch }));
   }
 
-  function save() {
-    savedRef.json = JSON.stringify(draft);
-    writeAboutContent(draft);
-    toast.success("About page saved.");
+  async function save() {
+    const snapshot = JSON.stringify(draft);
+    savedRef.json = snapshot;
+    const ok = await writeAboutContent(draft);
+    if (ok) toast.success("About page saved.");
+    else toast.error("Could not save the About page. Please try again.");
   }
 
-  function reset() {
+  async function reset() {
     setDraft(defaultAbout);
     savedRef.json = JSON.stringify(defaultAbout);
-    writeAboutContent(defaultAbout);
-    toast.success("Restored the default About page.");
+    const ok = await writeAboutContent(defaultAbout);
+    if (ok) toast.success("Restored the default About page.");
+    else toast.error("Could not restore the default About page.");
   }
+
 
   const dirty = JSON.stringify(draft) !== savedRef.json;
 
