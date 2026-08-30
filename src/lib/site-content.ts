@@ -41,11 +41,16 @@ function writeMirror(key: string, value: Doc) {
   }
 }
 
-/** Warm the cache from the browser mirror so there is no flash of stale/default content. */
+/**
+ * Warm the cache from the browser mirror so there is no flash of stale/default
+ * content. A mirrored `null` (document was empty the last time this browser
+ * looked) is ignored: treating it as loaded would paint bundled defaults over
+ * content that already exists in the database.
+ */
 function hydrateFromMirror(key: string) {
   if (cache.has(key)) return;
   const { hit, value } = readMirror(key);
-  if (hit) cache.set(key, value);
+  if (hit && value !== null) cache.set(key, value);
 }
 
 function notify(key: string) {
@@ -60,7 +65,11 @@ export function readSiteContent(key: string): Doc {
 
 async function fetchDoc(key: string): Promise<void> {
   const { data, error } = await supabase.from("site_content").select("data").eq("key", key).maybeSingle();
-  if (error) return;
+  if (error) {
+    // Allow a later mount to retry instead of caching the failure forever.
+    loading.delete(key);
+    return;
+  }
   const value = data?.data ?? null;
   cache.set(key, value);
   writeMirror(key, value);
@@ -75,6 +84,26 @@ function ensureLoaded(key: string): Promise<void> {
   }
   return p;
 }
+
+/**
+ * Loads documents ahead of time (called once at boot) so moving between pages
+ * — Homepage → About, for example — never renders a stale or default value
+ * while the real document is still in flight.
+ */
+export function prefetchSiteContent(...keys: string[]) {
+  if (typeof window === "undefined") return;
+  for (const key of keys) {
+    hydrateFromMirror(key);
+    void ensureLoaded(key);
+  }
+}
+
+/** Forces a fresh read from the database, bypassing the cache and mirror. */
+export async function refreshSiteContent(key: string): Promise<void> {
+  loading.delete(key);
+  await ensureLoaded(key);
+}
+
 
 
 
@@ -94,8 +123,14 @@ function ensureRealtime(key: string) {
   channel.subscribe();
 }
 
-/** Writes the document (admins only) and updates every subscriber optimistically. */
+/**
+ * Writes the document (admins only) and updates every subscriber immediately,
+ * so the edited section shows the new media without a reload. If the write is
+ * rejected the optimistic value is rolled back to whatever the database holds,
+ * instead of leaving a "saved" value that reappears as the old one later.
+ */
 export async function saveSiteContent(key: string, data: unknown): Promise<boolean> {
+  const previous = cache.get(key);
   cache.set(key, data);
   writeMirror(key, data);
   notify(key);
@@ -104,10 +139,19 @@ export async function saveSiteContent(key: string, data: unknown): Promise<boole
     .upsert({ key, data: data as never }, { onConflict: "key" });
   if (error) {
     console.error(`[site-content] save failed for "${key}":`, error.message);
+    cache.set(key, previous);
+    writeMirror(key, previous);
+    notify(key);
+    loading.delete(key);
+    void ensureLoaded(key);
     return false;
   }
+  // Confirm against the database so the mirror can never drift from the truth.
+  loading.delete(key);
+  void ensureLoaded(key);
   return true;
 }
+
 
 const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 

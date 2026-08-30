@@ -16,7 +16,7 @@ type LanguageContextValue = {
   toggleLocale: () => void;
   t: Dict;
   homeOverrides: HomepageOverrides;
-  setHomepageOverrides: (next: HomepageOverrides) => void;
+  setHomepageOverrides: (next: HomepageOverrides) => Promise<boolean>;
 };
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
@@ -55,9 +55,10 @@ useEffect(() => {
     window.localStorage.setItem(LOCALE_KEY, next);
   }, []);
 
-  const setHomepageOverrides = useCallback((next: HomepageOverrides) => {
-    void saveHomepageOverrides(next);
-  }, []);
+  const setHomepageOverrides = useCallback(
+    (next: HomepageOverrides) => saveHomepageOverrides(next),
+    [],
+  );
 
   const t = useMemo(
     () => mergeHomepageDictionary(dictionaries[locale], homeOverrides[locale]),

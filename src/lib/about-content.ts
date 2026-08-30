@@ -19,7 +19,9 @@ import minimal from "@/assets/gallery/minimal-1.jpg";
 import modern from "@/assets/gallery/modern-1.jpg";
 import feet from "@/assets/gallery/feet-1.jpg";
 import type { Locale } from "@/i18n/dictionaries";
+import { resolveMediaUrl } from "./media-url";
 import { saveSiteContent, useSiteContent } from "./site-content";
+
 
 export const ABOUT_CONTENT_KEY = "about";
 
@@ -274,8 +276,11 @@ function text(value: unknown, fallback: string, max = 2000): string {
 }
 
 function url(value: unknown, fallback: string): string {
-  return typeof value === "string" && value.trim() ? value.slice(0, 4000) : fallback;
+  // Build-hashed asset paths saved by an older editor no longer resolve, so
+  // fall back to the bundled default instead of a dead link.
+  return resolveMediaUrl(typeof value === "string" ? value.slice(0, 4000) : value, fallback);
 }
+
 
 function urlList(value: unknown, fallback: string[]): string[] {
   if (!Array.isArray(value)) return fallback;
@@ -379,10 +384,11 @@ export function sanitizeAbout(raw: unknown): AboutContent {
   };
 }
 
-/** Saves the About document (admins only). */
-export function writeAboutContent(next: AboutContent) {
-  void saveSiteContent(ABOUT_CONTENT_KEY, sanitizeAbout(next));
+/** Saves the About document (admins only). Resolves false when rejected. */
+export function writeAboutContent(next: AboutContent): Promise<boolean> {
+  return saveSiteContent(ABOUT_CONTENT_KEY, sanitizeAbout(next));
 }
+
 
 /** Live About content, kept in sync across tabs by the shared content store. */
 export function useAboutContent(): { about: AboutContent; loaded: boolean } {
