@@ -491,12 +491,18 @@ function AdminHomepagePage() {
     });
   };
 
-  const save = () => {
+  const save = async () => {
     savedRef.current = JSON.stringify(draft);
-    setHomepageOverrides(draft);
-    toast.success("Homepage saved", {
-      description: "Visit the public site to see the updates.",
-    });
+    const ok = await setHomepageOverrides(draft);
+    if (ok) {
+      toast.success("Homepage saved", {
+        description: "Visit the public site to see the updates.",
+      });
+    } else {
+      toast.error("Could not save the homepage", {
+        description: "Your changes were not stored. Please try again.",
+      });
+    }
   };
 
   const discard = () => {
