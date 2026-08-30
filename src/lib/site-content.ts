@@ -41,11 +41,16 @@ function writeMirror(key: string, value: Doc) {
   }
 }
 
-/** Warm the cache from the browser mirror so there is no flash of stale/default content. */
+/**
+ * Warm the cache from the browser mirror so there is no flash of stale/default
+ * content. A mirrored `null` (document was empty the last time this browser
+ * looked) is ignored: treating it as loaded would paint bundled defaults over
+ * content that already exists in the database.
+ */
 function hydrateFromMirror(key: string) {
   if (cache.has(key)) return;
   const { hit, value } = readMirror(key);
-  if (hit) cache.set(key, value);
+  if (hit && value !== null) cache.set(key, value);
 }
 
 function notify(key: string) {
@@ -60,7 +65,11 @@ export function readSiteContent(key: string): Doc {
 
 async function fetchDoc(key: string): Promise<void> {
   const { data, error } = await supabase.from("site_content").select("data").eq("key", key).maybeSingle();
-  if (error) return;
+  if (error) {
+    // Allow a later mount to retry instead of caching the failure forever.
+    loading.delete(key);
+    return;
+  }
   const value = data?.data ?? null;
   cache.set(key, value);
   writeMirror(key, value);
@@ -75,6 +84,26 @@ function ensureLoaded(key: string): Promise<void> {
   }
   return p;
 }
+
+/**
+ * Loads documents ahead of time (called once at boot) so moving between pages
+ * — Homepage → About, for example — never renders a stale or default value
+ * while the real document is still in flight.
+ */
+export function prefetchSiteContent(...keys: string[]) {
+  if (typeof window === "undefined") return;
+  for (const key of keys) {
+    hydrateFromMirror(key);
+    void ensureLoaded(key);
+  }
+}
+
+/** Forces a fresh read from the database, bypassing the cache and mirror. */
+export async function refreshSiteContent(key: string): Promise<void> {
+  loading.delete(key);
+  await ensureLoaded(key);
+}
+
 
 
 
