@@ -384,10 +384,11 @@ export function sanitizeAbout(raw: unknown): AboutContent {
   };
 }
 
-/** Saves the About document (admins only). */
-export function writeAboutContent(next: AboutContent) {
-  void saveSiteContent(ABOUT_CONTENT_KEY, sanitizeAbout(next));
+/** Saves the About document (admins only). Resolves false when rejected. */
+export function writeAboutContent(next: AboutContent): Promise<boolean> {
+  return saveSiteContent(ABOUT_CONTENT_KEY, sanitizeAbout(next));
 }
+
 
 /** Live About content, kept in sync across tabs by the shared content store. */
 export function useAboutContent(): { about: AboutContent; loaded: boolean } {
