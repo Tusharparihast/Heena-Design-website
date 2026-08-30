@@ -19,7 +19,9 @@ import minimal from "@/assets/gallery/minimal-1.jpg";
 import modern from "@/assets/gallery/modern-1.jpg";
 import feet from "@/assets/gallery/feet-1.jpg";
 import type { Locale } from "@/i18n/dictionaries";
+import { resolveMediaUrl } from "./media-url";
 import { saveSiteContent, useSiteContent } from "./site-content";
+
 
 export const ABOUT_CONTENT_KEY = "about";
 
