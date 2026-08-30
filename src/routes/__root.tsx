@@ -188,12 +188,19 @@ function RootComponent() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isAdmin = pathname.startsWith("/admin");
 
+  // Load the studio-managed documents once at boot so moving between the
+  // Homepage and the About page never flashes stale or default media.
+  useEffect(() => {
+    prefetchSiteContent("homepage", "about", "branding", "contact-info");
+  }, []);
+
   useEffect(() => {
     const [nav] = performance.getEntriesByType("navigation") as PerformanceNavigationTiming[];
     if (nav?.type !== "reload") return;
     const id = window.requestAnimationFrame(() => window.scrollTo(0, 0));
     return () => window.cancelAnimationFrame(id);
   }, []);
+
 
   return (
     <QueryClientProvider client={queryClient}>
