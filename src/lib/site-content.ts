@@ -123,8 +123,14 @@ function ensureRealtime(key: string) {
   channel.subscribe();
 }
 
-/** Writes the document (admins only) and updates every subscriber optimistically. */
+/**
+ * Writes the document (admins only) and updates every subscriber immediately,
+ * so the edited section shows the new media without a reload. If the write is
+ * rejected the optimistic value is rolled back to whatever the database holds,
+ * instead of leaving a "saved" value that reappears as the old one later.
+ */
 export async function saveSiteContent(key: string, data: unknown): Promise<boolean> {
+  const previous = cache.get(key);
   cache.set(key, data);
   writeMirror(key, data);
   notify(key);
@@ -133,10 +139,19 @@ export async function saveSiteContent(key: string, data: unknown): Promise<boole
     .upsert({ key, data: data as never }, { onConflict: "key" });
   if (error) {
     console.error(`[site-content] save failed for "${key}":`, error.message);
+    cache.set(key, previous);
+    writeMirror(key, previous);
+    notify(key);
+    loading.delete(key);
+    void ensureLoaded(key);
     return false;
   }
+  // Confirm against the database so the mirror can never drift from the truth.
+  loading.delete(key);
+  void ensureLoaded(key);
   return true;
 }
+
 
 const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
