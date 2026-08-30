@@ -274,8 +274,11 @@ function text(value: unknown, fallback: string, max = 2000): string {
 }
 
 function url(value: unknown, fallback: string): string {
-  return typeof value === "string" && value.trim() ? value.slice(0, 4000) : fallback;
+  // Build-hashed asset paths saved by an older editor no longer resolve, so
+  // fall back to the bundled default instead of a dead link.
+  return resolveMediaUrl(typeof value === "string" ? value.slice(0, 4000) : value, fallback);
 }
+
 
 function urlList(value: unknown, fallback: string[]): string[] {
   if (!Array.isArray(value)) return fallback;
