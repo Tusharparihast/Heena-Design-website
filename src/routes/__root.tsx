@@ -23,6 +23,8 @@ import { BackToTop } from "@/components/site/BackToTop";
 import { site } from "@/lib/site";
 import { SeoTagsInjector } from "@/components/site/SeoTagsInjector";
 import { FaviconInjector } from "@/components/site/FaviconInjector";
+import { prefetchSiteContent } from "@/lib/site-content";
+
 
 function NotFoundComponent() {
   return (
