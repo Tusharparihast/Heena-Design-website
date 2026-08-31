@@ -63,6 +63,7 @@ export function VideoSection() {
   const [playing, setPlaying] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [aspect, setAspect] = useState(16 / 9);
+  useVideoSrc(videoRef, videoUrl, posterUrl);
 
   const readAspect = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     const v = e.currentTarget;
