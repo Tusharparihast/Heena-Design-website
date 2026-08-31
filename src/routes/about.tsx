@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { pickLang, pickList, useAboutContent } from "@/lib/about-content";
 import { site } from "@/lib/site";
+import { useVideoSrc } from "@/lib/use-video-src";
 
 const title = "About Nagma Designs — Mehndi Studio in Maitidevi, Kathmandu";
 const description =
