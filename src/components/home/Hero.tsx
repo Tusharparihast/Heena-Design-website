@@ -87,6 +87,7 @@ export function Hero() {
           {showVideo ? (
             <video
               key={videoUrl}
+              ref={heroVideoRef}
               src={videoUrl}
               poster={posterUrl}
               width={1200}
