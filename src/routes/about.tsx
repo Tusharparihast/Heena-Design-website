@@ -46,6 +46,7 @@ function BehindTheScenesVideo({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [aspect, setAspect] = useState(16 / 9);
+  useVideoSrc(videoRef, src, poster);
 
   // Autoplay when scrolled into view, pause when it scrolls away.
   useEffect(() => {
