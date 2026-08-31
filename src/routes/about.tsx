@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { pickLang, pickList, useAboutContent } from "@/lib/about-content";
 import { site } from "@/lib/site";
+import { useVideoSrc } from "@/lib/use-video-src";
 
 const title = "About Nagma Designs — Mehndi Studio in Maitidevi, Kathmandu";
 const description =
@@ -46,6 +47,7 @@ function BehindTheScenesVideo({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [aspect, setAspect] = useState(16 / 9);
+  useVideoSrc(videoRef, src, poster);
 
   // Autoplay when scrolled into view, pause when it scrolls away.
   useEffect(() => {

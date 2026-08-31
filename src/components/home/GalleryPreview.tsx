@@ -5,6 +5,7 @@ import { Section, SectionHeading } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { useEffectiveGalleryItems } from "@/lib/gallery-overrides";
 import { useVideoMedia } from "@/lib/use-homepage-media";
+import { useVideoSrc } from "@/lib/use-video-src";
 
 
 
@@ -62,6 +63,7 @@ export function VideoSection() {
   const [playing, setPlaying] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [aspect, setAspect] = useState(16 / 9);
+  useVideoSrc(videoRef, videoUrl, posterUrl);
 
   const readAspect = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     const v = e.currentTarget;

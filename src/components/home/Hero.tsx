@@ -1,9 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import { MessageCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MehndiPattern } from "@/components/site/MehndiPattern";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { useHeroMedia } from "@/lib/use-homepage-media";
+import { useVideoSrc } from "@/lib/use-video-src";
 import { site } from "@/lib/site";
 
 
@@ -13,6 +14,8 @@ export function Hero() {
   // Only fetch the clip on capable connections — poster image is the fallback.
   const [playVideo, setPlayVideo] = useState(false);
   const showVideo = playVideo && !imageMode;
+  const heroVideoRef = useRef<HTMLVideoElement | null>(null);
+  useVideoSrc(heroVideoRef, showVideo ? videoUrl : undefined, posterUrl);
 
   useEffect(() => {
     const conn = (
@@ -84,6 +87,7 @@ export function Hero() {
           {showVideo ? (
             <video
               key={videoUrl}
+              ref={heroVideoRef}
               src={videoUrl}
               poster={posterUrl}
               width={1200}
