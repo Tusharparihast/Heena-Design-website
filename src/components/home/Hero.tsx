@@ -14,6 +14,8 @@ export function Hero() {
   // Only fetch the clip on capable connections — poster image is the fallback.
   const [playVideo, setPlayVideo] = useState(false);
   const showVideo = playVideo && !imageMode;
+  const heroVideoRef = useRef<HTMLVideoElement | null>(null);
+  useVideoSrc(heroVideoRef, showVideo ? videoUrl : undefined, posterUrl);
 
   useEffect(() => {
     const conn = (
