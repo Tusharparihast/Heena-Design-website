@@ -1,17 +1,30 @@
 import { cn } from "@/lib/utils";
+import { Reveal } from "./Reveal";
 
 export function Section({
   id,
   className,
   children,
+  /** Set false to opt out of the scroll-reveal animation. */
+  reveal = true,
+  /** Direction the content slides in from. */
+  revealDirection = "up",
 }: {
   id?: string;
   className?: string;
   children: React.ReactNode;
+  reveal?: boolean;
+  revealDirection?: "up" | "down" | "left" | "right" | "none";
 }) {
   return (
     <section id={id} className={cn("scroll-mt-20 px-4 py-20 sm:py-24", className)}>
-      <div className="mx-auto max-w-6xl">{children}</div>
+      {reveal ? (
+        <Reveal className="mx-auto max-w-6xl" direction={revealDirection}>
+          {children}
+        </Reveal>
+      ) : (
+        <div className="mx-auto max-w-6xl">{children}</div>
+      )}
     </section>
   );
 }
