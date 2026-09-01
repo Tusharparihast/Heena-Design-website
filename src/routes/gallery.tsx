@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { GalleryBrowser } from "@/components/gallery/GalleryBrowser";
+import { Reveal } from "@/components/site/Reveal";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import {
   useEffectiveGalleryCategories,
@@ -31,17 +32,19 @@ function GalleryPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-14 sm:py-20">
-      <p className="text-xs font-semibold tracking-[0.24em] text-primary uppercase">
-        {t.gallery.label}
-      </p>
-      <h1 className="mt-3 text-4xl font-semibold sm:text-5xl">{t.galleryPage.title}</h1>
+      <Reveal>
+        <p className="text-xs font-semibold tracking-[0.24em] text-primary uppercase">
+          {t.gallery.label}
+        </p>
+        <h1 className="mt-3 text-4xl font-semibold sm:text-5xl">{t.galleryPage.title}</h1>
+      </Reveal>
 
-      <div className="mt-6">
+      <Reveal className="mt-6" delay={80}>
         <GalleryBrowser
           items={items}
           categories={categories.map((c) => ({ id: c.id, en: c.nameEn, zh: c.nameZh }))}
         />
-      </div>
+      </Reveal>
     </main>
   );
 }
