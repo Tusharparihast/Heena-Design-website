@@ -172,8 +172,13 @@
     border-color: var(--color-border);
   }
 
-  html {
-    scroll-behavior: smooth;
+  /* NOTE: no global scroll-behavior here — a sitewide "smooth" value makes
+     TanStack Router's scroll restoration animate the jump to the top on every
+     page change. Anchor-hash links opt into smooth scrolling via .smooth-scroll. */
+  @media (prefers-reduced-motion: no-preference) {
+    html.smooth-scroll {
+      scroll-behavior: smooth;
+    }
   }
 
 
