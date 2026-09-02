@@ -10,10 +10,10 @@ import { site } from "@/lib/site";
 /** Fades the right-side media into the page background on its left edge. */
 const edgeFadeMask: CSSProperties = {
   WebkitMaskImage:
-    "linear-gradient(to right, transparent, black 30%, black 90%), linear-gradient(to bottom, transparent, black 12%, black 80%, transparent)",
+    "linear-gradient(to right, transparent, black 55%, black 92%), linear-gradient(to bottom, transparent, black 12%, black 82%, transparent)",
   WebkitMaskComposite: "source-in",
   maskImage:
-    "linear-gradient(to right, transparent, black 30%, black 90%), linear-gradient(to bottom, transparent, black 12%, black 80%, transparent)",
+    "linear-gradient(to right, transparent, black 55%, black 92%), linear-gradient(to bottom, transparent, black 12%, black 82%, transparent)",
   maskComposite: "intersect",
 };
 
