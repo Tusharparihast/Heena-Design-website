@@ -45,8 +45,8 @@ export function Hero() {
         aria-hidden
       />
 
-      {/* Media merged into the background — edges fade into the page. */}
-      <div className="pointer-events-none absolute inset-0" aria-hidden>
+      {/* Media covers only the right half of the hero — left edge fades into the page. */}
+      <div className="pointer-events-none absolute inset-y-0 right-0 left-1/2" aria-hidden>
         {showVideo ? (
           <video
             key={videoUrl}
@@ -70,7 +70,7 @@ export function Hero() {
           />
         )}
         {/* Soft wash so the text side stays readable in both themes. */}
-        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/80 via-background/30 to-transparent" />
       </div>
 
       {/* Decorative mehndi circle floating over the merged background. */}
