@@ -172,6 +172,14 @@
     border-color: var(--color-border);
   }
 
+  /* Clamp horizontal overflow: sideways Reveal animations and decorative
+     fixed motifs can otherwise extend the page to the right before the
+     reveal transition runs. */
+  html,
+  body {
+    overflow-x: clip;
+  }
+
   /* NOTE: no global `scroll-behavior: smooth` here — it makes TanStack Router's
      scroll restoration animate the jump to the top on every page change. */
 
