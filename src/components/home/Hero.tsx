@@ -7,13 +7,13 @@ import { useHeroMedia } from "@/lib/use-homepage-media";
 import { useVideoSrc } from "@/lib/use-video-src";
 import { site } from "@/lib/site";
 
-/** Fades the media into the page background on every side. */
+/** Fades the right-side media into the page background on its left edge. */
 const edgeFadeMask: CSSProperties = {
   WebkitMaskImage:
-    "linear-gradient(to right, transparent, black 18%, black 82%, transparent), linear-gradient(to bottom, transparent, black 14%, black 72%, transparent)",
+    "linear-gradient(to right, transparent, black 30%, black 90%), linear-gradient(to bottom, transparent, black 12%, black 80%, transparent)",
   WebkitMaskComposite: "source-in",
   maskImage:
-    "linear-gradient(to right, transparent, black 18%, black 82%, transparent), linear-gradient(to bottom, transparent, black 14%, black 72%, transparent)",
+    "linear-gradient(to right, transparent, black 30%, black 90%), linear-gradient(to bottom, transparent, black 12%, black 80%, transparent)",
   maskComposite: "intersect",
 };
 
