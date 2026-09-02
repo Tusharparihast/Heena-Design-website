@@ -116,15 +116,6 @@ export function VideoSection() {
         <div ref={containerRef} className="relative overflow-hidden rounded-2xl border border-border bg-secondary/60">
           <div className="relative">
             {video}
-            <button
-              type="button"
-              onClick={() => setExpanded(true)}
-              aria-label={t.video.expand}
-              className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-background/85 px-3 py-1.5 text-xs font-medium text-foreground backdrop-blur-sm transition-colors hover:bg-background"
-            >
-              <Maximize2 className="h-3.5 w-3.5" aria-hidden />
-              {t.video.expand}
-            </button>
           </div>
         </div>
       </div>
