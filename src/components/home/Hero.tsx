@@ -1,12 +1,21 @@
 import { Link } from "@tanstack/react-router";
 import { MessageCircle } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { MehndiPattern } from "@/components/site/MehndiPattern";
 import { useLanguage } from "@/i18n/LanguageProvider";
 import { useHeroMedia } from "@/lib/use-homepage-media";
 import { useVideoSrc } from "@/lib/use-video-src";
 import { site } from "@/lib/site";
 
+/** Fades the media into the page background on every side. */
+const edgeFadeMask: CSSProperties = {
+  WebkitMaskImage:
+    "linear-gradient(to right, transparent, black 18%, black 82%, transparent), linear-gradient(to bottom, transparent, black 14%, black 72%, transparent)",
+  WebkitMaskComposite: "source-in",
+  maskImage:
+    "linear-gradient(to right, transparent, black 18%, black 82%, transparent), linear-gradient(to bottom, transparent, black 14%, black 72%, transparent)",
+  maskComposite: "intersect",
+};
 
 export function Hero() {
   const { t } = useLanguage();
@@ -28,8 +37,6 @@ export function Hero() {
     if (!slow && !reduced) setPlayVideo(true);
   }, []);
 
-
-
   return (
     <section className="relative overflow-hidden">
       <div
@@ -37,7 +44,41 @@ export function Hero() {
         style={{ background: "var(--gradient-sage)" }}
         aria-hidden
       />
-      <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 sm:py-24 lg:grid-cols-2">
+
+      {/* Media merged into the background — edges fade into the page. */}
+      <div className="pointer-events-none absolute inset-0" aria-hidden>
+        {showVideo ? (
+          <video
+            key={videoUrl}
+            ref={heroVideoRef}
+            src={videoUrl}
+            poster={posterUrl}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            className="h-full w-full object-cover opacity-70"
+            style={edgeFadeMask}
+          />
+        ) : (
+          <img
+            src={imageUrl}
+            alt=""
+            className="h-full w-full object-cover opacity-70"
+            style={edgeFadeMask}
+          />
+        )}
+        {/* Soft wash so the text side stays readable in both themes. */}
+        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/60 to-transparent" />
+      </div>
+
+      {/* Decorative mehndi circle floating over the merged background. */}
+      <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-1/2 items-center justify-center text-primary/70 md:flex">
+        <MehndiPattern className="max-h-[520px]" />
+      </div>
+
+      <div className="relative z-10 mx-auto grid max-w-6xl items-center gap-12 px-4 py-16 sm:py-24 lg:grid-cols-2">
         <div>
           <h1 className="text-4xl leading-[1.05] font-semibold sm:text-6xl">
             <span className="fade-up block" style={{ animationDelay: "0.15s" }}>
@@ -80,39 +121,8 @@ export function Hero() {
           </p>
         </div>
 
-        <div className="relative">
-          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center text-primary/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]">
-            <MehndiPattern className="max-h-[520px]" />
-          </div>
-          {showVideo ? (
-            <video
-              key={videoUrl}
-              ref={heroVideoRef}
-              src={videoUrl}
-              poster={posterUrl}
-              width={1200}
-              height={1400}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="metadata"
-              aria-label="Artist applying henna mehndi to a hand"
-              className="aspect-[6/7] w-full rounded-[2rem] object-cover"
-              style={{ boxShadow: "var(--shadow-soft)" }}
-            />
-          ) : (
-            <img
-              src={imageUrl}
-              width={1200}
-              height={1400}
-              alt="Hand decorated with an intricate traditional bridal mehndi design"
-              className="aspect-[6/7] w-full rounded-[2rem] object-cover"
-              style={{ boxShadow: "var(--shadow-soft)" }}
-            />
-          )}
-        </div>
-
+        {/* Spacer keeps the original two-column rhythm; the media lives in the background now. */}
+        <div className="hidden aspect-[6/7] max-h-[560px] lg:block" aria-hidden />
       </div>
     </section>
   );
