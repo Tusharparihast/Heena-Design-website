@@ -91,15 +91,13 @@ export function VideoSection() {
     return () => observer.disconnect();
   }, [expanded]);
 
-  // Inline player + controls.
+  // Inline player — no controls, just keeps playing silently on loop.
   const video = (
     <video
       key={videoUrl}
       ref={videoRef}
       src={videoUrl}
       poster={posterUrl}
-      controls={playing}
-      controlsList="nofullscreen"
       muted
       loop
       playsInline
