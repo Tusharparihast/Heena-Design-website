@@ -76,7 +76,6 @@ function BehindTheScenesVideo({
         ref={videoRef}
         src={src}
         poster={poster}
-        controls
         muted
         loop
         playsInline
