@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { dictionaries } from "./dictionaries";
+import { dictionaries, type Locale } from "./dictionaries";
 import { LanguageContext, type LanguageContextValue } from "./language-context";
 import { supabase } from "@/integrations/supabase/client";
 import {
