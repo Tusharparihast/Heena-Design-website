@@ -56,11 +56,11 @@ export function GalleryPreview() {
 
 export function VideoSection() {
   const { t } = useLanguage();
-  const { videoUrl, posterUrl } = useVideoMedia();
+  const { videoUrl } = useVideoMedia();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [aspect, setAspect] = useState(16 / 9);
-  useVideoSrc(videoRef, videoUrl, posterUrl);
+  useVideoSrc(videoRef, videoUrl);
 
   const readAspect = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     const v = e.currentTarget;
@@ -97,7 +97,6 @@ export function VideoSection() {
             key={videoUrl}
             ref={videoRef}
             src={videoUrl}
-            poster={posterUrl}
             muted
             loop
             playsInline

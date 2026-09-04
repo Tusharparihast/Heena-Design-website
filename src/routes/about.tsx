@@ -37,17 +37,15 @@ function paragraphs(value: string): string[] {
 
 function BehindTheScenesVideo({
   src,
-  poster,
   title,
 }: {
   src: string;
-  poster: string;
   title: string;
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [aspect, setAspect] = useState(16 / 9);
-  useVideoSrc(videoRef, src, poster);
+  useVideoSrc(videoRef, src);
 
   // Autoplay when scrolled into view, pause when it scrolls away.
   useEffect(() => {
@@ -75,7 +73,6 @@ function BehindTheScenesVideo({
         key={src}
         ref={videoRef}
         src={src}
-        poster={poster}
         muted
         loop
         playsInline
@@ -298,7 +295,6 @@ function AboutPage() {
         />
         <BehindTheScenesVideo
           src={about.videoUrl}
-          poster={about.videoPosterUrl}
           title={pick(about.videoTitleEn, about.videoTitleZh)}
         />
       </Section>
