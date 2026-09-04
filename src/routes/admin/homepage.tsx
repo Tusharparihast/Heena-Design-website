@@ -910,18 +910,6 @@ function AdminHomepagePage() {
                 onChange={(loc, v) => patchSection(loc, "video", { body: v })}
                 multiline
               />
-              <BilingualField
-                label="Play button"
-                valueEn={videoEn.play ?? dictionaries.en.video.play}
-                valueZh={videoZh.play ?? dictionaries.zh.video.play}
-                onChange={(loc, v) => patchSection(loc, "video", { play: v })}
-              />
-              <BilingualField
-                label="Note"
-                valueEn={videoEn.note ?? dictionaries.en.video.note}
-                valueZh={videoZh.note ?? dictionaries.zh.video.note}
-                onChange={(loc, v) => patchSection(loc, "video", { note: v })}
-              />
             </CardContent>
           </Card>
 

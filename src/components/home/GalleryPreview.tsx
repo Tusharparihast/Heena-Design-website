@@ -1,5 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import { Maximize2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Section, SectionHeading } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/LanguageProvider";
@@ -60,8 +59,6 @@ export function VideoSection() {
   const { videoUrl, posterUrl } = useVideoMedia();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [playing, setPlaying] = useState(false);
-  const [expanded, setExpanded] = useState(false);
   const [aspect, setAspect] = useState(16 / 9);
   useVideoSrc(videoRef, videoUrl, posterUrl);
 
@@ -77,11 +74,10 @@ export function VideoSection() {
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          if (entry.isIntersecting && !expanded) {
-            videoRef.current?.play().then(() => setPlaying(true)).catch(() => {});
+          if (entry.isIntersecting) {
+            videoRef.current?.play().catch(() => {});
           } else {
             videoRef.current?.pause();
-            setPlaying(false);
           }
         }
       },
@@ -89,86 +85,30 @@ export function VideoSection() {
     );
     observer.observe(node);
     return () => observer.disconnect();
-  }, [expanded]);
+  }, []);
 
   // Inline player — no controls, just keeps playing silently on loop.
-  const video = (
-    <video
-      key={videoUrl}
-      ref={videoRef}
-      src={videoUrl}
-      poster={posterUrl}
-      muted
-      loop
-      playsInline
-      preload="metadata"
-      onLoadedMetadata={readAspect}
-      className="w-full bg-black object-contain"
-      style={{ aspectRatio: aspect, maxHeight: "70vh", marginInline: "auto" }}
-      aria-label={t.video.title}
-    />
-  );
-
   return (
     <Section id="video" className="bg-card">
       <div className="grid items-center gap-10 lg:grid-cols-2">
         <SectionHeading label={t.video.label} title={t.video.title} body={t.video.body} />
         <div ref={containerRef} className="relative overflow-hidden rounded-2xl border border-border bg-secondary/60">
-          <div className="relative">
-            {video}
-            <button
-              type="button"
-              onClick={() => setExpanded(true)}
-              aria-label={t.video.expand}
-              className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-background/85 px-3 py-1.5 text-xs font-medium text-foreground backdrop-blur-sm transition-colors hover:bg-background"
-            >
-              <Maximize2 className="h-3.5 w-3.5" aria-hidden />
-              {t.video.expand}
-            </button>
-          </div>
+          <video
+            key={videoUrl}
+            ref={videoRef}
+            src={videoUrl}
+            poster={posterUrl}
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            onLoadedMetadata={readAspect}
+            className="w-full bg-black object-contain"
+            style={{ aspectRatio: aspect, maxHeight: "70vh", marginInline: "auto" }}
+            aria-label={t.video.title}
+          />
         </div>
       </div>
-
-      {/* Large centered box view instead of browser fullscreen so the video quality stays crisp. */}
-      {expanded && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-background/95 p-4 backdrop-blur-sm"
-          onClick={() => setExpanded(false)}
-          role="dialog"
-          aria-modal="true"
-          aria-label={t.video.title}
-        >
-          <div
-            className="relative w-full max-w-5xl overflow-hidden rounded-2xl border border-border bg-card shadow-2xl"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <button
-              type="button"
-              onClick={() => setExpanded(false)}
-              aria-label={t.video.close}
-              className="absolute right-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-background/85 px-3 py-1.5 text-xs font-medium text-foreground backdrop-blur-sm transition-colors hover:bg-background"
-            >
-              <X className="h-3.5 w-3.5" aria-hidden />
-              {t.video.close}
-            </button>
-            <video
-              key={videoUrl}
-              src={videoUrl}
-              poster={posterUrl}
-              controls
-              controlsList="nofullscreen"
-              autoPlay
-              muted
-              loop
-              playsInline
-              onLoadedMetadata={readAspect}
-              className="w-full bg-black object-contain"
-              style={{ aspectRatio: aspect, maxHeight: "80vh", marginInline: "auto" }}
-              aria-label={t.video.title}
-            />
-          </div>
-        </div>
-      )}
     </Section>
   );
 }
