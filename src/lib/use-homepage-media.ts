@@ -1,7 +1,6 @@
 import heroPoster from "@/assets/hero-hand.jpg";
 import heroVideoAsset from "@/assets/hero-mehndi.mp4.asset.json";
 const heroVideo = heroVideoAsset.url;
-import demoPoster from "@/assets/hero-hand.jpg";
 const demoVideo = heroVideoAsset.url;
 import aboutDefault from "@/assets/about-henna.jpg";
 import { useLanguage } from "@/i18n/language-context";
@@ -31,7 +30,6 @@ export function useAboutMedia() {
   return {
     imageUrl: resolveMediaUrl(about?.imageUrl, aboutDefault),
     videoUrl: optionalMediaUrl(about?.videoUrl),
-    posterUrl: optionalMediaUrl(about?.posterUrl),
   };
 }
 
@@ -40,6 +38,5 @@ export function useVideoMedia() {
   const video = homeOverrides[locale]?.video;
   return {
     videoUrl: resolveMediaUrl(video?.videoUrl, demoVideo),
-    posterUrl: resolveMediaUrl(video?.posterUrl, demoPoster),
   };
 }

@@ -428,7 +428,6 @@ function AdminAboutPage() {
             onChange={(l, v) => set(l === "en" ? { videoBodyEn: v } : { videoBodyZh: v })}
           />
           <VideoField label="Video" value={draft.videoUrl} onChange={(v) => set({ videoUrl: v })} />
-          <ImageField label="Poster image" value={draft.videoPosterUrl} onChange={(v) => set({ videoPosterUrl: v })} />
         </CardContent>
       </Card>
 

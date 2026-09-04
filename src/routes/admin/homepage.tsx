@@ -816,14 +816,6 @@ function AdminHomepagePage() {
                 value={aboutEn.videoUrl}
                 onChange={(v) => patchSharedMedia("about", { videoUrl: v || undefined })}
               />
-
-              {aboutEn.videoUrl && (
-                <ImageField
-                  label="Video poster"
-                  value={aboutEn.posterUrl}
-                  onChange={(v) => patchSharedMedia("about", { posterUrl: v || undefined })}
-                />
-              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -925,12 +917,6 @@ function AdminHomepagePage() {
                 label="Demo video"
                 value={videoEn.videoUrl}
                 onChange={(v) => patchSharedMedia("video", { videoUrl: v || undefined })}
-              />
-
-              <ImageField
-                label="Demo poster"
-                value={videoEn.posterUrl}
-                onChange={(v) => patchSharedMedia("video", { posterUrl: v || undefined })}
               />
             </CardContent>
           </Card>
