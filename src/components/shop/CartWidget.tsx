@@ -3,7 +3,7 @@ import { ShoppingBag, ShoppingCart, Trash2, X } from "lucide-react";
 import { OrderRequestModal } from "@/components/shop/OrderRequestModal";
 import { QuantityStepper } from "@/components/shop/QuantityStepper";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useLanguage } from "@/i18n/LanguageProvider";
+import { useLanguage } from "@/i18n/language-context";
 import { useCart } from "@/lib/cart";
 import { useModalBackClose } from "@/lib/modal-history";
 import { MAX_ORDER_QTY, formatCny, formatNpr, unitPriceNpr } from "@/lib/shop";

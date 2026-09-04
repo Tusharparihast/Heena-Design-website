@@ -1,5 +1,5 @@
 import { Percent } from "lucide-react";
-import { useLanguage } from "@/i18n/LanguageProvider";
+import { useLanguage } from "@/i18n/language-context";
 import { formatCny, formatNpr, unitPriceNpr, type ShopProduct } from "@/lib/shop";
 import { useCnyRate } from "@/lib/use-cny-rate";
 import { cn } from "@/lib/utils";

@@ -7,7 +7,7 @@ import { OrderRequestModal } from "@/components/shop/OrderRequestModal";
 import { QuantityStepper } from "@/components/shop/QuantityStepper";
 import { StockBadge } from "@/components/shop/StockBadge";
 import { en } from "@/i18n/dictionaries";
-import { useLanguage } from "@/i18n/LanguageProvider";
+import { useLanguage } from "@/i18n/language-context";
 import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
 import { MAX_ORDER_QTY, type ShopProduct } from "@/lib/shop";

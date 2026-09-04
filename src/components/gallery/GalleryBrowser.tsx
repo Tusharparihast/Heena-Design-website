@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { GalleryCard } from "@/components/gallery/GalleryCard";
 import { Lightbox } from "@/components/gallery/Lightbox";
-import { useLanguage } from "@/i18n/LanguageProvider";
+import { useLanguage } from "@/i18n/language-context";
 import {
   GALLERY_PAGE_SIZE,
   galleryCategories,

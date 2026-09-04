@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Menu, Moon, Sun, X } from "lucide-react";
 import { useState } from "react";
 import { BrandLogo } from "@/components/site/BrandLogo";
-import { useLanguage } from "@/i18n/LanguageProvider";
+import { useLanguage } from "@/i18n/language-context";
 import { useTheme } from "@/hooks/use-theme";
 import { site } from "@/lib/site";
 import { cn } from "@/lib/utils";

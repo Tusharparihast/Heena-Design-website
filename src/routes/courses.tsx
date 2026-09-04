@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowDown, ArrowRight, Award, Check, Clock, GraduationCap, Package, Users } from "lucide-react";
 import { Section, SectionHeading } from "@/components/site/Section";
 import { MehndiPattern } from "@/components/site/MehndiPattern";
-import { useLanguage } from "@/i18n/LanguageProvider";
+import { useLanguage } from "@/i18n/language-context";
 import { useCoursesNote, useEffectiveCourses } from "@/lib/courses-overrides";
 
 const title = "Mehndi Courses in Kathmandu — Beginner to Bridal | Nagma Designs";

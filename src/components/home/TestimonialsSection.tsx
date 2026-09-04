@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Section, SectionHeading } from "@/components/site/Section";
-import { useLanguage } from "@/i18n/LanguageProvider";
+import { useLanguage } from "@/i18n/language-context";
 import { resolveTestimonialImage } from "@/lib/testimonial-images";
 import {
   useEffectiveTestimonials,

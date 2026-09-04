@@ -1,5 +1,5 @@
 import { Section, SectionHeading } from "@/components/site/Section";
-import { useLanguage } from "@/i18n/LanguageProvider";
+import { useLanguage } from "@/i18n/language-context";
 import { modernImages, traditionalImages } from "@/lib/design-images";
 
 export function DesignsSection() {

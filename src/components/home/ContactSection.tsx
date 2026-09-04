@@ -3,7 +3,7 @@ import { Clock, Copy, Facebook, Instagram, Mail, MapPin, Phone } from "lucide-re
 import { WeChatIcon, WhatsAppIcon } from "@/components/site/BrandIcons";
 import { useWeChatQr } from "@/components/site/WeChatQr";
 import { Section, SectionHeading } from "@/components/site/Section";
-import { useLanguage } from "@/i18n/LanguageProvider";
+import { useLanguage } from "@/i18n/language-context";
 import { useContactInfo, waLink } from "@/lib/contact-info";
 
 export function ContactSection() {

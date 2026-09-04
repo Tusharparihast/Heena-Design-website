@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useLanguage } from "@/i18n/LanguageProvider";
+import { useLanguage } from "@/i18n/language-context";
 
 export function ComingSoon({ heading, blurb }: { heading: string; blurb?: string }) {
   const { t } = useLanguage();

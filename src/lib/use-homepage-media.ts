@@ -4,7 +4,7 @@ const heroVideo = heroVideoAsset.url;
 import demoPoster from "@/assets/hero-hand.jpg";
 const demoVideo = heroVideoAsset.url;
 import aboutDefault from "@/assets/about-henna.jpg";
-import { useLanguage } from "@/i18n/LanguageProvider";
+import { useLanguage } from "@/i18n/language-context";
 import { optionalMediaUrl, resolveMediaUrl } from "@/lib/media-url";
 
 // NOTE: these three readers are deliberately independent.

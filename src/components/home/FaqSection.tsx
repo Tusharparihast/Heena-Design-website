@@ -5,7 +5,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Section, SectionHeading } from "@/components/site/Section";
-import { useLanguage } from "@/i18n/LanguageProvider";
+import { useLanguage } from "@/i18n/language-context";
 import { effectiveFaqItems, faqSectionHeading, faqText, useFaqOverrides } from "@/lib/faq-overrides";
 
 export function FaqSection() {
