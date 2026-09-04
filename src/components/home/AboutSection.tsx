@@ -19,7 +19,6 @@ export function AboutSection() {
         {media.videoUrl ? (
           <video
             src={media.videoUrl}
-            poster={media.posterUrl}
             autoPlay
             muted
             loop
