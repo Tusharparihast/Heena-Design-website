@@ -147,10 +147,6 @@ export const en = {
     label: "Watch",
     title: "See the cone in motion",
     body: "A short demonstration of a bridal motif, from first line to finished panel.",
-    play: "Play demo video",
-    note: "Short demo clip — tap to play. Nothing downloads until you press play.",
-    expand: "Large view",
-    close: "Close",
   },
   testimonials: {
     label: "Testimonials",
