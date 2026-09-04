@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Clock, Copy, MapPin, QrCode, Send, Store, X } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { useLanguage } from "@/i18n/LanguageProvider";
+import { useLanguage } from "@/i18n/language-context";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useCart } from "@/lib/cart";
 import { MAX_ORDER_QTY, formatCny, formatNpr, unitPriceNpr } from "@/lib/shop";

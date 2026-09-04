@@ -1,4 +1,4 @@
-import { useLanguage } from "@/i18n/LanguageProvider";
+import { useLanguage } from "@/i18n/language-context";
 import type { StockStatus } from "@/lib/shop";
 import { cn } from "@/lib/utils";
 

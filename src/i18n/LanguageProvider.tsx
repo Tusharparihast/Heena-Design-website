@@ -1,7 +1,7 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { dictionaries, type Locale } from "./dictionaries";
+import { LanguageContext, type LanguageContextValue } from "./language-context";
 import { supabase } from "@/integrations/supabase/client";
-import type { Dict } from "./en";
 import {
   mergeHomepageDictionary,
   migrateLegacyHomepageOverrides,
@@ -9,17 +9,6 @@ import {
   useHomepageOverrides,
   type HomepageOverrides,
 } from "@/lib/homepage-overrides";
-
-type LanguageContextValue = {
-  locale: Locale;
-  setLocale: (locale: Locale) => void;
-  toggleLocale: () => void;
-  t: Dict;
-  homeOverrides: HomepageOverrides;
-  setHomepageOverrides: (next: HomepageOverrides) => Promise<boolean>;
-};
-
-const LanguageContext = createContext<LanguageContextValue | null>(null);
 
 const LOCALE_KEY = "mehndi.locale";
 
@@ -80,8 +69,3 @@ useEffect(() => {
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }
 
-export function useLanguage() {
-  const ctx = useContext(LanguageContext);
-  if (!ctx) throw new Error("useLanguage must be used inside LanguageProvider");
-  return ctx;
-}

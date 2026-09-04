@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { MessageCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { MehndiPattern } from "@/components/site/MehndiPattern";
-import { useLanguage } from "@/i18n/LanguageProvider";
+import { useLanguage } from "@/i18n/language-context";
 import { useHeroMedia } from "@/lib/use-homepage-media";
 import { useVideoSrc } from "@/lib/use-video-src";
 import { site } from "@/lib/site";

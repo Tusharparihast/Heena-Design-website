@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Clock, GraduationCap } from "lucide-react";
 
 import { Section, SectionHeading } from "@/components/site/Section";
-import { useLanguage } from "@/i18n/LanguageProvider";
+import { useLanguage } from "@/i18n/language-context";
 import { useCoursesNote, useEffectiveCourses } from "@/lib/courses-overrides";
 
 export function CoursesSection() {

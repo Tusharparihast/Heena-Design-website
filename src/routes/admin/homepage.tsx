@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { useLanguage } from "@/i18n/LanguageProvider";
+import { useLanguage } from "@/i18n/language-context";
 import { type Locale, dictionaries } from "@/i18n/dictionaries";
 import { fileToDataUrl } from "@/lib/image-upload";
 import { modernImages, traditionalImages } from "@/lib/design-images";

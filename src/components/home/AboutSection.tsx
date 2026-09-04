@@ -1,5 +1,5 @@
 import { Section, SectionHeading } from "@/components/site/Section";
-import { useLanguage } from "@/i18n/LanguageProvider";
+import { useLanguage } from "@/i18n/language-context";
 import { useAboutMedia } from "@/lib/use-homepage-media";
 
 

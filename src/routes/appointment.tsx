@@ -14,7 +14,7 @@ import {
 } from "@/components/site/PreferredContactPicker";
 
 import { Section } from "@/components/site/Section";
-import { useLanguage } from "@/i18n/LanguageProvider";
+import { useLanguage } from "@/i18n/language-context";
 import { dateAvailability, useAppointmentSettings, useEffectiveAppointmentPage } from "@/lib/appointments";
 import { logWebsiteBooking } from "@/lib/bookings-db";
 import { cn } from "@/lib/utils";

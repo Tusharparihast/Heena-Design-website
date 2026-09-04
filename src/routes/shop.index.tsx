@@ -5,7 +5,7 @@ import { Section } from "@/components/site/Section";
 import { MehndiPattern } from "@/components/site/MehndiPattern";
 import { DiscountBadge, ShopPrice } from "@/components/shop/DiscountBadge";
 import { StockBadge } from "@/components/shop/StockBadge";
-import { useLanguage } from "@/i18n/LanguageProvider";
+import { useLanguage } from "@/i18n/language-context";
 import { useCart } from "@/lib/cart";
 import { toast } from "sonner";
 import { type ShopProduct } from "@/lib/shop";

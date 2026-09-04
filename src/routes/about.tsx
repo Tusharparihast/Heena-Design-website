@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Section, SectionHeading } from "@/components/site/Section";
 import { SectionDivider } from "@/components/site/SectionDivider";
 import { Button } from "@/components/ui/button";
-import { useLanguage } from "@/i18n/LanguageProvider";
+import { useLanguage } from "@/i18n/language-context";
 import { pickLang, pickList, useAboutContent } from "@/lib/about-content";
 import { site } from "@/lib/site";
 import { useVideoSrc } from "@/lib/use-video-src";

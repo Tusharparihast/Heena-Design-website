@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { GalleryBrowser } from "@/components/gallery/GalleryBrowser";
 import { Reveal } from "@/components/site/Reveal";
-import { useLanguage } from "@/i18n/LanguageProvider";
+import { useLanguage } from "@/i18n/language-context";
 import {
   useEffectiveGalleryCategories,
   useEffectiveGalleryItems,
