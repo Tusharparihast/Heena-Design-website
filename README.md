@@ -88,7 +88,7 @@ supabase/
 
 ## 📄 License
 
-No open-source license has been chosen yet — please don't assume this code is free to reuse until one is added.
+This project is licensed under the [MIT License](./LICENSE).
 
 ---
 
