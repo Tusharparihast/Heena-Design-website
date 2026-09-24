@@ -36,17 +36,23 @@ export function SeoTagsInjector() {
 
     upsertMeta("name", "google-site-verification", settings.seoSearchConsoleVerification);
 
-    if (settings.seoGaMeasurementId && !document.getElementById("ga-gtag-script")) {
+    const gaId = settings.seoGaMeasurementId.trim();
+    // Only accept real Google tag IDs (e.g. G-XXXXXXX); never build script text from raw input.
+    if (/^(G|GT|AW|UA)-[A-Z0-9-]{4,20}$/i.test(gaId) && !document.getElementById("ga-gtag-script")) {
       const script1 = document.createElement("script");
       script1.id = "ga-gtag-script";
       script1.async = true;
-      script1.src = `https://www.googletagmanager.com/gtag/js?id=${settings.seoGaMeasurementId}`;
+      script1.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaId)}`;
       document.head.appendChild(script1);
 
-      const script2 = document.createElement("script");
-      script2.id = "ga-gtag-init";
-      script2.innerHTML = `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${settings.seoGaMeasurementId}');`;
-      document.head.appendChild(script2);
+      const w = window as unknown as { dataLayer: unknown[]; gtag: (...args: unknown[]) => void };
+      w.dataLayer = w.dataLayer || [];
+      w.gtag = function gtag() {
+        // eslint-disable-next-line prefer-rest-params
+        w.dataLayer.push(arguments);
+      };
+      w.gtag("js", new Date());
+      w.gtag("config", gaId);
     }
   }, [loaded, settings]);
 
