@@ -3,7 +3,7 @@ import { Phone, QrCode, X } from "lucide-react";
 import { WeChatIcon, WhatsAppIcon } from "@/components/site/BrandIcons";
 import { useWeChatQr } from "@/components/site/WeChatQr";
 import { useLanguage } from "@/i18n/language-context";
-import { site } from "@/lib/site";
+import { useContactInfo, waLink } from "@/lib/contact-info";
 
 /**
  * Floating WeChat contact widget, fixed to the bottom-right corner.
@@ -13,9 +13,10 @@ import { site } from "@/lib/site";
  */
 export function FloatingWeChat() {
   const { t } = useLanguage();
+  const c = useContactInfo();
   const [open, setOpen] = useState(false);
   const [visible, setVisible] = useState(false);
-  const { openQr, overlay } = useWeChatQr(site.wechatId);
+  const { openQr, overlay } = useWeChatQr(c.wechatId);
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -59,7 +60,7 @@ export function FloatingWeChat() {
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold">{t.wechatWidget.title}</p>
-              <p className="truncate text-xs text-muted-foreground">{site.name}</p>
+              <p className="truncate text-xs text-muted-foreground">Nagma Designs</p>
             </div>
             <button
               type="button"
@@ -83,7 +84,7 @@ export function FloatingWeChat() {
                 <span className="block text-[11px] tracking-wide text-muted-foreground uppercase">
                   {t.wechatWidget.idLabel}
                 </span>
-                <span className="block text-sm font-medium">{site.wechatId}</span>
+                <span className="block text-sm font-medium">{c.wechatId}</span>
               </span>
               <span className="inline-flex items-center gap-1 rounded-full bg-wechat/15 px-2.5 py-1 text-xs font-medium text-foreground">
                 <QrCode className="h-3 w-3" aria-hidden />
@@ -92,7 +93,7 @@ export function FloatingWeChat() {
             </button>
 
             <a
-              href={`https://wa.me/${site.whatsapp.replace(/[^0-9]/g, "")}`}
+              href={waLink(c.whatsapp)}
               target="_blank"
               rel="noreferrer"
               className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm transition-colors hover:bg-accent/40"
@@ -102,7 +103,7 @@ export function FloatingWeChat() {
             </a>
 
             <a
-              href={`tel:${site.phone}`}
+              href={`tel:${c.phone}`}
               className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm transition-colors hover:bg-accent/40"
             >
               <Phone className="h-5 w-5 text-primary" aria-hidden />
