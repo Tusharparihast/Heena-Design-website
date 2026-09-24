@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Visitors can upload reference images" ON storage.objects;
