@@ -16,9 +16,8 @@ import { Section } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/language-context";
 import { logWebsiteBooking } from "@/lib/bookings-db";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
 import { dateAvailability, useAppointmentSettings, useEffectiveAppointmentPage } from "@/lib/appointments";
-import { signReferenceUpload } from "@/lib/design-refs.functions";
+import { createReferenceUpload, signReferenceUpload } from "@/lib/design-refs.functions";
 
 const title = "Custom Mehndi Design Requests — Weddings & Events | Nagma Designs";
 const description =
