@@ -55,9 +55,12 @@ async function uploadReferenceImages(items: { file: File }[]): Promise<{ paths: 
         .pop()
         ?.toLowerCase()
         .replace(/[^a-z0-9]/g, "") || "jpg";
-    const path = `${crypto.randomUUID()}.${ext}`;
-    const { error } = await supabase.storage.from("custom-design-refs").upload(path, file);
-    if (error) continue;
+    // Server mints the path + one-time signed upload URL; the bucket has
+    // no anonymous insert policy.
+    const { path, url: uploadUrl } = await createReferenceUpload({ data: { ext } });
+    if (!path || !uploadUrl) continue;
+    const res = await fetch(uploadUrl, { method: "PUT", body: file });
+    if (!res.ok) continue;
     paths.push(path);
     try {
       const { url } = await signReferenceUpload({ data: { path } });
