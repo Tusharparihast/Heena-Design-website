@@ -60,7 +60,7 @@ export function FloatingWeChat() {
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-semibold">{t.wechatWidget.title}</p>
-              <p className="truncate text-xs text-muted-foreground">{site.name}</p>
+              <p className="truncate text-xs text-muted-foreground">{c.name}</p>
             </div>
             <button
               type="button"
