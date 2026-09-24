@@ -5,11 +5,12 @@ import { MehndiPattern } from "@/components/site/MehndiPattern";
 import { useLanguage } from "@/i18n/language-context";
 import { useHeroMedia } from "@/lib/use-homepage-media";
 import { useVideoSrc } from "@/lib/use-video-src";
-import { site } from "@/lib/site";
+import { useContactInfo } from "@/lib/contact-info";
 
 
 export function Hero() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
+  const contact = useContactInfo();
   const { videoUrl, posterUrl, imageUrl, imageMode } = useHeroMedia();
   // Only fetch the clip on capable connections — poster image is the fallback.
   const [playVideo, setPlayVideo] = useState(false);
@@ -76,7 +77,7 @@ export function Hero() {
             </Link>
           </div>
           <p className="mt-6 text-xs text-muted-foreground">
-            {site.city} · {site.hours}
+            {locale === "zh" ? contact.cityZh : contact.cityEn} · {locale === "zh" ? contact.hoursZh : contact.hoursEn}
           </p>
         </div>
 

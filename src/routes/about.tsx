@@ -98,6 +98,7 @@ function BehindTheScenesVideo({
 function AboutPage() {
   const { locale } = useLanguage();
   const { about } = useAboutContent();
+  const contact = useContactInfo();
   const pick = (en: string, zh: string) => pickLang(en, zh, locale);
 
   return (
