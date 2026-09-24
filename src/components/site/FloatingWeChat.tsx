@@ -3,7 +3,7 @@ import { Phone, QrCode, X } from "lucide-react";
 import { WeChatIcon, WhatsAppIcon } from "@/components/site/BrandIcons";
 import { useWeChatQr } from "@/components/site/WeChatQr";
 import { useLanguage } from "@/i18n/language-context";
-import { site } from "@/lib/site";
+import { useContactInfo, waLink } from "@/lib/contact-info";
 
 /**
  * Floating WeChat contact widget, fixed to the bottom-right corner.

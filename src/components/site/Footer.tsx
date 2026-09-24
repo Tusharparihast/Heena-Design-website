@@ -6,6 +6,7 @@ import { BrandLogo } from "@/components/site/BrandLogo";
 import { useWeChatQr } from "@/components/site/WeChatQr";
 import { useLanguage } from "@/i18n/language-context";
 import { site } from "@/lib/site";
+import { useContactInfo, waLink } from "@/lib/contact-info";
 
 /** Faint four-point mehndi spark used as a background motif. */
 function Motif({ className }: { className?: string }) {
@@ -66,9 +67,12 @@ function ReachButton({
 
 
 export function Footer() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
+  const c = useContactInfo();
+  const city = locale === "zh" ? c.cityZh : c.cityEn;
+  const hours = locale === "zh" ? c.hoursZh : c.hoursEn;
 
-  const { openQr, overlay } = useWeChatQr(site.wechatId);
+  const { openQr, overlay } = useWeChatQr(c.wechatId);
 
   const exploreLinks = [
     { to: "/gallery", label: t.nav.gallery },
@@ -116,7 +120,7 @@ export function Footer() {
             </p>
             <div className="mt-8 flex items-center justify-center gap-2 text-primary">
               <Clock className="h-4 w-4" aria-hidden />
-              <span className="text-xs font-semibold tracking-widest uppercase">{site.hours}</span>
+              <span className="text-xs font-semibold tracking-widest uppercase">{hours}</span>
             </div>
             <div className="mt-8 h-px w-12 bg-foreground/30" aria-hidden />
           </div>
@@ -132,28 +136,28 @@ export function Footer() {
               </ReachButton>
               <ReachButton
                 label={t.contact.whatsapp}
-                href={`https://wa.me/${site.whatsapp.replace(/[^0-9]/g, "")}`}
+                href={waLink(c.whatsapp)}
                 filled="#25D366"
               >
                 <WhatsAppIcon className="h-5 w-5" fill="#ffffff" aria-hidden />
               </ReachButton>
-              <ReachButton label={t.contact.phone} href={`tel:${site.phone}`}>
+              <ReachButton label={t.contact.phone} href={`tel:${c.phone}`}>
                 <Phone className="h-5 w-5" aria-hidden />
               </ReachButton>
-              <ReachButton label={t.contact.instagram} href={site.instagram}>
+              <ReachButton label={t.contact.instagram} href={c.instagram}>
                 <Instagram className="h-5 w-5" aria-hidden />
               </ReachButton>
-              <ReachButton label={t.contact.facebook} href={site.facebook}>
+              <ReachButton label={t.contact.facebook} href={c.facebook}>
                 <Facebook className="h-5 w-5" aria-hidden />
               </ReachButton>
-              <ReachButton label={t.contact.email} href={`mailto:${site.email}`}>
+              <ReachButton label={t.contact.email} href={`mailto:${c.email}`}>
                 <Mail className="h-5 w-5" aria-hidden />
               </ReachButton>
-              <ReachButton label={site.city} href={site.mapUrl}>
+              <ReachButton label={city} href={c.mapUrl}>
                 <MapPin className="h-5 w-5" aria-hidden />
               </ReachButton>
             </div>
-            <p className="mt-6 text-xs tracking-wider text-muted-foreground uppercase">{site.city}</p>
+            <p className="mt-6 text-xs tracking-wider text-muted-foreground uppercase">{city}</p>
           </div>
         </div>
 
