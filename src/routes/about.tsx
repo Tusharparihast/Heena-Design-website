@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/language-context";
 import { pickLang, pickList, useAboutContent } from "@/lib/about-content";
 import { site } from "@/lib/site";
+import { useContactInfo } from "@/lib/contact-info";
 import { useVideoSrc } from "@/lib/use-video-src";
 
 const title = "About Nagma Designs — Mehndi Studio in Maitidevi, Kathmandu";
@@ -137,7 +138,7 @@ function AboutPage() {
             style={{ boxShadow: "var(--shadow-soft)" }}
           />
           <div>
-            <SectionHeading label={site.city} title={pick(about.storyTitleEn, about.storyTitleZh)} />
+            <SectionHeading label={pick(contact.cityEn, contact.cityZh)} title={pick(about.storyTitleEn, about.storyTitleZh)} />
             <div className="mt-4 space-y-4 text-muted-foreground">
               {paragraphs(pick(about.storyBodyEn, about.storyBodyZh)).map((p) => (
                 <p key={p}>{p}</p>
@@ -266,7 +267,7 @@ function AboutPage() {
               </div>
             </dl>
             <Button asChild variant="outline" className="mt-6">
-              <a href={site.mapUrl} target="_blank" rel="noreferrer">
+              <a href={contact.mapUrl} target="_blank" rel="noreferrer">
                 {locale === "zh" ? "在地图中查看" : "Open in Maps"}
               </a>
             </Button>
