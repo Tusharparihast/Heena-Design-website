@@ -17,7 +17,7 @@ import { useLanguage } from "@/i18n/language-context";
 import { logWebsiteBooking } from "@/lib/bookings-db";
 import { cn } from "@/lib/utils";
 import { dateAvailability, useAppointmentSettings, useEffectiveAppointmentPage } from "@/lib/appointments";
-import { createReferenceUpload, signReferenceUpload } from "@/lib/design-refs.functions";
+import { createReferenceUpload } from "@/lib/design-refs.functions";
 
 const title = "Custom Mehndi Design Requests — Weddings & Events | Nagma Designs";
 const description =
@@ -41,12 +41,11 @@ type StyleKey = "traditional" | "modern" | "both";
 
 /**
  * Uploads reference photos to the private Storage bucket and returns
- * long-lived signed links (best-effort). The bucket is not publicly
- * browsable — only the studio can list or open files in it.
+ * their private paths. No public links are ever created — only admins can
+ * open the files, from the dashboard, via short-lived links.
  */
-async function uploadReferenceImages(items: { file: File }[]): Promise<{ paths: string[]; urls: string[] }> {
+async function uploadReferenceImages(items: { file: File }[]): Promise<{ paths: string[] }> {
   const paths: string[] = [];
-  const urls: string[] = [];
   for (const { file } of items) {
     const ext =
       file.name
@@ -61,14 +60,8 @@ async function uploadReferenceImages(items: { file: File }[]): Promise<{ paths: 
     const res = await fetch(uploadUrl, { method: "PUT", body: file });
     if (!res.ok) continue;
     paths.push(path);
-    try {
-      const { url } = await signReferenceUpload({ data: { path } });
-      if (url) urls.push(url);
-    } catch (err) {
-      console.error("signReferenceUpload failed:", err);
-    }
   }
-  return { paths, urls };
+  return { paths };
 }
 
 function CustomDesignPage() {
