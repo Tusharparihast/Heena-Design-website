@@ -12,6 +12,28 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 const PATH = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.[a-z0-9]{2,5}$/;
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
 
+/**
+ * Visitor uploads go through this server function: it picks the random path
+ * and mints a one-time signed upload link with the admin client, so the
+ * bucket needs no anonymous INSERT policy at all.
+ */
+const EXT = /^[a-z0-9]{2,5}$/;
+
+export const createReferenceUpload = createServerFn({ method: "POST" })
+  .inputValidator((data) => z.object({ ext: z.string().regex(EXT) }).parse(data))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const path = `${crypto.randomUUID()}.${data.ext}`;
+    const { data: signed, error } = await supabaseAdmin.storage
+      .from("custom-design-refs")
+      .createSignedUploadUrl(path);
+    if (error || !signed?.signedUrl) {
+      console.error("[createReferenceUpload] failed:", error);
+      return { path: "", url: "" };
+    }
+    return { path, url: signed.signedUrl };
+  });
+
 export const signReferenceUpload = createServerFn({ method: "POST" })
   .inputValidator((data) => z.object({ path: z.string().regex(PATH) }).parse(data))
   .handler(async ({ data }) => {
