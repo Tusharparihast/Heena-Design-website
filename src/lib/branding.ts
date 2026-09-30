@@ -2,7 +2,7 @@
 // Stored as one JSON document in `site_content` under the "branding" key so
 // the studio can swap the logo from the admin dashboard without a deploy.
 
-import defaultLogo from "@/assets/nagma-logo.png.asset.json";
+import defaultLogo from "@/assets/heena-logo.png.asset.json";
 import { saveSiteContent, useSiteContent } from "@/lib/site-content";
 
 export const BRANDING_KEY = "branding";

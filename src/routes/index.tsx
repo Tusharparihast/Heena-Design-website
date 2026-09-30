@@ -11,7 +11,7 @@ import { ContactSection } from "@/components/home/ContactSection";
 import { SectionDivider } from "@/components/site/SectionDivider";
 import { Reveal } from "@/components/site/Reveal";
 
-const title = "Nagma Designs — Bridal Henna & Mehndi Classes in Kathmandu";
+const title = "Heena Designs — Bridal Henna & Mehndi Classes in Kathmandu";
 const description =
   "Traditional and modern mehndi in Maitidevi, Kathmandu. Bridal and festival henna appointments, plus in-person mehndi courses for beginners and professionals.";
 

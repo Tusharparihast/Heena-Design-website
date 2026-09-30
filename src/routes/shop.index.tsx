@@ -13,7 +13,7 @@ import { catLabel, productCopy, toShopProduct, usePublicCatalog, type ProductCop
 import { cn } from "@/lib/utils";
 import { MehndiLoader } from "@/components/site/MehndiLoader";
 
-const title = "Shop Henna Cones, Kits & Practice Tools | Nagma Designs";
+const title = "Shop Henna Cones, Kits & Practice Tools | Heena Designs";
 const description =
   "Buy fresh hand-rolled henna cones, bridal and beginner kits, aftercare oil and practice tools from our mehndi studio in Maitidevi, Kathmandu.";
 

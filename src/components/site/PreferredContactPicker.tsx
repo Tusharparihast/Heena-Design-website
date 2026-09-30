@@ -11,7 +11,7 @@ export const preferredContactLabels: Record<PreferredContact, { en: string; zh: 
   email: { en: "Email", zh: "邮箱" },
 };
 
-/** Per-channel contact details, e.g. { wechat: "nagma_designs" }. */
+/** Per-channel contact details, e.g. { wechat: "heena_designs" }. */
 export type PreferredContactDetails = Partial<Record<PreferredContact, string>>;
 
 const detailLabels: Record<PreferredContact, { en: string; zh: string }> = {
@@ -22,7 +22,7 @@ const detailLabels: Record<PreferredContact, { en: string; zh: string }> = {
 };
 
 const detailPlaceholders: Record<PreferredContact, string> = {
-  wechat: "nagma_designs",
+  wechat: "heena_designs",
   whatsapp: "+977 98XXXXXXXX",
   phone: "+977 98XXXXXXXX",
   email: "you@example.com",

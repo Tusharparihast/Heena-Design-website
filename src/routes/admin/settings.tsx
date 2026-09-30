@@ -25,7 +25,7 @@ import { useCurrentAdmin } from "@/lib/use-current-admin";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/settings")({
-  head: () => ({ meta: [{ title: "Settings — Nagma Designs Admin" }] }),
+  head: () => ({ meta: [{ title: "Settings — Heena Designs Admin" }] }),
   component: AdminSettingsPage,
 });
 
@@ -133,7 +133,7 @@ function SeoSettingsSection() {
           <Input
             value={form.seoTitleSuffix}
             onChange={(e) => setForm({ ...form, seoTitleSuffix: e.target.value })}
-            placeholder="| Nagma Designs"
+            placeholder="| Heena Designs"
             maxLength={80}
             className="mt-1.5"
           />
@@ -270,7 +270,7 @@ function PageSeoSection() {
                 <Input
                   value={value.title}
                   onChange={(e) => update(page.path, { title: e.target.value })}
-                  placeholder={`${page.hint} — Nagma Designs`}
+                  placeholder={`${page.hint} — Heena Designs`}
                   maxLength={120}
                   className="mt-1.5"
                 />

@@ -72,7 +72,7 @@ function ResetPasswordPage() {
               Set a new password
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Nagma Designs studio dashboard
+              Heena Designs studio dashboard
             </p>
           </div>
 

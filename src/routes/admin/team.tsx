@@ -15,7 +15,7 @@ import { MehndiLoader } from "@/components/site/MehndiLoader";
 
 export const Route = createFileRoute("/admin/team")({
   head: () => ({
-    meta: [{ title: "Team & Access — Admin — Nagma Designs" }, { name: "robots", content: "noindex, nofollow" }],
+    meta: [{ title: "Team & Access — Admin — Heena Designs" }, { name: "robots", content: "noindex, nofollow" }],
   }),
   component: AdminTeamPage,
 });
@@ -136,7 +136,7 @@ export function AdminTeamPage() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Full name (e.g. Nagma Sharma)"
+                placeholder="Full name (e.g. Heena Sharma)"
                 className="sm:max-w-sm"
               />
               <Input

@@ -45,7 +45,7 @@ export function AdminSidebar({ collapsed, mobileOpen, onCloseMobile }: AdminSide
         <div className="flex h-16 shrink-0 items-center gap-3 border-b border-sidebar-border px-4">
           <BrandLogo className="h-9 w-9 shrink-0 rounded-full bg-background object-contain" />
           <div className={cn("min-w-0", collapsed && "lg:hidden")}>
-            <p className="truncate font-display text-base font-semibold leading-tight">Nagma Designs</p>
+            <p className="truncate font-display text-base font-semibold leading-tight">Heena Designs</p>
             <p className="text-xs text-muted-foreground">Admin Studio</p>
           </div>
           <button

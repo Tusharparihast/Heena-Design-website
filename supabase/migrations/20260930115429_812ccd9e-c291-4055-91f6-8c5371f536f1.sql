@@ -1,0 +1,1 @@
+UPDATE public.site_content SET data = (data - 'logoUrl') - 'faviconUrl' WHERE key = 'branding';

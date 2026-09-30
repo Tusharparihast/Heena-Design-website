@@ -57,7 +57,7 @@ import { DEFAULT_CATEGORY_IDS, formatNpr } from "@/lib/shop";
 
 export const Route = createFileRoute("/admin/products")({
   head: () => ({
-    meta: [{ title: "Products — Nagma Designs Admin" }],
+    meta: [{ title: "Products — Heena Designs Admin" }],
   }),
   component: AdminProductsPage,
 });

@@ -7,7 +7,7 @@ import {
   useEffectiveGalleryItems,
 } from "@/lib/gallery-overrides";
 
-const title = "Student Mehndi Work — Beginner to Bridal Practice | Nagma Designs";
+const title = "Student Mehndi Work — Beginner to Bridal Practice | Heena Designs";
 const description =
   "See what students have created in our in-person mehndi courses: practice pieces, assessment designs and progress from beginner to bridal work.";
 

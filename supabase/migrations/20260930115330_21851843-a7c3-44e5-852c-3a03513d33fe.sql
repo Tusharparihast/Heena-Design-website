@@ -1,0 +1,1 @@
+UPDATE public.site_content SET data = replace(replace(replace(replace(data::text,'Nagma','Heena'),'NAGMA','HEENA'),'nagmadesigns','heenadesigns'),'nagma','heena')::jsonb WHERE data::text ILIKE '%nagma%';

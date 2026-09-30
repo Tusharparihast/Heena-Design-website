@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin/homepage")({
   head: () => ({
-    meta: [{ title: "Homepage — Nagma Designs Admin" }],
+    meta: [{ title: "Homepage — Heena Designs Admin" }],
   }),
   component: AdminHomepagePage,
 });

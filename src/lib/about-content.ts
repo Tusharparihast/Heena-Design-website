@@ -110,8 +110,8 @@ export interface AboutContent {
 }
 
 export const defaultAbout: AboutContent = {
-  heroTitleEn: "About Nagma Designs",
-  heroTitleZh: "关于 Nagma Designs",
+  heroTitleEn: "About Heena Designs",
+  heroTitleZh: "关于 Heena Designs",
   heroBodyEn:
     "A small home studio in Maitidevi, Kathmandu, where traditional henna is drawn by hand — and taught, cone in hand, to anyone willing to practise.",
   heroBodyZh: "位于加德满都 Maitidevi 的家庭工作室，手绘传统海娜，也一对一教你亲手画出属于自己的图案。",
@@ -120,9 +120,9 @@ export const defaultAbout: AboutContent = {
   storyTitleEn: "Our Story",
   storyTitleZh: "我们的故事",
   storyBodyEn:
-    "Nagma Designs began at a kitchen table, with one cone and a family tradition passed down through festivals and weddings.\nWhat started as designs for neighbours grew into bridal bookings across Kathmandu — and then into classes, when students began asking to learn rather than just be painted.\nToday the studio does both: careful bridal and festival work, and patient teaching for students who want the craft in their own hands.",
+    "Heena Designs began at a kitchen table, with one cone and a family tradition passed down through festivals and weddings.\nWhat started as designs for neighbours grew into bridal bookings across Kathmandu — and then into classes, when students began asking to learn rather than just be painted.\nToday the studio does both: careful bridal and festival work, and patient teaching for students who want the craft in their own hands.",
   storyBodyZh:
-    "Nagma Designs 起源于一张餐桌、一支海娜锥，以及在节日与婚礼中代代相传的家族手艺。\n最初只是为邻居画图案，后来成为加德满都各地新娘的预约，再到开设课程——因为越来越多人想亲手学会。\n如今工作室同时做两件事：细致的新娘与节日海娜，以及耐心的教学。",
+    "Heena Designs 起源于一张餐桌、一支海娜锥，以及在节日与婚礼中代代相传的家族手艺。\n最初只是为邻居画图案，后来成为加德满都各地新娘的预约，再到开设课程——因为越来越多人想亲手学会。\n如今工作室同时做两件事：细致的新娘与节日海娜，以及耐心的教学。",
   storyImageUrl: bridal,
 
   valuesTitleEn: "Our Values",
@@ -191,14 +191,14 @@ export const defaultAbout: AboutContent = {
 
   artistTitleEn: "Meet the Artist",
   artistTitleZh: "认识我们的老师",
-  artistNameEn: "Nagma",
-  artistNameZh: "Nagma",
+  artistNameEn: "Heena",
+  artistNameZh: "Heena",
   artistRoleEn: "Founder & Lead Mehndi Artist",
   artistRoleZh: "创始人 · 主理海娜艺术家",
   artistBodyEn:
-    "Nagma has been drawing henna since childhood and now works with brides, families and students across Kathmandu. She teaches in small groups so every student gets her hand on their line work — in English or with patient, simple Chinese-friendly instruction.",
+    "Heena has been drawing henna since childhood and now works with brides, families and students across Kathmandu. She teaches in small groups so every student gets her hand on their line work — in English or with patient, simple Chinese-friendly instruction.",
   artistBodyZh:
-    "Nagma 自幼学习海娜，如今为加德满都的新娘、家庭与学生服务。课程以小班进行，确保每位学生都能得到手把手指导，并提供中文友好的耐心讲解。",
+    "Heena 自幼学习海娜，如今为加德满都的新娘、家庭与学生服务。课程以小班进行，确保每位学生都能得到手把手指导，并提供中文友好的耐心讲解。",
   artistImageUrl: artistPortrait,
 
   studioTitleEn: "Our Studio",

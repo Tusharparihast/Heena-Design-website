@@ -11,7 +11,7 @@ import { defaultBranding, saveBranding, useBranding, type Branding } from "@/lib
 import { qrFileToDataUrl } from "@/lib/image-upload";
 
 export const Route = createFileRoute("/admin/branding")({
-  head: () => ({ meta: [{ title: "Logo & Branding — Nagma Designs Admin" }] }),
+  head: () => ({ meta: [{ title: "Logo & Branding — Heena Designs Admin" }] }),
   component: AdminBrandingPage,
 });
 
