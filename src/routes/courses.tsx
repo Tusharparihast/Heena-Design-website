@@ -5,7 +5,7 @@ import { MehndiPattern } from "@/components/site/MehndiPattern";
 import { useLanguage } from "@/i18n/language-context";
 import { useCoursesNote, useEffectiveCourses } from "@/lib/courses-overrides";
 
-const title = "Mehndi Courses in Kathmandu — Beginner to Bridal | Nagma Designs";
+const title = "Mehndi Courses in Kathmandu — Beginner to Bridal | Heena Designs";
 const description =
   "In-person henna courses in Maitidevi, Kathmandu: beginner foundation, bridal intensive and modern Arabic mehndi training with hands-on practice.";
 

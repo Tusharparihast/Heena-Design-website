@@ -74,7 +74,7 @@ function AdminLoginPage() {
               N
             </span>
             <h1 className="mt-4 font-display text-2xl font-bold">Admin sign in</h1>
-            <p className="mt-1 text-sm text-muted-foreground">Nagma Designs studio dashboard</p>
+            <p className="mt-1 text-sm text-muted-foreground">Heena Designs studio dashboard</p>
           </div>
 
           <form onSubmit={(e) => void handleSubmit(e)} className="mt-6 space-y-4">

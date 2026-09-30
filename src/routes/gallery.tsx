@@ -7,7 +7,7 @@ import {
   useEffectiveGalleryItems,
 } from "@/lib/gallery-overrides";
 
-const title = "Mehndi Gallery — Bridal, Arabic & Modern Henna Designs | Nagma Designs";
+const title = "Mehndi Gallery — Bridal, Arabic & Modern Henna Designs | Heena Designs";
 const description =
   "Browse categorised mehndi designs: traditional bridal, Arabic, minimal, festival, floral, finger and feet designs by our Kathmandu studio.";
 

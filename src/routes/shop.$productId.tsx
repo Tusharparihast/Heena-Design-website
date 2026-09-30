@@ -36,7 +36,7 @@ function buildProductJsonLd(p: SeoProduct): string {
     description,
     image,
     sku: p.id,
-    brand: { "@type": "Brand", name: "Nagma Designs" },
+    brand: { "@type": "Brand", name: "Heena Designs" },
     offers: {
       "@type": "Offer",
       url: `${PUBLISHED_ORIGIN}/shop/${p.id}`,
@@ -49,7 +49,7 @@ function buildProductJsonLd(p: SeoProduct): string {
             ? "https://schema.org/LimitedAvailability"
             : "https://schema.org/InStock",
       itemCondition: "https://schema.org/NewCondition",
-      seller: { "@type": "Organization", name: "Nagma Designs" },
+      seller: { "@type": "Organization", name: "Heena Designs" },
     },
   };
   return JSON.stringify(ld);
@@ -69,7 +69,7 @@ export const Route = createFileRoute("/shop/$productId")({
     const fallback = en.shopPage.items.find((i) => i.id === params.productId);
     const p = loaderData;
     const name = p ? (p.nameEn || p.nameZh || fallback?.name) : fallback?.name;
-    const title = name ? `${name} | Nagma Designs Shop` : "Product | Nagma Designs Shop";
+    const title = name ? `${name} | Heena Designs Shop` : "Product | Heena Designs Shop";
     const description =
       (p && (p.bodyEn || p.bodyZh)) ||
       fallback?.body ||

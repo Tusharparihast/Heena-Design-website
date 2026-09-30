@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
 import { dateAvailability, useAppointmentSettings, useEffectiveAppointmentPage } from "@/lib/appointments";
 import { createReferenceUpload } from "@/lib/design-refs.functions";
 
-const title = "Custom Mehndi Design Requests — Weddings & Events | Nagma Designs";
+const title = "Custom Mehndi Design Requests — Weddings & Events | Heena Designs";
 const description =
   "Request a custom henna design for weddings, festivals and private events in Kathmandu. Share references and we will shape the design with you.";
 

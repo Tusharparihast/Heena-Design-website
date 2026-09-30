@@ -1,12 +1,12 @@
 export const site = {
   /** Brand name — easy to change in one place. */
-  name: "Nagma Designs",
-  shortName: "Nagma Designs",
+  name: "Heena Designs",
+  shortName: "Heena Designs",
   city: "Maitidevi, Kathmandu",
   hours: "9:00 AM – 9:00 PM",
   phone: "+977 9700000000",
-  email: "hello@nagmadesigns.com",
-  wechatId: "nagma-designs",
+  email: "hello@heenadesigns.com",
+  wechatId: "heena-designs",
   whatsapp: "+9779700000000",
   instagram: "https://instagram.com/",
   facebook: "https://facebook.com/",

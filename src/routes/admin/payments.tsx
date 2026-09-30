@@ -37,7 +37,7 @@ import {
 } from "@/lib/payments-db";
 
 export const Route = createFileRoute("/admin/payments")({
-  head: () => ({ meta: [{ title: "Payment QR Codes — Nagma Designs Admin" }] }),
+  head: () => ({ meta: [{ title: "Payment QR Codes — Heena Designs Admin" }] }),
   component: AdminPaymentsPage,
 });
 
@@ -285,7 +285,7 @@ function AdminPaymentsPage() {
                 <Input
                   value={form.accountName}
                   onChange={(e) => setForm((p) => ({ ...p, accountName: e.target.value }))}
-                  placeholder="Nagma Designs"
+                  placeholder="Heena Designs"
                   maxLength={100}
                   className="mt-1.5"
                 />

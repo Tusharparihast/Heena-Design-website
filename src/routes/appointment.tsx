@@ -19,7 +19,7 @@ import { dateAvailability, useAppointmentSettings, useEffectiveAppointmentPage }
 import { logWebsiteBooking } from "@/lib/bookings-db";
 import { cn } from "@/lib/utils";
 
-const title = "Book a Mehndi Appointment in Kathmandu | Nagma Designs";
+const title = "Book a Mehndi Appointment in Kathmandu | Heena Designs";
 const description =
   "Book a mehndi appointment at our Maitidevi studio in Kathmandu. Pick a date and time — no design details needed, we plan everything together.";
 

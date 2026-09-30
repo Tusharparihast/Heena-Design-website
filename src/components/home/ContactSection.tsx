@@ -36,7 +36,7 @@ export function ContactSection() {
     },
     { icon: Phone, label: t.contact.phone, value: info.phone, href: `tel:${info.phone}` },
     { icon: Instagram, label: t.contact.instagram, value: "@mehndi", href: info.instagram },
-    { icon: Facebook, label: t.contact.facebook, value: "Nagma Designs", href: info.facebook },
+    { icon: Facebook, label: t.contact.facebook, value: "Heena Designs", href: info.facebook },
     { icon: Mail, label: t.contact.email, value: info.email, href: `mailto:${info.email}` },
   ].filter((c) => c.value);
 

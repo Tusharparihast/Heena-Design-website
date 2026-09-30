@@ -11,7 +11,7 @@ import { site } from "@/lib/site";
 import { useContactInfo } from "@/lib/contact-info";
 import { useVideoSrc } from "@/lib/use-video-src";
 
-const title = "About Nagma Designs — Mehndi Studio in Maitidevi, Kathmandu";
+const title = "About Heena Designs — Mehndi Studio in Maitidevi, Kathmandu";
 const description =
   "A small home studio in Maitidevi, Kathmandu, drawing traditional and modern mehndi and teaching the craft in person, open 9 AM to 9 PM.";
 
