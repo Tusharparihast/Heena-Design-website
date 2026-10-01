@@ -39,18 +39,25 @@ function AdminContactInfoPage() {
     setDirty(true);
   };
 
-  function save() {
+  async function save() {
     if (!form.wechatId.trim() && !form.whatsapp.trim() && !form.phone.trim()) {
       toast.error("Add at least one way for clients to reach you.");
       return;
     }
-    writeContactInfo(form);
+    const ok = await writeContactInfo(form);
+    if (!ok) {
+      toast.error("Couldn't save. Please sign in again and retry.");
+      return;
+    }
     setDirty(false);
     toast.success("Contact information saved — the website is updated.");
   }
 
-  function reset() {
-    resetContactInfo();
+  async function reset() {
+    if (!(await resetContactInfo())) {
+      toast.error("Couldn't reset. Please sign in again and retry.");
+      return;
+    }
     setForm(defaultContactInfo);
     setDirty(false);
     toast.success("Restored the default contact details.");

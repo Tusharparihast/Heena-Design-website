@@ -4,7 +4,7 @@ import { WeChatIcon, WhatsAppIcon } from "@/components/site/BrandIcons";
 import { useWeChatQr } from "@/components/site/WeChatQr";
 import { Section, SectionHeading } from "@/components/site/Section";
 import { useLanguage } from "@/i18n/language-context";
-import { useContactInfo, waLink } from "@/lib/contact-info";
+import { socialHandle, useContactInfo, waLink } from "@/lib/contact-info";
 
 export function ContactSection() {
   const { t, locale } = useLanguage();
@@ -35,8 +35,8 @@ export function ContactSection() {
       href: waLink(info.whatsapp),
     },
     { icon: Phone, label: t.contact.phone, value: info.phone, href: `tel:${info.phone}` },
-    { icon: Instagram, label: t.contact.instagram, value: "@mehndi", href: info.instagram },
-    { icon: Facebook, label: t.contact.facebook, value: "Heena Designs", href: info.facebook },
+    { icon: Instagram, label: t.contact.instagram, value: socialHandle(info.instagram), href: info.instagram },
+    { icon: Facebook, label: t.contact.facebook, value: socialHandle(info.facebook), href: info.facebook },
     { icon: Mail, label: t.contact.email, value: info.email, href: `mailto:${info.email}` },
   ].filter((c) => c.value);
 
