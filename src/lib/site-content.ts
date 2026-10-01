@@ -160,13 +160,13 @@ const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : us
  * callers sanitise into their own shape — plus a `loaded` flag.
  */
 export function useSiteContent(key: string): { doc: Doc; loaded: boolean } {
-  const [state, setState] = useState<{ doc: Doc; loaded: boolean }>(() => {
-    const doc = readSiteContent(key);
-    return {
-      doc,
-      loaded: cache.has(key),
-    };
-  });
+  // The first client render must match the server-rendered HTML, so it always
+  // starts "unloaded" — reading the localStorage mirror here would make the
+  // hydrated tree differ from the server's and crash the page. The layout
+  // effect below applies the mirrored document in the same frame, before
+  // paint, and BrandLogo uses the `--nd-logo-url` boot variable meanwhile,
+  // so there is still no flash of default content.
+  const [state, setState] = useState<{ doc: Doc; loaded: boolean }>({ doc: undefined, loaded: false });
 
   // Layout effect: the mirrored document is applied in the same frame as
   // hydration, so a saved logo/content never flashes its default first.
